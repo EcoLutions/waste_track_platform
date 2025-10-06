@@ -1,14 +1,17 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.swagger;
 
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.request.CreateContainerResource;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.request.UpdateContainerResource;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.response.ContainerResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -26,6 +29,25 @@ public interface ContainerController {
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
     ResponseEntity<ContainerResource> createContainer(CreateContainerResource resource);
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Update container", description = "Updates an existing container in the system.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Container updated successfully."),
+            @ApiResponse(responseCode = "400", description = "Invalid input data."),
+            @ApiResponse(responseCode = "404", description = "Container not found."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<ContainerResource> updateContainer(String id, UpdateContainerResource resource);
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete container", description = "Deletes a container from the system.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Container deleted successfully."),
+            @ApiResponse(responseCode = "404", description = "Container not found."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<Void> deleteContainer(String id);
 
     @GetMapping("/{id}")
     @Operation(summary = "Get container by ID", description = "Retrieves a container by its ID.")

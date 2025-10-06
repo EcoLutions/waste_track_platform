@@ -1,13 +1,17 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.controllers;
 
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.DeleteContainerCommand;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.UpdateContainerCommand;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetAllContainersQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetContainerByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.services.command.ContainerCommandService;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.services.queries.ContainerQueryService;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.request.CreateContainerResource;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.request.UpdateContainerResource;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.response.ContainerResource;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.mappers.fromentitytoresponse.ContainerResourceFromEntityAssembler;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.mappers.fromresourcetocommand.CreateContainerCommandFromResourceAssembler;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.mappers.fromresourcetocommand.UpdateContainerCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.swagger.ContainerController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +39,23 @@ public class ContainerControllerImpl implements ContainerController {
                 .buildAndExpand(containerResource.id())
                 .toUri();
         return ResponseEntity.created(location).body(containerResource);
+    }
+
+    @Override
+    public ResponseEntity<ContainerResource> updateContainer(String id, UpdateContainerResource resource) {
+        var command = UpdateContainerCommandFromResourceAssembler.toCommandFromResource(resource);
+        var updatedContainer = containerCommandService.handle(command);
+        if (updatedContainer.isEmpty()) return ResponseEntity.notFound().build();
+        var containerResource = ContainerResourceFromEntityAssembler.toResourceFromEntity(updatedContainer.get());
+        return ResponseEntity.ok(containerResource);
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteContainer(String id) {
+        var command = new DeleteContainerCommand(id);
+        var result = containerCommandService.handle(command);
+        if (!result) return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build();
     }
 
     @Override
