@@ -21,15 +21,15 @@ public class Driver extends AuditableAbstractAggregateRoot<Driver> {
     private FullName fullName;
 
     @Embedded
-    @Column(nullable = false, unique = true)
+    @AttributeOverride(name = "value", column = @Column(name = "document_number", nullable = false, unique = true))
     private DocumentNumber documentNumber;
 
     @Embedded
-    @Column(nullable = false, unique = true)
+    @AttributeOverride(name = "value", column = @Column(name = "phone_number", nullable = false, unique = true))
     private PhoneNumber phoneNumber;
 
     @Embedded
-    @Column(nullable = false, unique = true)
+    @AttributeOverride(name = "value", column = @Column(name = "user_id", nullable = false, unique = true))
     private UserId userId;
 
     @Embedded
@@ -40,7 +40,7 @@ public class Driver extends AuditableAbstractAggregateRoot<Driver> {
     private LocalDate licenseExpiryDate;
 
     @Embedded
-    @Column(nullable = false, unique = true)
+    @AttributeOverride(name = "value", column = @Column(name = "email_address", nullable = false, unique = true))
     private EmailAddress emailAddress;
 
     private Integer totalHoursWorked;
