@@ -56,14 +56,15 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
     }
 
     public Container(Location location, ContainerCapacity capacity,
-                    ContainerType containerType, DistrictId districtId,
-                    CollectionFrequency collectionFrequency) {
+                     ContainerType containerType, DistrictId districtId,
+                     CollectionFrequency collectionFrequency, SensorId sensorId) {
         this();
         this.location = location;
         this.capacity = capacity;
         this.containerType = containerType;
         this.districtId = districtId;
         this.collectionFrequency = collectionFrequency;
+        this.sensorId = sensorId;
     }
 
     public void updateFillLevel(CurrentFillLevel newLevel, LocalDateTime timestamp) {
