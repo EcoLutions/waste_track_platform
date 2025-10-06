@@ -156,4 +156,8 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
 
         return now.isAfter(scheduledDateTime.plusHours(2));
     }
+
+    public void addWayPoint(WayPoint wayPoint) {
+        this.waypoints.add(wayPoint);
+    }
 }
