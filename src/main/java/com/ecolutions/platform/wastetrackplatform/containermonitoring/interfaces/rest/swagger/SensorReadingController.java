@@ -1,16 +1,14 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.swagger;
 
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.request.CreateSensorReadingResource;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.request.UpdateSensorReadingResource;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.response.SensorReadingResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -28,6 +26,25 @@ public interface SensorReadingController {
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
     ResponseEntity<SensorReadingResource> createSensorReading(CreateSensorReadingResource resource);
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Update sensor reading", description = "Updates an existing sensor reading by its ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Sensor reading updated successfully."),
+            @ApiResponse(responseCode = "404", description = "Sensor reading not found."),
+            @ApiResponse(responseCode = "400", description = "Invalid input data."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<SensorReadingResource> updateSensorReading(@PathVariable String id, UpdateSensorReadingResource resource);
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete sensor reading", description = "Deletes a sensor reading by its ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Sensor reading deleted successfully."),
+            @ApiResponse(responseCode = "404", description = "Sensor reading not found."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<Void> deleteSensorReading(@PathVariable String id);
 
     @GetMapping("/{id}")
     @Operation(summary = "Get sensor reading by ID", description = "Retrieves a sensor reading by its ID.")

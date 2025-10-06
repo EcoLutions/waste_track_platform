@@ -5,9 +5,11 @@ import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.mod
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.services.command.SensorReadingCommandService;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.services.queries.SensorReadingQueryService;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.request.CreateSensorReadingResource;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.request.UpdateSensorReadingResource;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.response.SensorReadingResource;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.mappers.fromentitytoresponse.SensorReadingResourceFromEntityAssembler;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.mappers.fromresourcetocommand.CreateSensorReadingCommandFromResourceAssembler;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.mappers.fromresourcetocommand.UpdateSensorReadingCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.swagger.SensorReadingController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +37,23 @@ public class SensorReadingControllerImpl implements SensorReadingController {
                 .buildAndExpand(sensorReadingResource.id())
                 .toUri();
         return ResponseEntity.created(location).body(sensorReadingResource);
+    }
+
+    @Override
+    public ResponseEntity<SensorReadingResource> updateSensorReading(String id, UpdateSensorReadingResource resource) {
+        var command = UpdateSensorReadingCommandFromResourceAssembler.toCommandFromResource(id, resource);
+        var updatedSensorReading = sensorReadingCommandService.handle(command);
+        if (updatedSensorReading.isEmpty()) return ResponseEntity.notFound().build();
+        var sensorReadingResource = SensorReadingResourceFromEntityAssembler.toResourceFromEntity(updatedSensorReading.get());
+        return ResponseEntity.ok(sensorReadingResource);
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteSensorReading(String id) {
+        var command = new com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.DeleteSensorReadingCommand(id);
+        var result = sensorReadingCommandService.handle(command);
+        if (!result) return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build();
     }
 
     @Override
