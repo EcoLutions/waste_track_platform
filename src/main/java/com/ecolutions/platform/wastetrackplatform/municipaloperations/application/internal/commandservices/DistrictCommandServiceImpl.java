@@ -34,16 +34,22 @@ public class DistrictCommandServiceImpl implements DistrictCommandService {
 
     @Override
     public Optional<District> handle(UpdateDistrictCommand command) {
-        District existingDistrict = districtRepository.findById(command.districtId())
-            .orElseThrow(() -> new IllegalArgumentException("District with ID " + command.districtId() + " not found."));
-
-        // Update fields
-        existingDistrict.setName(command.name());
-        existingDistrict.setCode(command.code());
-        existingDistrict.setBoundaries(command.boundaries());
-        existingDistrict.setPrimaryAdminEmail(command.primaryAdminEmail());
-
         try {
+            District existingDistrict = districtRepository.findById(command.districtId())
+                    .orElseThrow(() -> new IllegalArgumentException("District with ID " + command.districtId() + " not found."));
+
+            if (command.name() != null && !command.name().isBlank()) {
+                existingDistrict.setName(command.name());
+            }
+            if (command.code() != null && !command.code().isBlank()) {
+                existingDistrict.setCode(command.code());
+            }
+            if (command.boundaries() != null && !command.boundaries().boundaryPolygon().isBlank()) {
+                existingDistrict.setBoundaries(command.boundaries());
+            }
+            if (command.primaryAdminEmail() != null && !command.primaryAdminEmail().value().isBlank()) {
+                existingDistrict.setPrimaryAdminEmail(command.primaryAdminEmail());
+            }
             var updatedDistrict = districtRepository.save(existingDistrict);
             return Optional.of(updatedDistrict);
         } catch (Exception e) {
@@ -53,9 +59,10 @@ public class DistrictCommandServiceImpl implements DistrictCommandService {
 
     @Override
     public Boolean handle(DeleteDistrictCommand command) {
-        District existingDistrict = districtRepository.findById(command.districtId())
-            .orElseThrow(() -> new IllegalArgumentException("District with ID " + command.districtId() + " not found."));
         try {
+            District existingDistrict = districtRepository.findById(command.districtId())
+                    .orElseThrow(() -> new IllegalArgumentException("District with ID " + command.districtId() + " not found."));
+
             districtRepository.delete(existingDistrict);
             return true;
         } catch (Exception e) {

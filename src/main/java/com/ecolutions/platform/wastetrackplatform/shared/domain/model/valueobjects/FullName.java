@@ -15,4 +15,12 @@ public record FullName(
             throw new IllegalArgumentException("Last name cannot be null or empty");
         }
     }
+
+    public static String firstNameOrNull(FullName fullName) {
+        return fullName != null ? fullName.firstName : null;
+    }
+
+    public static String lastNameOrNull(FullName fullName) {
+        return fullName != null ? fullName.lastName : null;
+    }
 }

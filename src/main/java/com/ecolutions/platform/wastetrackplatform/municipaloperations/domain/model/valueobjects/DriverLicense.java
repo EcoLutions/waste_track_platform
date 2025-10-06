@@ -17,4 +17,8 @@ public record DriverLicense(String licenseNumber) {
         // 8 digits or 1 letter followed by 7 digits
         return licenseNumber.matches("[A-Za-z]\\d{7}") || licenseNumber.matches("\\d{8}");
     }
+
+    public static String toStringOrNull(DriverLicense license) {
+        return license == null ? null : license.licenseNumber();
+    }
 }

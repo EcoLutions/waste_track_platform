@@ -16,4 +16,8 @@ public enum DriverStatus {
             throw new IllegalArgumentException("Invalid DriverStatus: " + value);
         }
     }
+
+    public static String toStringOrNull(DriverStatus status) {
+        return status == null ? null : status.name();
+    }
 }
