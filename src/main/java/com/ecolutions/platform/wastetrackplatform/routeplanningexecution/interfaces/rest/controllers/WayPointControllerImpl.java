@@ -1,7 +1,9 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.controllers;
 
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.entities.WayPoint;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.queries.GetAllWayPointsQuery;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.queries.GetWayPointByIdQuery;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.queries.GetWayPointsByRouteIdQuery;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.services.command.WayPointCommandService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.services.queries.WayPointQueryService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request.CreateWayPointResource;
@@ -50,9 +52,15 @@ public class WayPointControllerImpl implements WayPointController {
     }
 
     @Override
-    public ResponseEntity<List<WayPointResource>> getAllWayPoints() {
-        var query = new GetAllWayPointsQuery();
-        var wayPoints = wayPointQueryService.handle(query);
+    public ResponseEntity<List<WayPointResource>> getAllWayPoints(String routeId) {
+        var wayPoints = List.<WayPoint>of();
+        if (routeId != null && !routeId.isBlank()) {
+            var query = new GetWayPointsByRouteIdQuery(routeId);
+            wayPoints = wayPointQueryService.handle(query);
+        } else if (routeId == null || routeId.isBlank()) {
+            var query = new GetAllWayPointsQuery();
+            wayPoints = wayPointQueryService.handle(query);
+        }
         var wayPointResources = wayPoints.stream()
                 .map(WayPointResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();

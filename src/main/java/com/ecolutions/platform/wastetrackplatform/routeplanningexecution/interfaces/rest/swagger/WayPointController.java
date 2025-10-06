@@ -43,7 +43,7 @@ public interface WayPointController {
             @ApiResponse(responseCode = "200", description = "WayPoints retrieved successfully."),
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
-    ResponseEntity<List<WayPointResource>> getAllWayPoints();
+    ResponseEntity<List<WayPointResource>> getAllWayPoints(@RequestParam(required = false) String routeId);
 
     @PutMapping("/{id}")
     @Operation(summary = "Update waypoint", description = "Updates an existing waypoint.")
