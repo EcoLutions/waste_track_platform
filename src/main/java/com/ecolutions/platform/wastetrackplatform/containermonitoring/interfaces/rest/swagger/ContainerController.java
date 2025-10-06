@@ -8,11 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -38,7 +34,7 @@ public interface ContainerController {
             @ApiResponse(responseCode = "404", description = "Container not found."),
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
-    ResponseEntity<ContainerResource> updateContainer(String id, UpdateContainerResource resource);
+    ResponseEntity<ContainerResource> updateContainer(@PathVariable String id, UpdateContainerResource resource);
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete container", description = "Deletes a container from the system.")
@@ -47,7 +43,7 @@ public interface ContainerController {
             @ApiResponse(responseCode = "404", description = "Container not found."),
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
-    ResponseEntity<Void> deleteContainer(String id);
+    ResponseEntity<Void> deleteContainer(@PathVariable String id);
 
     @GetMapping("/{id}")
     @Operation(summary = "Get container by ID", description = "Retrieves a container by its ID.")
@@ -56,7 +52,7 @@ public interface ContainerController {
             @ApiResponse(responseCode = "404", description = "Container not found."),
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
-    ResponseEntity<ContainerResource> getContainerById(String id);
+    ResponseEntity<ContainerResource> getContainerById(@PathVariable String id);
 
     @GetMapping()
     @Operation(summary = "Get all containers", description = "Retrieves all containers.")
