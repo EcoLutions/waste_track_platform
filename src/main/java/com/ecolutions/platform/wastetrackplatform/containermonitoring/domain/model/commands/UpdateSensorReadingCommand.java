@@ -1,0 +1,29 @@
+package com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands;
+
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.ContainerId;
+
+public record UpdateSensorReadingCommand(
+    String sensorReadingId,
+    ContainerId containerId,
+    Integer fillLevelPercentage,
+    Double temperatureCelsius,
+    Integer batteryLevelPercentage
+) {
+    public UpdateSensorReadingCommand {
+        if (sensorReadingId == null || sensorReadingId.isBlank()) {
+            throw new IllegalArgumentException("Sensor reading ID cannot be null or blank");
+        }
+        if (containerId == null) {
+            throw new IllegalArgumentException("Container ID cannot be null");
+        }
+        if (fillLevelPercentage != null && (fillLevelPercentage < 0 || fillLevelPercentage > 100)) {
+            throw new IllegalArgumentException("Fill level percentage must be between 0 and 100");
+        }
+        if (temperatureCelsius != null && (temperatureCelsius < -50 || temperatureCelsius > 100)) {
+            throw new IllegalArgumentException("Temperature must be between -50°C and 100°C");
+        }
+        if (batteryLevelPercentage != null && (batteryLevelPercentage < 0 || batteryLevelPercentage > 100)) {
+            throw new IllegalArgumentException("Battery level percentage must be between 0 and 100");
+        }
+    }
+}

@@ -1,10 +1,8 @@
 package com.ecolutions.platform.wastetrackplatform.shared.domain.utils;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Year;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 public final class DateTimeUtils {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
@@ -71,5 +69,12 @@ public final class DateTimeUtils {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static String dateToStringOrNull(Date date) {
+        if (date == null) {
+            return null;
+        }
+        return date.toInstant().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_INSTANT);
     }
 }
