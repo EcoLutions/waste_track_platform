@@ -16,4 +16,8 @@ public enum Language {
             throw new IllegalArgumentException("Invalid Language: " + value);
         }
     }
+
+    public static String toStringOrNull(Language language) {
+        return language != null ? language.name() : null;
+    }
 }

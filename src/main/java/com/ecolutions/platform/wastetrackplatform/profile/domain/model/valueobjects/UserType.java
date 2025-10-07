@@ -1,6 +1,8 @@
 package com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects;
 
 
+import jakarta.validation.constraints.NotNull;
+
 public enum UserType {
     CITIZEN,
     DRIVER,
@@ -16,5 +18,9 @@ public enum UserType {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid UserType: " + value);
         }
+    }
+
+    public static String toStringOrNull(@NotNull UserType userType) {
+        return userType != null ? userType.name() : null;
     }
 }
