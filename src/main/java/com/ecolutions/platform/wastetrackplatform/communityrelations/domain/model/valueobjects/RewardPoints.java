@@ -18,6 +18,10 @@ public record RewardPoints(Integer value) {
         return rewardPoints != null ? rewardPoints.value().toString() : null;
     }
 
+    public static Integer toIntegerOrNull(RewardPoints rewardPoints) {
+        return rewardPoints != null ? rewardPoints.value() : null;
+    }
+
     public RewardPoints add(Integer points) {
         if (points == null || points < 0) {
             throw new IllegalArgumentException("Points to add cannot be null or negative");

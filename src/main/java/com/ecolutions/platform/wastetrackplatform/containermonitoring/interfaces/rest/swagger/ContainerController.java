@@ -24,7 +24,7 @@ public interface ContainerController {
             @ApiResponse(responseCode = "400", description = "Invalid input data."),
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
-    ResponseEntity<ContainerResource> createContainer(CreateContainerResource resource);
+    ResponseEntity<ContainerResource> createContainer(@RequestBody CreateContainerResource resource);
 
     @PutMapping("/{id}")
     @Operation(summary = "Update container", description = "Updates an existing container in the system.")
@@ -34,7 +34,7 @@ public interface ContainerController {
             @ApiResponse(responseCode = "404", description = "Container not found."),
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
-    ResponseEntity<ContainerResource> updateContainer(@PathVariable String id, UpdateContainerResource resource);
+    ResponseEntity<ContainerResource> updateContainer(@PathVariable String id, @RequestBody UpdateContainerResource resource);
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete container", description = "Deletes a container from the system.")
