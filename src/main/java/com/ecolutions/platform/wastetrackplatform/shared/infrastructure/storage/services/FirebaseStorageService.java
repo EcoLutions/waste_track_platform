@@ -138,7 +138,7 @@ public class FirebaseStorageService implements StorageService {
 
     private String buildFilePath(String originalFileName, String folder) {
         String fileExtension = extractFileExtension(originalFileName);
-        String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
+        String uniqueFileName = UUID.randomUUID() + fileExtension;
 
         String sanitizedFolder = folder != null ? folder.toLowerCase().trim() : "general";
         String basePath = firebaseProperties.getStorage().getBasePath();
