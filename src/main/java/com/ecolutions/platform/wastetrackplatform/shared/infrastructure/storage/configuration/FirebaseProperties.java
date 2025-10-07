@@ -14,7 +14,7 @@ public class FirebaseProperties {
     @Data
     public static class Storage {
         private String bucket;
-        private String basePath = "evidences";
+        private String basePath = "wastetrack";
         private Integer urlExpirationHours = 1;
     }
 }
