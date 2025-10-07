@@ -78,11 +78,16 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
         this.isActive = true;
     }
 
-    public UserProfile(UserId userId, UserType userType, EmailAddress email) {
+    public UserProfile(UserId userId, UserType userType, EmailAddress email, PhoneNumber phoneNumber, Language language, String timezone, Photo photo, DistrictId districtId) {
         this();
         this.userId = userId;
         this.userType = userType;
         this.email = email;
+        this.phoneNumber = phoneNumber;
+        this.language = language;
+        this.timezone = timezone;
+        this.photo = photo;
+        this.districtId = districtId;
     }
 
     public void enableNotificationChannel() {
