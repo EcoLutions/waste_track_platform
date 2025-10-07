@@ -22,10 +22,10 @@ public class Evidence extends AuditableModel {
     private EvidenceType type;
 
     @NotBlank
-    private String fileUrl;
+    private String filePath;
 
     @NotBlank
-    private String fileName;
+    private String originalFileName;
 
     private String description;
 
@@ -41,12 +41,12 @@ public class Evidence extends AuditableModel {
         super();
     }
 
-    public Evidence(EvidenceType type, String fileUrl, String fileName,
+    public Evidence(EvidenceType type, String filePath, String originalFileName,
                     String description, Long fileSize, String mimeType) {
         this();
         this.type = type;
-        this.fileUrl = fileUrl;
-        this.fileName = fileName;
+        this.filePath = filePath;
+        this.originalFileName = originalFileName;
         this.description = description;
         this.fileSize = fileSize;
         this.mimeType = mimeType;
