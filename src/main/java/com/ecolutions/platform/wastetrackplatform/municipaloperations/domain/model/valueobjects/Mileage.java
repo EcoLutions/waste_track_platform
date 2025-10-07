@@ -13,4 +13,8 @@ public record Mileage(Integer kilometers) {
     public boolean needsMaintenance() {
         return kilometers > 10000;
     }
+
+    public static Integer toIntegerOrNull(Mileage mileage) {
+        return mileage == null ? null : mileage.kilometers;
+    }
 }

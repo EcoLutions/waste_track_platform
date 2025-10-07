@@ -15,4 +15,8 @@ public enum VehicleType {
             throw new IllegalArgumentException("Invalid VehicleType: " + value);
         }
     }
+
+    public static String toStringOrNull(VehicleType type) {
+        return type == null ? null : type.name();
+    }
 }

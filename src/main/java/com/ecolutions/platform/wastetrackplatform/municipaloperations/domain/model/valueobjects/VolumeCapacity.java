@@ -10,4 +10,8 @@ public record VolumeCapacity(BigDecimal cubicMeters) {
             throw new IllegalArgumentException("Cubic meters must be greater than zero");
         }
     }
+
+    public static String toStringOrNull(VolumeCapacity volumeCapacity) {
+        return volumeCapacity == null ? null : volumeCapacity.cubicMeters.toString();
+    }
 }

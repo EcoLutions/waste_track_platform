@@ -9,4 +9,8 @@ public record WeightCapacity(Integer kilograms) {
             throw new IllegalArgumentException("Kilograms must be greater than zero");
         }
     }
+
+    public static Integer toIntegerOrNull(WeightCapacity weightCapacity) {
+        return weightCapacity == null ? null : weightCapacity.kilograms;
+    }
 }
