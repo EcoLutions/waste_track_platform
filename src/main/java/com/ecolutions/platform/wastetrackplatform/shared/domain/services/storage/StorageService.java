@@ -1,4 +1,4 @@
-package com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.storage;
+package com.ecolutions.platform.wastetrackplatform.shared.domain.services.storage;
 
 import org.springframework.web.multipart.MultipartFile;
 

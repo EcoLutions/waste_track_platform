@@ -1,4 +1,4 @@
-package com.ecolutions.platform.wastetrackplatform.communityrelations.infrastructure.storage.configuration;
+package com.ecolutions.platform.wastetrackplatform.shared.infrastructure.storage.configuration;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.Storage;
