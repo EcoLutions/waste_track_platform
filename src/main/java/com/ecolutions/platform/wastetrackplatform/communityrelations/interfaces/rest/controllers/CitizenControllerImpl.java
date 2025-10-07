@@ -13,7 +13,6 @@ import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.mappers.fromresourcetocommand.UpdateCitizenCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.swagger.CitizenController;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -47,7 +46,7 @@ public class CitizenControllerImpl implements CitizenController {
         var citizen = citizenQueryService.handle(query);
         if (citizen.isEmpty()) return ResponseEntity.notFound().build();
         var citizenResource = CitizenResourceFromEntityAssembler.toResourceFromEntity(citizen.get());
-        return ResponseEntity.status(HttpStatus.OK).body(citizenResource);
+        return ResponseEntity.ok(citizenResource);
     }
 
     @Override
@@ -57,7 +56,7 @@ public class CitizenControllerImpl implements CitizenController {
         var citizenResources = citizens.stream()
                 .map(CitizenResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
-        return ResponseEntity.status(HttpStatus.OK).body(citizenResources);
+        return ResponseEntity.ok(citizenResources);
     }
 
     @Override
@@ -66,7 +65,7 @@ public class CitizenControllerImpl implements CitizenController {
         var updatedCitizen = citizenCommandService.handle(command);
         if (updatedCitizen.isEmpty()) return ResponseEntity.badRequest().build();
         var citizenResource = CitizenResourceFromEntityAssembler.toResourceFromEntity(updatedCitizen.get());
-        return ResponseEntity.status(HttpStatus.OK).body(citizenResource);
+        return ResponseEntity.ok(citizenResource);
     }
 
     @Override

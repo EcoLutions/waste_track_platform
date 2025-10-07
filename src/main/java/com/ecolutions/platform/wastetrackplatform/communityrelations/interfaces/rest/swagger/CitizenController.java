@@ -25,7 +25,7 @@ public interface CitizenController {
             @ApiResponse(responseCode = "400", description = "Invalid input data."),
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
-    ResponseEntity<CitizenResource> createCitizen(CreateCitizenResource resource);
+    ResponseEntity<CitizenResource> createCitizen(@RequestBody CreateCitizenResource resource);
 
     @GetMapping("/{id}")
     @Operation(summary = "Get citizen by ID", description = "Retrieves a citizen by its ID.")
