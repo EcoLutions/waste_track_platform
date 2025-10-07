@@ -1,7 +1,6 @@
 package com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.valueobjects;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 
 public enum ReportStatus {
     SUBMITTED,
@@ -62,5 +61,9 @@ public enum ReportStatus {
 
     public boolean requiresResolver() {
         return this == RESOLVED || this == REJECTED;
+    }
+
+    public static String toStringOrNull(ReportStatus reportStatus) {
+        return reportStatus != null ? reportStatus.name() : null;
     }
 }

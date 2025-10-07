@@ -42,4 +42,8 @@ public enum ReportType {
             case OTHER -> 1;
         };
     }
+
+    public static String toStringOrNull(ReportType reportType) {
+        return reportType != null ? reportType.name() : null;
+    }
 }
