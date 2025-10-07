@@ -1,5 +1,6 @@
 package com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.entities.Evidence;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.valueobjects.ReportStatus;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.valueobjects.ReportType;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
@@ -12,6 +13,9 @@ import lombok.Setter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -53,6 +57,10 @@ public class Report extends AuditableAbstractAggregateRoot<Report> {
     private LocalDateTime submittedAt;
 
     private LocalDateTime acknowledgedAt;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    @JoinColumn(name = "report_id")
+    private Set<Evidence> evidences = new HashSet<>();
 
     public Report() {
         super();
@@ -146,5 +154,56 @@ public class Report extends AuditableAbstractAggregateRoot<Report> {
         }
 
         return Duration.between(startTime, LocalDateTime.now()).compareTo(maxTime) > 0;
+    }
+
+    public void addEvidence(Evidence evidence) {
+        if (evidence == null) {
+            throw new IllegalArgumentException("Evidence cannot be null");
+        }
+
+        this.evidences.add(evidence);
+    }
+
+    public void removeEvidence(Evidence evidence) {
+        if (evidence == null) {
+            throw new IllegalArgumentException("Evidence cannot be null");
+        }
+        if (!this.evidences.contains(evidence)) {
+            throw new IllegalArgumentException("Evidence does not belong to this report");
+        }
+
+        this.evidences.remove(evidence);
+    }
+
+    public Set<Evidence> getEvidences() {
+        return new HashSet<>(this.evidences);
+    }
+
+    public List<Evidence> getPhotos() {
+        return this.evidences.stream()
+                .filter(Evidence::isImage)
+                .toList();
+    }
+
+    public List<Evidence> getVideos() {
+        return this.evidences.stream()
+                .filter(Evidence::isVideo)
+                .toList();
+    }
+
+    public boolean hasEvidence() {
+        return !this.evidences.isEmpty();
+    }
+
+    public int getEvidenceCount() {
+        return this.evidences.size();
+    }
+
+    public boolean hasPhotos() {
+        return this.evidences.stream().anyMatch(Evidence::isImage);
+    }
+
+    public boolean hasVideos() {
+        return this.evidences.stream().anyMatch(Evidence::isVideo);
     }
 }
