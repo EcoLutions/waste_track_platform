@@ -25,25 +25,20 @@ public class NotificationRequestCommandServiceImpl implements NotificationReques
     @Override
     public Optional<NotificationRequest> handle(CreateNotificationRequestCommand command) {
         try {
-            // Convert string enums to enum objects
             SourceContext sourceContext = SourceContext.fromString(command.sourceContext());
             RecipientType recipientType = RecipientType.fromString(command.recipientType());
             MessageType messageType = MessageType.fromString(command.messageType());
             NotificationPriority priority = NotificationPriority.fromString(command.priority());
 
-            // Convert string channels to enum objects
             List<NotificationChannel> channels = new ArrayList<>();
             for (String channelStr : command.channels()) {
                 channels.add(NotificationChannel.fromString(channelStr));
             }
-
-            // Create value objects
             RecipientId recipientId = RecipientId.of(command.recipientId());
             EmailAddress recipientEmail = new EmailAddress(command.recipientEmail());
             PhoneNumber recipientPhone = new PhoneNumber(command.recipientPhone());
             TemplateId templateId = TemplateId.of(command.templateId());
 
-            // Create the notification request
             NotificationRequest notificationRequest = new NotificationRequest(
                 sourceContext,
                 recipientId,
@@ -74,31 +69,56 @@ public class NotificationRequestCommandServiceImpl implements NotificationReques
                 .findById(command.notificationRequestId())
                 .orElseThrow(() -> new IllegalArgumentException("NotificationRequest with ID " + command.notificationRequestId() + " not found."));
 
-            // Convert string enums to enum objects
-            SourceContext sourceContext = SourceContext.fromString(command.sourceContext());
-            RecipientType recipientType = RecipientType.fromString(command.recipientType());
-            MessageType messageType = MessageType.fromString(command.messageType());
-            NotificationPriority priority = NotificationPriority.fromString(command.priority());
-
-            // Convert string channels to enum objects
-            List<NotificationChannel> channels = new ArrayList<>();
-            for (String channelStr : command.channels()) {
-                channels.add(NotificationChannel.fromString(channelStr));
+            if (command.sourceContext() != null) {
+                existingNotificationRequest.setSourceContext(SourceContext.fromString(command.sourceContext()));
             }
 
-            // Update fields
-            existingNotificationRequest.setSourceContext(sourceContext);
-            existingNotificationRequest.setRecipientId(RecipientId.of(command.recipientId()));
-            existingNotificationRequest.setRecipientType(recipientType);
-            existingNotificationRequest.setRecipientEmail(new EmailAddress(command.recipientEmail()));
-            existingNotificationRequest.setRecipientPhone(new PhoneNumber(command.recipientPhone()));
-            existingNotificationRequest.setMessageType(messageType);
-            existingNotificationRequest.setTemplateId(TemplateId.of(command.templateId()));
-            existingNotificationRequest.setTemplateData(command.templateData());
-            existingNotificationRequest.setChannels(channels);
-            existingNotificationRequest.setPriority(priority);
-            existingNotificationRequest.setScheduledFor(command.scheduledFor());
-            existingNotificationRequest.setExpiresAt(command.expiresAt());
+            if (command.recipientId() != null) {
+                existingNotificationRequest.setRecipientId(RecipientId.of(command.recipientId()));
+            }
+
+            if (command.recipientType() != null) {
+                existingNotificationRequest.setRecipientType(RecipientType.fromString(command.recipientType()));
+            }
+
+            if (command.recipientEmail() != null) {
+                existingNotificationRequest.setRecipientEmail(new EmailAddress(command.recipientEmail()));
+            }
+
+            if (command.recipientPhone() != null) {
+                existingNotificationRequest.setRecipientPhone(new PhoneNumber(command.recipientPhone()));
+            }
+
+            if (command.messageType() != null) {
+                existingNotificationRequest.setMessageType(MessageType.fromString(command.messageType()));
+            }
+
+            if (command.templateId() != null) {
+                existingNotificationRequest.setTemplateId(TemplateId.of(command.templateId()));
+            }
+
+            if (command.templateData() != null) {
+                existingNotificationRequest.setTemplateData(command.templateData());
+            }
+
+            if (command.channels() != null) {
+                existingNotificationRequest.setChannels(new ArrayList<>());
+                for (String channelStr : command.channels()) {
+                    existingNotificationRequest.addChannel(NotificationChannel.fromString(channelStr));
+                }
+            }
+
+            if (command.priority() != null) {
+                existingNotificationRequest.setPriority(NotificationPriority.fromString(command.priority()));
+            }
+
+            if (command.scheduledFor() != null) {
+                existingNotificationRequest.setScheduledFor(command.scheduledFor());
+            }
+
+            if (command.expiresAt() != null) {
+                existingNotificationRequest.setExpiresAt(command.expiresAt());
+            }
 
             var updatedNotificationRequest = notificationRequestRepository.save(existingNotificationRequest);
             return Optional.of(updatedNotificationRequest);
