@@ -4,7 +4,7 @@ import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.mode
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllEvidencesQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetEvidenceByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.queries.EvidenceQueryService;
-import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.storage.StorageService;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.services.storage.StorageService;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.infrastructure.persistence.jpa.repositories.EvidenceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

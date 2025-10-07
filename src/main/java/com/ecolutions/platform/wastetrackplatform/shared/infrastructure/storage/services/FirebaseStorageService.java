@@ -1,7 +1,7 @@
-package com.ecolutions.platform.wastetrackplatform.communityrelations.infrastructure.storage.services;
+package com.ecolutions.platform.wastetrackplatform.shared.infrastructure.storage.services;
 
-import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.storage.StorageService;
-import com.ecolutions.platform.wastetrackplatform.communityrelations.infrastructure.storage.configuration.FirebaseProperties;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.services.storage.StorageService;
+import com.ecolutions.platform.wastetrackplatform.shared.infrastructure.storage.configuration.FirebaseProperties;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
@@ -138,7 +138,7 @@ public class FirebaseStorageService implements StorageService {
 
     private String buildFilePath(String originalFileName, String folder) {
         String fileExtension = extractFileExtension(originalFileName);
-        String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
+        String uniqueFileName = UUID.randomUUID() + fileExtension;
 
         String sanitizedFolder = folder != null ? folder.toLowerCase().trim() : "general";
         String basePath = firebaseProperties.getStorage().getBasePath();

@@ -1,4 +1,4 @@
-package com.ecolutions.platform.wastetrackplatform.communityrelations.infrastructure.storage.configuration;
+package com.ecolutions.platform.wastetrackplatform.shared.infrastructure.storage.configuration;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -14,7 +14,7 @@ public class FirebaseProperties {
     @Data
     public static class Storage {
         private String bucket;
-        private String basePath = "evidences";
+        private String basePath = "wastetrack";
         private Integer urlExpirationHours = 1;
     }
 }
