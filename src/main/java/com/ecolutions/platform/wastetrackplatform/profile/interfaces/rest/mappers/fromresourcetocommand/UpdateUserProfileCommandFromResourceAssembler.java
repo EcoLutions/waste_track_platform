@@ -12,7 +12,7 @@ public class UpdateUserProfileCommandFromResourceAssembler {
     public static UpdateUserProfileCommand toCommandFromResource(String userProfileId, UpdateUserProfileResource resource) {
         return new UpdateUserProfileCommand(
             userProfileId,
-            resource.photoUrl(),
+            resource.photoPath(),
             UserType.fromString(resource.userType()),
             DistrictId.of(resource.districtId()),
             EmailAddress.of(resource.email()),

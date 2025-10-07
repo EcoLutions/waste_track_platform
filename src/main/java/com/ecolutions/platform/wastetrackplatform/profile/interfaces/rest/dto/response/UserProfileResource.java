@@ -6,7 +6,7 @@ import lombok.Builder;
 public record UserProfileResource(
     String id,
     String userId,
-    String photoUrl,
+    String photoPath,
     String userType,
     String districtId,
     String email,
@@ -17,6 +17,7 @@ public record UserProfileResource(
     String language,
     String timezone,
     Boolean isActive,
+    String temporalPhotoUrl,
     String createdAt,
     String updatedAt
 ) {

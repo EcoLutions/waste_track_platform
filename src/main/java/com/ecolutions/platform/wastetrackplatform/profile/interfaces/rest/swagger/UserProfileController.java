@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -25,7 +26,7 @@ public interface UserProfileController {
             @ApiResponse(responseCode = "400", description = "Invalid input data."),
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
-    ResponseEntity<UserProfileResource> createUserProfile(@RequestBody CreateUserProfileResource resource);
+    ResponseEntity<UserProfileResource> createUserProfile(@RequestBody CreateUserProfileResource resource) throws IOException ;
 
     @GetMapping("/{id}")
     @Operation(summary = "Get user profile by ID", description = "Retrieves a user profile by its ID.")
@@ -34,7 +35,7 @@ public interface UserProfileController {
             @ApiResponse(responseCode = "404", description = "UserProfile not found."),
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
-    ResponseEntity<UserProfileResource> getUserProfileById(@PathVariable String id);
+    ResponseEntity<UserProfileResource> getUserProfileById(@PathVariable String id) throws IOException;
 
     @GetMapping()
     @Operation(summary = "Get all user profiles", description = "Retrieves all user profiles.")
@@ -52,7 +53,7 @@ public interface UserProfileController {
             @ApiResponse(responseCode = "400", description = "Invalid input data."),
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
-    ResponseEntity<UserProfileResource> updateUserProfile(@PathVariable String id, @RequestBody UpdateUserProfileResource resource);
+    ResponseEntity<UserProfileResource> updateUserProfile(@PathVariable String id, @RequestBody UpdateUserProfileResource resource) throws IOException;
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete user profile", description = "Deletes a user profile by its ID.")

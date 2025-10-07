@@ -13,7 +13,7 @@ public class CreateUserProfileCommandFromResourceAssembler {
     public static CreateUserProfileCommand toCommandFromResource(CreateUserProfileResource resource) {
         return new CreateUserProfileCommand(
             UserId.of(resource.userId()),
-            resource.photoUrl(),
+            resource.photoPath(),
             UserType.fromString(resource.userType()),
             DistrictId.of(resource.districtId()),
             EmailAddress.of(resource.email()),

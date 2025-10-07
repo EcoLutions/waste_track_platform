@@ -2,7 +2,7 @@ package com.ecolutions.platform.wastetrackplatform.profile.interfaces.rest.dto.r
 
 public record CreateUserProfileResource(
     String userId,
-    String photoUrl,
+    String photoPath,
     String userType,
     String districtId,
     String email,

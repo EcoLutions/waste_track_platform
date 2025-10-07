@@ -12,27 +12,34 @@ import com.ecolutions.platform.wastetrackplatform.profile.interfaces.rest.mapper
 import com.ecolutions.platform.wastetrackplatform.profile.interfaces.rest.mappers.fromresourcetocommand.CreateUserProfileCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.profile.interfaces.rest.mappers.fromresourcetocommand.UpdateUserProfileCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.profile.interfaces.rest.swagger.UserProfileController;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.services.storage.StorageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class UserProfileControllerImpl implements UserProfileController {
     private final UserProfileCommandService userProfileCommandService;
     private final UserProfileQueryService userProfileQueryService;
+    private final StorageService storageService;
 
     @Override
-    public ResponseEntity<UserProfileResource> createUserProfile(CreateUserProfileResource resource) {
+    public ResponseEntity<UserProfileResource> createUserProfile(CreateUserProfileResource resource) throws IOException  {
         var command = CreateUserProfileCommandFromResourceAssembler.toCommandFromResource(resource);
         var createdUserProfile = userProfileCommandService.handle(command);
         if (createdUserProfile.isEmpty()) return ResponseEntity.badRequest().build();
-        var userProfileResource = UserProfileResourceFromEntityAssembler.toResourceFromEntity(createdUserProfile.get());
+        String freshPhotoUrl = storageService.getFileUrl(createdUserProfile.get().getPhoto().filePath());
+        var userProfileResource = UserProfileResourceFromEntityAssembler.toResourceFromEntity(createdUserProfile.get(), freshPhotoUrl);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
                 .path("/{id}")
@@ -42,11 +49,12 @@ public class UserProfileControllerImpl implements UserProfileController {
     }
 
     @Override
-    public ResponseEntity<UserProfileResource> getUserProfileById(String id) {
+    public ResponseEntity<UserProfileResource> getUserProfileById(String id) throws IOException {
         var query = new GetUserProfileByIdQuery(id);
         var userProfile = userProfileQueryService.handle(query);
         if (userProfile.isEmpty()) return ResponseEntity.notFound().build();
-        var userProfileResource = UserProfileResourceFromEntityAssembler.toResourceFromEntity(userProfile.get());
+        String freshPhotoUrl = storageService.getFileUrl(userProfile.get().getPhoto().filePath());
+        var userProfileResource = UserProfileResourceFromEntityAssembler.toResourceFromEntity(userProfile.get(), freshPhotoUrl);
         return ResponseEntity.status(HttpStatus.OK).body(userProfileResource);
     }
 
@@ -55,17 +63,26 @@ public class UserProfileControllerImpl implements UserProfileController {
         var query = new GetAllUserProfilesQuery();
         var userProfiles = userProfileQueryService.handle(query);
         var userProfileResources = userProfiles.stream()
-                .map(UserProfileResourceFromEntityAssembler::toResourceFromEntity)
-                .toList();
+                .map(userProfile -> {
+                    try {
+                        String freshPhotoUrl = storageService.getFileUrl(userProfile.getPhoto().filePath());
+                        return UserProfileResourceFromEntityAssembler.toResourceFromEntity(userProfile, freshPhotoUrl);
+                    } catch (IOException e) {
+                        log.warn("Could not generate photo URL for user profile {}: {}", userProfile.getId(), e.getMessage());
+                        return UserProfileResourceFromEntityAssembler.toResourceFromEntity(userProfile, null);
+                    }
+                })
+                .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(userProfileResources);
     }
 
     @Override
-    public ResponseEntity<UserProfileResource> updateUserProfile(String id, UpdateUserProfileResource resource) {
+    public ResponseEntity<UserProfileResource> updateUserProfile(String id, UpdateUserProfileResource resource) throws IOException {
         var command = UpdateUserProfileCommandFromResourceAssembler.toCommandFromResource(id, resource);
         var updatedUserProfile = userProfileCommandService.handle(command);
         if (updatedUserProfile.isEmpty()) return ResponseEntity.notFound().build();
-        var userProfileResource = UserProfileResourceFromEntityAssembler.toResourceFromEntity(updatedUserProfile.get());
+        String freshPhotoUrl = storageService.getFileUrl(updatedUserProfile.get().getPhoto().filePath());
+        var userProfileResource = UserProfileResourceFromEntityAssembler.toResourceFromEntity(updatedUserProfile.get(), freshPhotoUrl);
         return ResponseEntity.status(HttpStatus.OK).body(userProfileResource);
     }
 
