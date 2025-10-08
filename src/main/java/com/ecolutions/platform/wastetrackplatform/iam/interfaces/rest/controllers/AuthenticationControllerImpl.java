@@ -1,6 +1,8 @@
 package com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.controllers;
 
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.queries.GetCurrentUserQuery;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.services.UserCommandService;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.services.UserQueryService;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.request.SignInResource;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.request.SignUpResource;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.response.AuthenticatedUserResource;
@@ -20,6 +22,7 @@ import java.net.URI;
 @RequiredArgsConstructor
 public class AuthenticationControllerImpl implements AuthenticationController {
     private final UserCommandService userCommandService;
+    private final UserQueryService userQueryService;
 
     @Override
     public ResponseEntity<UserResource> signUp(SignUpResource resource) {
@@ -39,5 +42,14 @@ public class AuthenticationControllerImpl implements AuthenticationController {
         var authenticatedUser = authenticatedUserResult.get();
         var authenticatedUserResource = AuthenticatedUserResourceFromEntityAssembler.toResourceFromEntity(authenticatedUser.left, authenticatedUser.right);
         return ResponseEntity.ok(authenticatedUserResource);
+    }
+
+    @Override
+    public ResponseEntity<UserResource> getCurrentUser() {
+        var query = new GetCurrentUserQuery();
+        var user = userQueryService.handle(query);
+        if (user.isEmpty()) return ResponseEntity.notFound().build();
+        var userResource = UserResourceFromEntityAssembler.toResourceFromEntity(user.get());
+        return ResponseEntity.ok(userResource);
     }
 }

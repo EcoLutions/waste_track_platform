@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,4 +36,13 @@ public interface AuthenticationController {
             @ApiResponse(responseCode = "404", description = "User not found.")
     })
     ResponseEntity<AuthenticatedUserResource> signIn(@RequestBody SignInResource resource);
+
+    @GetMapping("/me")
+    @Operation(summary = "Get current user", description = "Get the currently authenticated user information.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Current user retrieved successfully."),
+            @ApiResponse(responseCode = "401", description = "User not authenticated."),
+            @ApiResponse(responseCode = "404", description = "User not found.")
+    })
+    ResponseEntity<UserResource> getCurrentUser();
 }
