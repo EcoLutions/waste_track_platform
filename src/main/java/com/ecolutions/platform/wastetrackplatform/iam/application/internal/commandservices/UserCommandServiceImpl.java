@@ -1,95 +1,49 @@
 package com.ecolutions.platform.wastetrackplatform.iam.application.internal.commandservices;
 
+import com.ecolutions.platform.wastetrackplatform.iam.application.internal.outboundservices.hashing.HashingService;
+import com.ecolutions.platform.wastetrackplatform.iam.application.internal.outboundservices.tokens.TokenService;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.aggregates.User;
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.CreateUserCommand;
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.DeleteUserCommand;
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.UpdateUserCommand;
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.AccountStatus;
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.HashedPassword;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SignInCommand;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SignUpCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.Username;
-import com.ecolutions.platform.wastetrackplatform.iam.domain.services.command.UserCommandService;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.services.UserCommandService;
+import com.ecolutions.platform.wastetrackplatform.iam.infrastructure.persistence.jpa.repositories.RoleRepository;
 import com.ecolutions.platform.wastetrackplatform.iam.infrastructure.persistence.jpa.repositories.UserRepository;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
-import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class UserCommandServiceImpl implements UserCommandService {
     private final UserRepository userRepository;
+    private final HashingService hashingService;
+    private final TokenService tokenService;
+    private final RoleRepository roleRepository;
 
-    @Override
-    public Optional<User> handle(CreateUserCommand command) {
-        try {
-            if (userRepository.existsByUsername(new Username(command.username()))) {
-                throw new IllegalArgumentException("Username already exists");
-            }
-
-            if (userRepository.existsByEmail(new EmailAddress(command.email()))) {
-                throw new IllegalArgumentException("Email already exists");
-            }
-
-            var username = new Username(command.username());
-            var email = new EmailAddress(command.email());
-            var hashedPassword = new HashedPassword(hashPassword(command.password()));
-
-            var newUser = new User(username, email, hashedPassword);
-
-            var savedUser = userRepository.save(newUser);
-            return Optional.of(savedUser);
-
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to create user: " + e.getMessage(), e);
-        }
+    public UserCommandServiceImpl(UserRepository userRepository, HashingService hashingService, TokenService tokenService, RoleRepository roleRepository) {
+        this.userRepository = userRepository;
+        this.hashingService = hashingService;
+        this.tokenService = tokenService;
+        this.roleRepository = roleRepository;
     }
 
     @Override
-    public Optional<User> handle(UpdateUserCommand command) {
-        try {
-            var existingUser = userRepository.findById(command.userId())
-                .orElseThrow(() -> new IllegalArgumentException("User with ID " + command.userId() + " not found."));
-
-            if (!existingUser.getUsername().value().equals(command.username()) &&
-                userRepository.existsByUsername(new Username(command.username()))) {
-                throw new IllegalArgumentException("Username already exists");
-            }
-
-            if (!existingUser.getEmail().value().equals(command.email()) &&
-                userRepository.existsByEmail(new EmailAddress(command.email()))) {
-                throw new IllegalArgumentException("Email already exists");
-            }
-
-            existingUser.setUsername(new Username(command.username()));
-            existingUser.setEmail(new EmailAddress(command.email()));
-            existingUser.setAccountStatus(AccountStatus.valueOf(command.accountStatus()));
-
-            var updatedUser = userRepository.save(existingUser);
-            return Optional.of(updatedUser);
-
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to update user: " + e.getMessage(), e);
-        }
+    public Optional<User> handle(SignUpCommand command) {
+        if (userRepository.existsByUsername(new Username(command.username())))
+            throw new RuntimeException("Username already exists");
+        var roles = command.roles().stream().map(role -> roleRepository.findByName(role.getName()).orElseThrow(() -> new RuntimeException("Role not found"))).toList();
+        var user = new User(command.username(), hashingService.encode(command.password()), roles);
+        userRepository.save(user);
+        return userRepository.findByUsername(new Username(command.username()));
     }
-
     @Override
-    public Boolean handle(DeleteUserCommand command) {
-        try {
-            var existingUser = userRepository.findById(command.userId())
-                .orElseThrow(() -> new IllegalArgumentException("User with ID " + command.userId() + " not found."));
-
-            userRepository.delete(existingUser);
-            return true;
-
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to delete user: " + e.getMessage(), e);
-        }
-    }
-
-    private String hashPassword(String password) {
-        // TODO: Implement actual password hashing using bcrypt or similar
-        // For now, return a placeholder hash
-        return "hashed_" + password;
+    public Optional<ImmutablePair<User, String>> handle(SignInCommand command) {
+        var user = userRepository.findByUsername(new Username(command.username()));
+        if (user.isEmpty()) throw new RuntimeException("User not found");
+        var existingUser = user.get();
+        if(!hashingService.matches(command.password(), existingUser.getPassword().value())) throw new RuntimeException("Invalid password");
+        var token = tokenService.generateToken(existingUser.getUsername().value());
+        return Optional.of(ImmutablePair.of(existingUser, token));
     }
 }
