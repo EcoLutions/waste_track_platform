@@ -1,6 +1,5 @@
 package com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects;
 
-
 public enum AccountStatus {
     ACTIVE,
     LOCKED,
