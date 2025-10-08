@@ -75,7 +75,8 @@ public class TokenServiceImpl implements BearerTokenService {
     @Override
     public String getBearerTokenFrom(HttpServletRequest token) {
         String parameter = getAuthorizationParameterFrom(token);
-        if(isTokenPresentIn(parameter) && isBearerTokenIn(parameter)) return extractTokenFrom(parameter);
+        if(parameter != null && isTokenPresentIn(parameter) && isBearerTokenIn(parameter))
+            return extractTokenFrom(parameter);
         return null;
     }
 

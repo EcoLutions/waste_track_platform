@@ -7,6 +7,7 @@ import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.respon
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping(value = "/api/v1/authentication", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Authentication", description = "Available Authentication Endpoints")
 public interface AuthenticationController {
+    @SecurityRequirements()
     @PostMapping("/sign-up")
     @Operation(summary = "Sign up a new user", description = "Sign up a new user with the provided username, password, and roles.")
     @ApiResponses(value = {
@@ -25,6 +27,7 @@ public interface AuthenticationController {
     })
     ResponseEntity<UserResource> signUp(@RequestBody SignUpResource resource);
 
+    @SecurityRequirements()
     @PostMapping("/sign-in")
     @Operation(summary = "Sign in a user", description = "Sign in a user with the provided username and password.")
     @ApiResponses(value = {
