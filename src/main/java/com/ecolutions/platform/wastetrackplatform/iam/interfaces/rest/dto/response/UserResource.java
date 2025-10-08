@@ -1,6 +1,19 @@
 package com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.response;
 
+import lombok.Builder;
+
 import java.util.List;
 
-public record UserResource(String id, String username, List<String> roles) {
+@Builder
+public record UserResource(
+        String id,
+        String username,
+        String status,
+        Integer failedLoginAttempts,
+        String lastLoginAt,
+        String passwordChangedAt,
+        String createdAt,
+        String updatedAt,
+        List<String> roles
+) {
 }
