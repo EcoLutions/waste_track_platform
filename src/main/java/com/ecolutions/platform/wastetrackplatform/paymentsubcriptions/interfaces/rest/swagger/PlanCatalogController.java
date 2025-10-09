@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequestMapping(value = "/api/v1/plan-catalogs", produces = "application/json")
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+@RequestMapping(value = "/api/v1/plan-catalogs", produces = APPLICATION_JSON_VALUE)
 @Tag(name = "PlanCatalog", description = "Plan Catalog Management Endpoints")
 public interface PlanCatalogController {
 
