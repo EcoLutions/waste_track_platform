@@ -30,4 +30,8 @@ public record Money(
     public static BigDecimal amountOrNull(Money money) {
         return money != null ? money.amount() : null;
     }
+
+    public static String amountAsStringOrNull(Money money) {
+        return money != null ? money.amount().toString() : null;
+    }
 }
