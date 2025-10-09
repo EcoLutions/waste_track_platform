@@ -126,33 +126,39 @@
             <version>${jjwt.version}</version>
             <scope>runtime</scope>
         </dependency>
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.junit.platform</groupId>
-			<artifactId>junit-platform-suite</artifactId>
-			<version>1.10.0</version>
-			<scope>test</scope>
-		</dependency>
-		<!-- Cucumber con JUnit Platform (JUnit 5) -->
-		<dependency>
-			<groupId>io.cucumber</groupId>
-			<artifactId>cucumber-junit-platform-engine</artifactId>
-			<version>7.15.0</version>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter</artifactId>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.junit.platform</groupId>
+          <artifactId>junit-platform-suite</artifactId>
+          <version>1.10.0</version>
+          <scope>test</scope>
+        </dependency>
+        <!-- Cucumber con JUnit Platform (JUnit 5) -->
+        <dependency>
+          <groupId>io.cucumber</groupId>
+          <artifactId>cucumber-junit-platform-engine</artifactId>
+          <version>7.15.0</version>
+          <scope>test</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>io.cucumber</groupId>
-			<artifactId>cucumber-java</artifactId>
-			<version>7.15.0</version>
-			<scope>testing</scope>
-		</dependency>
-	</dependencies>
-
+        <dependency>
+          <groupId>io.cucumber</groupId>
+          <artifactId>cucumber-java</artifactId>
+          <version>7.15.0</version>
+          <scope>testing</scope>
+        </dependency>
+          <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+        <dependency>
+          <groupId>com.h2database</groupId>
+          <artifactId>h2</artifactId>
+          <version>2.3.232</version>
+          <scope>test</scope>
+        </dependency>
+    </dependencies>
 	<build>
 		<plugins>
 			<plugin>
