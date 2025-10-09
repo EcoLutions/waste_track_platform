@@ -1,0 +1,238 @@
+name: CI/CD Pipeline - Waste Track Platform
+
+on:
+  pull_request:
+    branches: [ main ]
+    types: [ opened, synchronize, reopened, closed ]
+  push:
+    branches: [ main ]
+
+env:
+  JAVA_VERSION: '25'
+  IMAGE_NAME: jhosepmyr/waste-track-platform
+
+jobs:
+  test:
+    name: 🧪 Tests & Quality Checks
+    runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: ☕ Setup JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      - name: 🔍 Validate pom.xml
+        run: mvn validate
+
+      - name: 🧪 Run Unit Tests
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: test_db
+          DB_USER: test_user
+          DB_PASS: test_pass
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          FIREBASE_CONFIG: '${{ secrets.FIREBASE_CONFIG }}'
+          FIREBASE_BUCKET: ${{ secrets.FIREBASE_BUCKET }}
+        run: mvn test -B
+        continue-on-error: false
+
+      - name: 🧪 Run Integration Tests
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: test_db
+          DB_USER: test_user
+          DB_PASS: test_pass
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          FIREBASE_CONFIG: '${{ secrets.FIREBASE_CONFIG }}'
+          FIREBASE_BUCKET: ${{ secrets.FIREBASE_BUCKET }}
+        run: mvn verify -DskipUnitTests -B
+        continue-on-error: false
+
+  build-and-push:
+    name: 🐳 Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    if: |
+      (github.event_name == 'pull_request' && 
+       github.event.action == 'closed' && 
+       github.event.pull_request.merged == true) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+
+    outputs:
+      version: ${{ steps.extract-version.outputs.version }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      - name: 🔍 Extract version from pom.xml
+        id: extract-version
+        run: |
+          echo "📋 Extracting version from pom.xml..."
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          echo "✅ Version: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: 🔐 Login to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u jhosepmyr --password-stdin
+
+      - name: 🐳 Build & Push Docker Image
+        run: |
+          echo "🏗️ Building Docker image with Spring Boot buildpacks..."
+          mvn spring-boot:build-image \
+            -DskipTests \
+            -Dspring-boot.build-image.imageName="${{ env.IMAGE_NAME }}:${{ steps.extract-version.outputs.version }}" \
+            -Ddocker.publishRegistry.username=jhosepmyr \
+            -Ddocker.publishRegistry.password="${{ secrets.DOCKER_PASSWORD }}"
+          
+          echo "✅ Image built successfully!"
+          
+          # Tag como latest
+          docker tag "${{ env.IMAGE_NAME }}:${{ steps.extract-version.outputs.version }}" "${{ env.IMAGE_NAME }}:latest"
+          
+          # Push ambos tags
+          echo "📤 Pushing images to Docker Hub..."
+          docker push "${{ env.IMAGE_NAME }}:${{ steps.extract-version.outputs.version }}"
+          docker push "${{ env.IMAGE_NAME }}:latest"
+          
+          echo "✅ Images pushed successfully!"
+
+      - name: 📋 Image Summary
+        run: |
+          echo "### 🐳 Docker Image Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** \`${{ env.IMAGE_NAME }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** \`${{ steps.extract-version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Tags:** " >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.IMAGE_NAME }}:${{ steps.extract-version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.IMAGE_NAME }}:latest\`" >> $GITHUB_STEP_SUMMARY
+
+  deploy-production:
+    name: 🚀 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: http://${{ secrets.PROD_HOST }}
+
+    steps:
+      - name: 🚀 Deploy via SSH (Blue-Green)
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            IMAGE="${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.version }}"
+            
+            echo "🔄 Deploying version: ${{ needs.build-and-push.outputs.version }}"
+            
+            # Pull nueva imagen
+            docker pull $IMAGE
+            
+            # Ejecutar en puerto temporal para testing
+            docker run -d \
+              --name waste-track-new \
+              -p 8081:8080 \
+              --restart unless-stopped \
+              -e SPRING_PROFILES_ACTIVE=prod \
+              -e DB_HOST="${{ secrets.PROD_DATABASE_HOST }}" \
+              -e DB_PORT="${{ secrets.PROD_DATABASE_PORT }}" \
+              -e DB_NAME="${{ secrets.PROD_DATABASE_NAME }}" \
+              -e DB_USER="${{ secrets.PROD_DATABASE_USERNAME }}" \
+              -e DB_PASS="${{ secrets.PROD_DATABASE_PASSWORD }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e FIREBASE_CONFIG="${{ secrets.FIREBASE_CONFIG }}" \
+              -e FIREBASE_BUCKET="${{ secrets.FIREBASE_BUCKET }}" \
+              --memory="1g" \
+              --cpus="2.0" \
+              $IMAGE
+            
+            # Health check del nuevo contenedor
+            echo "⏳ Waiting for new version to start..."
+            sleep 30
+            
+            for i in {1..12}; do
+              if curl -f http://localhost:8081/actuator/health; then
+                echo "✅ New version is healthy!"
+            
+                # Cambiar puerto principal con shutdown graceful
+                docker stop -t 30 waste-track-prod || true
+                docker rm waste-track-prod || true
+                docker stop waste-track-new
+            
+                docker run -d \
+                  --name waste-track-prod \
+                  -p 8080:8080 \
+                  --restart unless-stopped \
+                  -e SPRING_PROFILES_ACTIVE=prod \
+                  -e DB_HOST="${{ secrets.PROD_DATABASE_HOST }}" \
+                  -e DB_PORT="${{ secrets.PROD_DATABASE_PORT }}" \
+                  -e DB_NAME="${{ secrets.PROD_DATABASE_NAME }}" \
+                  -e DB_USER="${{ secrets.PROD_DATABASE_USERNAME }}" \
+                  -e DB_PASS="${{ secrets.PROD_DATABASE_PASSWORD }}" \
+                  -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+                  -e FIREBASE_CONFIG="${{ secrets.FIREBASE_CONFIG }}" \
+                  -e FIREBASE_BUCKET="${{ secrets.FIREBASE_BUCKET }}" \
+                  --memory="1g" \
+                  --cpus="2.0" \
+                  $IMAGE
+            
+                docker rm waste-track-new || true
+            
+                # Limpiar imágenes antiguas (mantener últimas 3)
+                docker images ${{ env.IMAGE_NAME }} --format "{{.ID}}" | tail -n +4 | xargs -r docker rmi || true
+            
+                echo "✅ Deployment successful!"
+                exit 0
+              fi
+              echo "⏳ Attempt $i/12..."
+              sleep 10
+            done
+            
+            # Rollback si falla
+            echo "❌ Health check failed, rolling back..."
+            docker stop waste-track-new || true
+            docker rm waste-track-new || true
+            exit 1
+
+      - name: 🏥 Final Health Check
+        run: |
+          sleep 10
+          curl -f http://${{ secrets.PROD_HOST }}:8080/actuator/health
+          echo "✅ Production is running correctly!"

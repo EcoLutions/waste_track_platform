@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.ecolutions.platform</groupId>
-	<artifactId>wastetrackplatform</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>waste_track_platform</name>
-	<description>waste_track_platform</description>
+	<artifactId>waste-track-platform</artifactId>
+	<version>1.0.0</version>
+	<name>Waste-Track-Platform</name>
+	<description>Waste-Track-Platform</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -27,7 +27,9 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>21</java.version>
+		<java.version>25</java.version>
+        <jjwt.version>0.12.6</jjwt.version>
+        <dockerPassword>dockerPassword</dockerPassword>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -41,6 +43,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
 		<dependency>
@@ -69,8 +75,91 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+		<!-- https://mvnrepository.com/artifact/io.github.encryptorcode/pluralize -->
+		<dependency>
+			<groupId>io.github.encryptorcode</groupId>
+			<artifactId>pluralize</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.8.9</version>
+		</dependency>
+		<!-- Firebase Storage -->
+        <!-- https://mvnrepository.com/artifact/com.google.firebase/firebase-admin -->
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>9.7.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.cloud/google-cloud-storage -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-storage</artifactId>
+            <version>2.58.0</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.13.2</version>
+        </dependency>
 
+        <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter</artifactId>
+          <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.junit.platform</groupId>
+          <artifactId>junit-platform-suite</artifactId>
+          <version>1.10.0</version>
+          <scope>test</scope>
+        </dependency>
+        <!-- Cucumber con JUnit Platform (JUnit 5) -->
+        <dependency>
+          <groupId>io.cucumber</groupId>
+          <artifactId>cucumber-junit-platform-engine</artifactId>
+          <version>7.15.0</version>
+          <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>io.cucumber</groupId>
+          <artifactId>cucumber-java</artifactId>
+          <version>7.15.0</version>
+          <scope>testing</scope>
+        </dependency>
+          <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+        <dependency>
+          <groupId>com.h2database</groupId>
+          <artifactId>h2</artifactId>
+          <version>2.3.232</version>
+          <scope>test</scope>
+        </dependency>
+    </dependencies>
 	<build>
 		<plugins>
 			<plugin>
@@ -99,6 +188,21 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+                    <image>
+                        <builder>paketobuildpacks/builder-jammy-base:latest</builder>
+                        <name>jhosepmyr/${project.artifactId}:${project.version}</name>
+                        <publish>true</publish>
+                        <env>
+                            <BP_JVM_VERSION>25</BP_JVM_VERSION>
+                            <BP_JVM_TYPE>JRE</BP_JVM_TYPE>
+                        </env>
+                    </image>
+                    <docker>
+                        <publishRegistry>
+                            <username>jhosepmyr</username>
+                            <password>${dockerPassword}</password>
+                        </publishRegistry>
+                    </docker>
 				</configuration>
 			</plugin>
 		</plugins>
