@@ -227,7 +227,10 @@ jobs:
             exit 1
 
       - name: 🏥 Final Health Check
+        env:
+          PROD_HOST: ${{ secrets.PROD_HOST }}
         run: |
           sleep 10
-          curl -f http://${{ secrets.PROD_HOST }}:8080/actuator/health
+          # 2. Usa la variable de entorno con la sintaxis normal del shell ($VARIABLE)
+          curl -f "http://$PROD_HOST:8080/actuator/health"
           echo "✅ Production is running correctly!"
