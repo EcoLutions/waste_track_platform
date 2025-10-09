@@ -20,7 +20,6 @@ public class DriverSteps {
 
     @Given("el administrador está autenticado")
     public void el_administrador_esta_autenticado() {
-        // En un test real, se mockea autenticación JWT o se asume válida.
         System.out.println("Administrador autenticado correctamente.");
     }
 
