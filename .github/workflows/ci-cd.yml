@@ -113,7 +113,7 @@ jobs:
       - name: 🐳 Build & Push Docker Image
         run: |
           echo "🏗️ Building Docker image with Spring Boot buildpacks..."
-          run: mvn spring-boot:build-image -DskipTests "-DdockerPassword=${{ secrets.DOCKER_PASSWORD }}"
+          mvn spring-boot:build-image -DskipTests "-DdockerPassword=${{ secrets.DOCKER_PASSWORD }}"
           
           echo "✅ Image built successfully!"
           
