@@ -160,10 +160,14 @@ jobs:
             # Pull nueva imagen
             docker pull $IMAGE
             
-            # Ejecutar en puerto temporal para testing
+            # Detiene y elimina el contenedor actual (si existe)
+            docker stop waste-track-prod || true
+            docker rm waste-track-prod || true
+            
+            # Levanta el nuevo contenedor directamente
             docker run -d \
-              --name waste-track-new \
-              -p 8081:8080 \
+              --name waste-track-prod \
+              -p 8080:8080 \
               --restart unless-stopped \
               -e SPRING_PROFILES_ACTIVE=prod \
               -e DB_HOST="${{ secrets.PROD_DATABASE_HOST }}" \
@@ -177,60 +181,8 @@ jobs:
               --memory="1g" \
               --cpus="2.0" \
               $IMAGE
-            
-            # Health check del nuevo contenedor
-            echo "⏳ Waiting for new version to start..."
-            sleep 30
-            
-            for i in {1..12}; do
-              if curl -f http://localhost:8081/actuator/health; then
-                echo "✅ New version is healthy!"
-            
-                # Cambiar puerto principal con shutdown graceful
-                docker stop -t 30 waste-track-prod || true
-                docker rm waste-track-prod || true
-                docker stop waste-track-new
-            
-                docker run -d \
-                  --name waste-track-prod \
-                  -p 8080:8080 \
-                  --restart unless-stopped \
-                  -e SPRING_PROFILES_ACTIVE=prod \
-                  -e DB_HOST="${{ secrets.PROD_DATABASE_HOST }}" \
-                  -e DB_PORT="${{ secrets.PROD_DATABASE_PORT }}" \
-                  -e DB_NAME="${{ secrets.PROD_DATABASE_NAME }}" \
-                  -e DB_USER="${{ secrets.PROD_DATABASE_USERNAME }}" \
-                  -e DB_PASS="${{ secrets.PROD_DATABASE_PASSWORD }}" \
-                  -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-                  -e FIREBASE_CONFIG="${{ secrets.FIREBASE_CONFIG }}" \
-                  -e FIREBASE_BUCKET="${{ secrets.FIREBASE_BUCKET }}" \
-                  --memory="1g" \
-                  --cpus="2.0" \
-                  $IMAGE
-            
-                docker rm waste-track-new || true
-            
-                # Limpiar imágenes antiguas (mantener últimas 3)
-                docker images ${{ env.IMAGE_NAME }} --format "{{.ID}}" | tail -n +4 | xargs -r docker rmi || true
-            
-                echo "✅ Deployment successful!"
-                exit 0
-              fi
-              echo "⏳ Attempt $i/12..."
-              sleep 10
-            done
-            
-            # Rollback si falla
-            echo "❌ Health check failed, rolling back..."
-            docker stop waste-track-new || true
-            docker rm waste-track-new || true
-            exit 1
-
-      - name: 🏥 Final Health Check
-        env:
-          PROD_HOST: ${{ secrets.PROD_HOST }}
-        run: |
-          sleep 10
-          # 2. Usa la variable de entorno con la sintaxis normal del shell ($VARIABLE)
-          curl -f "http://$PROD_HOST:8080/actuator/health"
-          echo "✅ Production is running correctly!"
+  
+            # Limpieza opcional: elimina imágenes antiguas (mantiene las últimas 3)
+            docker images ${{ env.IMAGE_NAME }} --format "{{.ID}}" | tail -n +4 | xargs -r docker rmi || true
+  
+            echo "✅ Deployment completed successfully!"
