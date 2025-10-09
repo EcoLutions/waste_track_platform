@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.ecolutions.platform</groupId>
-	<artifactId>wastetrackplatform</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>waste_track_platform</name>
-	<description>waste_track_platform</description>
+	<artifactId>waste-track-platform</artifactId>
+	<version>1.0.0</version>
+	<name>Waste-Track-Platform</name>
+	<description>Waste-Track-Platform</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -27,8 +27,9 @@
 		<url/>
 	</scm>
 	<properties>
-		<java.version>22</java.version>
+		<java.version>25</java.version>
         <jjwt.version>0.12.6</jjwt.version>
+        <dockerPassword>dockerPassword</dockerPassword>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -187,6 +188,21 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+                    <image>
+                        <builder>paketobuildpacks/builder-jammy-base:latest</builder>
+                        <name>jhosepmyr/${project.artifactId}:${project.version}</name>
+                        <publish>true</publish>
+                        <env>
+                            <BP_JVM_VERSION>25</BP_JVM_VERSION>
+                            <BP_JVM_TYPE>JRE</BP_JVM_TYPE>
+                        </env>
+                    </image>
+                    <docker>
+                        <publishRegistry>
+                            <username>jhosepmyr</username>
+                            <password>${dockerPassword}</password>
+                        </publishRegistry>
+                    </docker>
 				</configuration>
 			</plugin>
 		</plugins>
