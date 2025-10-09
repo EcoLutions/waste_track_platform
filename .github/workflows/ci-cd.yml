@@ -157,7 +157,17 @@ jobs:
             
             echo "🔄 Deploying version: ${{ needs.build-and-push.outputs.version }}"
             
-            # Pull nueva imagen
+            # --- INICIO DEL BLOQUE DE DEPURACIÓN ---
+            echo "🕵️ --- Debugging Secrets ---"
+            echo "DB_HOST='${{ secrets.PROD_DATABASE_HOST }}'"
+            echo "DB_NAME='${{ secrets.PROD_DATABASE_NAME }}'"
+            echo "DB_USER='${{ secrets.PROD_DATABASE_USERNAME }}'"
+            echo "JWT_SECRET='${{ secrets.JWT_SECRET }}'"
+            echo "FIREBASE_CONFIG='${{ secrets.FIREBASE_CONFIG }}'"
+            echo "FIREBASE_BUCKET='${{ secrets.FIREBASE_BUCKET }}'"
+            echo "🕵️ --- End Debugging ---"
+            # --- FIN DEL BLOQUE DE DEPURACIÓN ---
+            
             docker pull $IMAGE
             
             # Detiene y elimina el contenedor actual (si existe)
