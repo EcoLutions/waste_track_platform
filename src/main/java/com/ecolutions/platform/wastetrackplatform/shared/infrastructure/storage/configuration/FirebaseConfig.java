@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
@@ -24,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @RequiredArgsConstructor
 @EnableConfigurationProperties(FirebaseProperties.class)
+@Profile("!test")
 public class FirebaseConfig {
     private final FirebaseProperties firebaseProperties;
 
