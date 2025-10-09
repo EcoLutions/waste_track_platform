@@ -168,7 +168,7 @@ jobs:
             # Ejecutar en puerto temporal para testing
             docker run -d \
               --name waste-track-new \
-              -p 8080:8080 \
+              -p 8081:8080 \
               --restart unless-stopped \
               -e SPRING_PROFILES_ACTIVE=prod \
               -e DB_HOST="${{ secrets.PROD_DATABASE_HOST }}" \
@@ -188,7 +188,7 @@ jobs:
             sleep 30
             
             for i in {1..12}; do
-              if curl -f http://localhost:8080/actuator/health; then
+              if curl -f http://localhost:8081/actuator/health; then
                 echo "✅ New version is healthy!"
             
                 # Cambiar puerto principal con shutdown graceful
