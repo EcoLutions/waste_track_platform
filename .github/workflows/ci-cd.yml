@@ -148,11 +148,12 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment:
       name: production
-      url: http://${{ secrets.PROD_HOST }}
 
     steps:
       - name: 🚀 Deploy via SSH (Blue-Green)
         uses: appleboy/ssh-action@v1.0.0
+        env:
+          PROD_HOST: ${{ secrets.PROD_HOST }}
         with:
           host: ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
