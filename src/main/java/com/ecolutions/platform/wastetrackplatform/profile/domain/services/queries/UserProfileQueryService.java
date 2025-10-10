@@ -3,6 +3,7 @@ package com.ecolutions.platform.wastetrackplatform.profile.domain.services.queri
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.aggregates.UserProfile;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.queries.GetAllUserProfilesQuery;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.queries.GetUserProfileByIdQuery;
+import com.ecolutions.platform.wastetrackplatform.profile.domain.model.queries.GetUserProfileByUserIdQuery;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,4 +11,5 @@ import java.util.Optional;
 public interface UserProfileQueryService {
     Optional<UserProfile> handle(GetUserProfileByIdQuery query);
     List<UserProfile> handle(GetAllUserProfilesQuery query);
+    Optional<UserProfile> handle(GetUserProfileByUserIdQuery userId);
 }
