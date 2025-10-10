@@ -63,4 +63,13 @@ public interface UserProfileController {
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
     ResponseEntity<Void> deleteUserProfile(@PathVariable String id);
+
+    @GetMapping("/user/{userId}")
+    @Operation(summary = "Get user profile by User ID", description = "Retrieves a user profile by its associated User ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "UserProfile retrieved successfully."),
+            @ApiResponse(responseCode = "404", description = "UserProfile not found."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<UserProfileResource> getUserProfileByUserId(@PathVariable String userId) throws IOException;
 }
