@@ -1,10 +1,12 @@
 package com.ecolutions.platform.wastetrackplatform.communityrelations.application.internal.queryservices;
 
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.aggregates.Citizen;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllCitizensByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetCitizenByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllCitizensQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.queries.CitizenQueryService;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.infrastructure.persistence.jpa.repositories.CitizenRepository;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +33,15 @@ public class CitizenQueryServiceImpl implements CitizenQueryService {
             return citizenRepository.findAll();
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to retrieve citizens: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Citizen> handle(GetAllCitizensByDistrictIdQuery query) {
+        try {
+            return citizenRepository.findByDistrictId(new DistrictId(query.districtId()));
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to retrieve citizens by districtId: " + e.getMessage(), e);
         }
     }
 }

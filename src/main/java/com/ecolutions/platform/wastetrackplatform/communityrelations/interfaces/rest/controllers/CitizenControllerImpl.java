@@ -1,6 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.controllers;
 
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.DeleteCitizenCommand;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllCitizensByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllCitizensQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetCitizenByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.command.CitizenCommandService;
@@ -52,6 +53,16 @@ public class CitizenControllerImpl implements CitizenController {
     @Override
     public ResponseEntity<List<CitizenResource>> getAllCitizens() {
         var query = new GetAllCitizensQuery();
+        var citizens = citizenQueryService.handle(query);
+        var citizenResources = citizens.stream()
+                .map(CitizenResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.ok(citizenResources);
+    }
+
+    @Override
+    public ResponseEntity<List<CitizenResource>> getAllCitizensByDistrictId(String districtId) {
+        var query = new GetAllCitizensByDistrictIdQuery(districtId);
         var citizens = citizenQueryService.handle(query);
         var citizenResources = citizens.stream()
                 .map(CitizenResourceFromEntityAssembler::toResourceFromEntity)

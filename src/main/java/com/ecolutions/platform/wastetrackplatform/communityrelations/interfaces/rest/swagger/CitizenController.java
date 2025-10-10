@@ -44,6 +44,14 @@ public interface CitizenController {
     })
     ResponseEntity<List<CitizenResource>> getAllCitizens();
 
+    @GetMapping("/district/{districtId}")
+    @Operation(summary = "Get all citizens by district ID", description = "Retrieves all citizens by district ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Citizens retrieved successfully."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<List<CitizenResource>> getAllCitizensByDistrictId(@PathVariable String districtId);
+
     @PutMapping("/{id}")
     @Operation(summary = "Update citizen", description = "Updates an existing citizen.")
     @ApiResponses(value = {
