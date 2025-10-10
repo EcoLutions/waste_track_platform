@@ -80,9 +80,11 @@ public class WebSecurityConfiguration {
         // Cross-Origin Resource Sharing configuration
         http.cors(configurer -> configurer.configurationSource(_ -> {
             var cors = new CorsConfiguration();
-            cors.setAllowedOrigins(List.of("*"));
-            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+            cors.setAllowedOrigins(List.of("https://waste-track-municipal-admin.netlify.app"));
+            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
             cors.setAllowedHeaders(List.of("*"));
+            cors.setAllowCredentials(true);
+            cors.setExposedHeaders(List.of("Authorization"));
             return cors;
         }));
         // Cross-Site Request Forgery configuration
