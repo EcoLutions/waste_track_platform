@@ -69,4 +69,12 @@ public interface ContainerController {
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
     ResponseEntity<List<ContainerResource>> getAllContainersByDistrictId(@PathVariable String districtId);
+
+    @GetMapping("/district/{districtId}/alerts")
+    @Operation(summary = "Get all containers in alert status", description = "Retrieves all containers that are in alert status based on fill level, collection frequency, maintenance status, and sensor readings.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Containers in alert retrieved successfully."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<List<ContainerResource>> getContainersInAlert(@PathVariable String districtId);
 }
