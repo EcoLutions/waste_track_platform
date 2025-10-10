@@ -3,6 +3,7 @@ package com.ecolutions.platform.wastetrackplatform.profile.interfaces.rest.contr
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.commands.DeleteUserProfileCommand;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.queries.GetAllUserProfilesQuery;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.queries.GetUserProfileByIdQuery;
+import com.ecolutions.platform.wastetrackplatform.profile.domain.model.queries.GetUserProfileByUserIdQuery;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.services.command.UserProfileCommandService;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.services.queries.UserProfileQueryService;
 import com.ecolutions.platform.wastetrackplatform.profile.interfaces.rest.dto.request.CreateUserProfileResource;
@@ -92,5 +93,15 @@ public class UserProfileControllerImpl implements UserProfileController {
         var deleted = userProfileCommandService.handle(command);
         if (!deleted) return ResponseEntity.notFound().build();
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<UserProfileResource> getUserProfileByUserId(String userId) throws IOException {
+        var query = new GetUserProfileByUserIdQuery(userId);
+        var userProfile = userProfileQueryService.handle(query);
+        if (userProfile.isEmpty()) return ResponseEntity.notFound().build();
+        String freshPhotoUrl = storageService.getFileUrl(userProfile.get().getPhoto().filePath());
+        var userProfileResource = UserProfileResourceFromEntityAssembler.toResourceFromEntity(userProfile.get(), freshPhotoUrl);
+        return ResponseEntity.status(HttpStatus.OK).body(userProfileResource);
     }
 }
