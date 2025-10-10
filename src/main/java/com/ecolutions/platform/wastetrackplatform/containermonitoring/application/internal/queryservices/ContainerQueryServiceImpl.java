@@ -1,10 +1,12 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.application.internal.queryservices;
 
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates.Container;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetAllContainersByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetContainerByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetAllContainersQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.services.queries.ContainerQueryService;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.infrastructure.persistence.jpa.repositories.ContainerRepository;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +33,15 @@ public class ContainerQueryServiceImpl implements ContainerQueryService {
             return containerRepository.findAll();
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to retrieve containers: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Container> handle(GetAllContainersByDistrictIdQuery query) {
+        try {
+            return containerRepository.findAllByDistrictId(new DistrictId(query.districtId()));
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to retrieve containers by district ID: " + e.getMessage(), e);
         }
     }
 }
