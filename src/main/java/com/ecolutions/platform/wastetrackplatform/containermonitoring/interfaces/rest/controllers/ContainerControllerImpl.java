@@ -1,6 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.controllers;
 
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.DeleteContainerCommand;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetAllContainersByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetAllContainersQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetContainerByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.services.command.ContainerCommandService;
@@ -69,6 +70,16 @@ public class ContainerControllerImpl implements ContainerController {
     @Override
     public ResponseEntity<List<ContainerResource>> getAllContainers() {
         var query = new GetAllContainersQuery();
+        var containers = containerQueryService.handle(query);
+        var containerResources = containers.stream()
+                .map(ContainerResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.ok(containerResources);
+    }
+
+    @Override
+    public ResponseEntity<List<ContainerResource>> getAllContainersByDistrictId(String districtId) {
+        var query = new GetAllContainersByDistrictIdQuery(districtId);
         var containers = containerQueryService.handle(query);
         var containerResources = containers.stream()
                 .map(ContainerResourceFromEntityAssembler::toResourceFromEntity)
