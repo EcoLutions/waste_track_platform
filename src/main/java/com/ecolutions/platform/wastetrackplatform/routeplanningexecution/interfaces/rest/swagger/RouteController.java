@@ -62,4 +62,12 @@ public interface RouteController {
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
     ResponseEntity<List<RouteResource>> getAllRoutes();
+
+    @GetMapping("/district/{districtId}/active")
+    @Operation(summary = "Get active routes by district ID", description = "Retrieves all active routes (ASSIGNED or IN_PROGRESS status) for a specific district.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Active routes retrieved successfully."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<List<RouteResource>> getActiveRoutesByDistrictId(@PathVariable String districtId);
 }

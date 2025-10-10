@@ -73,4 +73,14 @@ public class RouteControllerImpl implements RouteController {
                 .toList();
         return ResponseEntity.status(HttpStatus.OK).body(routeResources);
     }
+
+    @Override
+    public ResponseEntity<List<RouteResource>> getActiveRoutesByDistrictId(String districtId) {
+        var query = new com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.queries.GetActiveRoutesByDistrictIdQuery(districtId);
+        var routes = routeQueryService.handle(query);
+        var routeResources = routes.stream()
+                .map(RouteResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.status(HttpStatus.OK).body(routeResources);
+    }
 }
