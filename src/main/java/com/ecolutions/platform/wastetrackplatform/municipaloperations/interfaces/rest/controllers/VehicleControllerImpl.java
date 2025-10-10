@@ -1,6 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.rest.controllers;
 
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.DeleteVehicleCommand;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetAllVehiclesByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetAllVehiclesQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetVehicleByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.services.command.VehicleCommandService;
@@ -70,6 +71,16 @@ public class VehicleControllerImpl implements VehicleController {
     @Override
     public ResponseEntity<List<VehicleResource>> getAllVehicles() {
         var query = new GetAllVehiclesQuery();
+        var vehicles = vehicleQueryService.handle(query);
+        var vehicleResources = vehicles.stream()
+                .map(VehicleResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.status(HttpStatus.OK).body(vehicleResources);
+    }
+
+    @Override
+    public ResponseEntity<List<VehicleResource>> getAllVehiclesByDistrictId(String districtId) {
+        var query = new GetAllVehiclesByDistrictIdQuery(districtId);
         var vehicles = vehicleQueryService.handle(query);
         var vehicleResources = vehicles.stream()
                 .map(VehicleResourceFromEntityAssembler::toResourceFromEntity)
