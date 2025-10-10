@@ -44,6 +44,14 @@ public interface DriverController {
     })
     ResponseEntity<List<DriverResource>> getAllDrivers();
 
+    @GetMapping("/district/{districtId}")
+    @Operation(summary = "Get all drivers by district ID", description = "Retrieves all drivers by district ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Drivers retrieved successfully."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<List<DriverResource>> getAllDriversByDistrictId(@PathVariable String districtId);
+
     @PutMapping()
     @Operation(summary = "Update driver", description = "Updates an existing driver.")
     @ApiResponses(value = {

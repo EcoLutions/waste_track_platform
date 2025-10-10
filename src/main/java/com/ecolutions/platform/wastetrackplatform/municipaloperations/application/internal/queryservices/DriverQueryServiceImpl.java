@@ -1,10 +1,12 @@
 package com.ecolutions.platform.wastetrackplatform.municipaloperations.application.internal.queryservices;
 
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.aggregates.Driver;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetAllDriversByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetAllDriversQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetDriverByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.services.queries.DriverQueryService;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.infrastructure.persistence.jpa.repositories.DriverRepository;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +33,15 @@ public class DriverQueryServiceImpl implements DriverQueryService {
             return driverRepository.findAll();
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to retrieve drivers: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public List<Driver> handle(GetAllDriversByDistrictIdQuery query) {
+        try {
+            return driverRepository.findByDistrictId(new DistrictId(query.districtId()));
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to retrieve drivers by districtId: " + e.getMessage(), e);
         }
     }
 }

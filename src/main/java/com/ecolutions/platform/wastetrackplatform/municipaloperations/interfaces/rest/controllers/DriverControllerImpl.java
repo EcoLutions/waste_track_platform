@@ -1,6 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.rest.controllers;
 
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.DeleteDriverCommand;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetAllDriversByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetAllDriversQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetDriverByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.services.command.DriverCommandService;
@@ -53,6 +54,16 @@ public class DriverControllerImpl implements DriverController {
     @Override
     public ResponseEntity<List<DriverResource>> getAllDrivers() {
         var query = new GetAllDriversQuery();
+        var drivers = driverQueryService.handle(query);
+        var driverResources = drivers.stream()
+                .map(DriverResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.status(HttpStatus.OK).body(driverResources);
+    }
+
+    @Override
+    public ResponseEntity<List<DriverResource>> getAllDriversByDistrictId(String districtId) {
+        var query = new GetAllDriversByDistrictIdQuery(districtId);
         var drivers = driverQueryService.handle(query);
         var driverResources = drivers.stream()
                 .map(DriverResourceFromEntityAssembler::toResourceFromEntity)
