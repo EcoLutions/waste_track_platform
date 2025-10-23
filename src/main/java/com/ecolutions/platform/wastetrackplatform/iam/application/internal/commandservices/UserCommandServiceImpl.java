@@ -4,6 +4,7 @@ import com.ecolutions.platform.wastetrackplatform.iam.application.internal.outbo
 import com.ecolutions.platform.wastetrackplatform.iam.application.internal.outboundservices.tokens.TokenService;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.aggregates.User;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.CreateUserCommand;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SeedSuperAdminCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SignInCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SignUpCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.entities.Role;
@@ -54,7 +55,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     public Optional<ImmutablePair<User, String>> handle(SignInCommand command) {
         var user = userRepository.findByEmail(new EmailAddress(command.email()));
-        if (user.isEmpty()) throw new IllegalArgumentException("User not found");
+        if (user.isEmpty()) throw new IllegalArgumentException("Email not found");
         var existingUser = user.get();
 
         if (existingUser.isAccountLocked()) {
@@ -81,7 +82,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     public Optional<User> handle(CreateUserCommand command) {
         if (userRepository.existsByEmail(new EmailAddress(command.email())))
-            throw new IllegalArgumentException("Username already exists");
+            throw new IllegalArgumentException("Email already exists");
 
         validateRolePermissions(command.roles());
 
@@ -94,6 +95,21 @@ public class UserCommandServiceImpl implements UserCommandService {
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to create user");
         }
+    }
+
+    @Override
+    public Optional<User> handle(SeedSuperAdminCommand command) {
+        if (userRepository.existsByEmail(new EmailAddress(command.email())))
+            throw new IllegalArgumentException("Email already exists");
+
+        Role systemAdminRole = roleRepository.findByName(Roles.ROLE_SYSTEM_ADMINISTRATOR)
+                .orElseThrow(() -> new RuntimeException("SYSTEM_ADMINISTRATOR role not found"));
+
+        User superAdmin = new User(command.email(), hashingService.encode(command.password()));
+        superAdmin.addRole(systemAdminRole);
+
+        userRepository.save(superAdmin);
+        return Optional.of(superAdmin);
     }
 
     private void validateRolePermissions(List<Role> requestedRoles) {
