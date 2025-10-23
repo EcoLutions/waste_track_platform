@@ -45,7 +45,7 @@ public class User extends AuditableAbstractAggregateRoot<User> {
 
     private LocalDateTime passwordChangedAt;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -59,6 +59,13 @@ public class User extends AuditableAbstractAggregateRoot<User> {
         this.failedLoginAttempts = 0;
         this.roles = new HashSet<>();
         this.isTemporaryPassword = false;
+    }
+
+    public User(String email, String password) {
+        this();
+        this.email = new EmailAddress(email);
+        this.password = new Password(password);
+        this.accountStatus = AccountStatus.ACTIVE;
     }
 
     public User(String email, String password, List<Role> roles) {
