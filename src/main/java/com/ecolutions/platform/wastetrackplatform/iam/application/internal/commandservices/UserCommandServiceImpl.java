@@ -8,7 +8,6 @@ import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.Seed
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SignInCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SignUpCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.entities.Role;
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.AccountStatus;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.Roles;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.services.UserCommandService;
 import com.ecolutions.platform.wastetrackplatform.iam.infrastructure.persistence.jpa.repositories.RoleRepository;
@@ -52,6 +51,7 @@ public class UserCommandServiceImpl implements UserCommandService {
         userRepository.save(user);
         return userRepository.findByEmail(new EmailAddress(command.email()));
     }
+
     @Override
     public Optional<ImmutablePair<User, String>> handle(SignInCommand command) {
         var user = userRepository.findByEmail(new EmailAddress(command.email()));
@@ -60,10 +60,6 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         if (existingUser.isAccountLocked()) {
             throw new IllegalArgumentException("Account is locked due to too many failed login attempts");
-        }
-
-        if (existingUser.getAccountStatus() == AccountStatus.PENDING_ACTIVATION) {
-            throw new IllegalArgumentException("Account not activated. Please check your email for activation link");
         }
 
         if(!hashingService.matches(command.password(), existingUser.getPassword().value())) {
@@ -89,11 +85,12 @@ public class UserCommandServiceImpl implements UserCommandService {
         var roles = command.roles().stream().map(role -> roleRepository.findByName(role.getName()).orElseThrow(() -> new RuntimeException("Role not found"))).toList();
         User newUser = new User(command);
         newUser.addRoles(roles);
+        newUser.invite();
         try {
             userRepository.save(newUser);
             return Optional.of(newUser);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to create user");
+            throw new IllegalArgumentException("Failed to create user" + e.getMessage(), e);
         }
     }
 
