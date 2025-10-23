@@ -100,7 +100,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     @Override
     public Optional<User> handle(SeedSuperAdminCommand command) {
         if (userRepository.existsByEmail(new EmailAddress(command.email())))
-            throw new IllegalArgumentException("Email already exists");
+            return userRepository.findByEmail(new EmailAddress(command.email()));
 
         Role systemAdminRole = roleRepository.findByName(Roles.ROLE_SYSTEM_ADMINISTRATOR)
                 .orElseThrow(() -> new RuntimeException("SYSTEM_ADMINISTRATOR role not found"));
