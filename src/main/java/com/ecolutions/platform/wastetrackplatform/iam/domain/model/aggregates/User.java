@@ -2,6 +2,7 @@ package com.ecolutions.platform.wastetrackplatform.iam.domain.model.aggregates;
 
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.CreateUserCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.entities.Role;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.events.UserCreatedEvent;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.AccountStatus;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.Password;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
@@ -81,11 +82,11 @@ public class User extends AuditableAbstractAggregateRoot<User> {
         this.email = new EmailAddress(command.email());
         this.password = new Password(this.generateTemporaryPassword());
         this.isTemporaryPassword = true;
+        this.accountStatus = AccountStatus.PENDING_ACTIVATION;
     }
 
-    public User addRole(Role role) {
+    public void addRole(Role role) {
         this.roles.add(role);
-        return this;
     }
 
     public void addRoles(List<Role> roles) {
@@ -138,5 +139,18 @@ public class User extends AuditableAbstractAggregateRoot<User> {
                 .map(i -> chars.charAt(random.nextInt(chars.length())))
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
+    }
+
+    public void invite() {
+        var event = UserCreatedEvent.builder()
+                .source(this)
+                .email(this.email.value())
+                .temporalPassword(this.password.value())
+                .roles(this.roles.stream()
+                        .map(role -> role.getName().toString())
+                        .toList())
+                .build();
+
+        registerEvent(event);
     }
 }
