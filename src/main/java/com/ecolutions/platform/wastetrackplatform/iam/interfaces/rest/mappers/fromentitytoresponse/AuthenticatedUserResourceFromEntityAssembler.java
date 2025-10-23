@@ -7,7 +7,7 @@ public class AuthenticatedUserResourceFromEntityAssembler {
     public static AuthenticatedUserResource toResourceFromEntity(User entity, String token) {
         return new AuthenticatedUserResource(
                 entity.getId(),
-                entity.getUsername().value(),
+                entity.getEmail().value(),
                 token);
     }
 }

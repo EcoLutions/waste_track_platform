@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public interface AuthenticationController {
     @SecurityRequirements()
     @PostMapping("/sign-up")
-    @Operation(summary = "Sign up a new user", description = "Sign up a new user with the provided username, password, and roles.")
+    @Operation(summary = "Sign up a new user", description = "Sign up a new user with the provided email, password, and roles.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "User created successfully."),
             @ApiResponse(responseCode = "400", description = "Bad request.")
@@ -30,7 +30,7 @@ public interface AuthenticationController {
 
     @SecurityRequirements()
     @PostMapping("/sign-in")
-    @Operation(summary = "Sign in a user", description = "Sign in a user with the provided username and password.")
+    @Operation(summary = "Sign in a user", description = "Sign in a user with the provided email and password.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User signed in successfully."),
             @ApiResponse(responseCode = "404", description = "User not found.")

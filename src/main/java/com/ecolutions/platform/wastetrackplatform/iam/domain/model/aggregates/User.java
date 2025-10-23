@@ -3,8 +3,8 @@ package com.ecolutions.platform.wastetrackplatform.iam.domain.model.aggregates;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.entities.Role;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.AccountStatus;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.Password;
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.Username;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -22,8 +22,8 @@ import java.util.Set;
 public class User extends AuditableAbstractAggregateRoot<User> {
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "username", nullable = false, unique = true))
-    private Username username;
+    @AttributeOverride(name = "value", column = @Column(name = "email", nullable = false, unique = true))
+    private EmailAddress email;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "password", nullable = false))
@@ -55,15 +55,15 @@ public class User extends AuditableAbstractAggregateRoot<User> {
         this.roles = new HashSet<>();
     }
 
-    public User(String username, String password) {
+    public User(String email, String password) {
         this();
-        this.username = new Username(username);
+        this.email = new EmailAddress(email);
         this.password = new Password(password);
     }
 
-    public User(String username, String password, List<Role> roles) {
+    public User(String email, String password, List<Role> roles) {
         this();
-        this.username = new Username(username);
+        this.email = new EmailAddress(email);
         this.password = new Password(password);
         this.addRoles(roles);
     }

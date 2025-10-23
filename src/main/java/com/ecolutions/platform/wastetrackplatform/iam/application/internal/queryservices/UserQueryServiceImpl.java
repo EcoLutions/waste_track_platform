@@ -5,10 +5,10 @@ import com.ecolutions.platform.wastetrackplatform.iam.domain.model.aggregates.Us
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.queries.GetAllUsersQuery;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.queries.GetCurrentUserQuery;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.queries.GetUserByIdQuery;
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.queries.GetUserByUsernameQuery;
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.Username;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.queries.GetUserByEmailQuery;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.services.UserQueryService;
 import com.ecolutions.platform.wastetrackplatform.iam.infrastructure.persistence.jpa.repositories.UserRepository;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,8 +34,8 @@ public class UserQueryServiceImpl implements UserQueryService {
     }
 
     @Override
-    public Optional<User> handle(GetUserByUsernameQuery query) {
-        return userRepository.findByUsername(new Username(query.username()));
+    public Optional<User> handle(GetUserByEmailQuery query) {
+        return userRepository.findByEmail(new EmailAddress(query.username()));
     }
 
     @Override
@@ -43,8 +43,8 @@ public class UserQueryServiceImpl implements UserQueryService {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null && authentication.isAuthenticated()) {
-                String username = authentication.getName();
-                return userRepository.findByUsername(new Username(username));
+                String email = authentication.getName();
+                return userRepository.findByEmail(new EmailAddress(email));
             }
             return Optional.empty();
         } catch (Exception e) {

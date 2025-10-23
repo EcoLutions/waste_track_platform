@@ -5,10 +5,10 @@ import com.ecolutions.platform.wastetrackplatform.iam.application.internal.outbo
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.aggregates.User;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SignInCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SignUpCommand;
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.Username;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.services.UserCommandService;
 import com.ecolutions.platform.wastetrackplatform.iam.infrastructure.persistence.jpa.repositories.RoleRepository;
 import com.ecolutions.platform.wastetrackplatform.iam.infrastructure.persistence.jpa.repositories.UserRepository;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.stereotype.Service;
 
@@ -30,20 +30,20 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     @Override
     public Optional<User> handle(SignUpCommand command) {
-        if (userRepository.existsByUsername(new Username(command.username())))
+        if (userRepository.existsByEmail(new EmailAddress(command.email())))
             throw new RuntimeException("Username already exists");
         var roles = command.roles().stream().map(role -> roleRepository.findByName(role.getName()).orElseThrow(() -> new RuntimeException("Role not found"))).toList();
-        var user = new User(command.username(), hashingService.encode(command.password()), roles);
+        var user = new User(command.email(), hashingService.encode(command.password()), roles);
         userRepository.save(user);
-        return userRepository.findByUsername(new Username(command.username()));
+        return userRepository.findByEmail(new EmailAddress(command.email()));
     }
     @Override
     public Optional<ImmutablePair<User, String>> handle(SignInCommand command) {
-        var user = userRepository.findByUsername(new Username(command.username()));
+        var user = userRepository.findByEmail(new EmailAddress(command.email()));
         if (user.isEmpty()) throw new RuntimeException("User not found");
         var existingUser = user.get();
         if(!hashingService.matches(command.password(), existingUser.getPassword().value())) throw new RuntimeException("Invalid password");
-        var token = tokenService.generateToken(existingUser.getUsername().value());
+        var token = tokenService.generateToken(existingUser.getEmail().value());
         return Optional.of(ImmutablePair.of(existingUser, token));
     }
 }

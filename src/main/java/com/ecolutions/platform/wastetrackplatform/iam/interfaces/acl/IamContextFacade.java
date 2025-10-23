@@ -3,8 +3,8 @@ package com.ecolutions.platform.wastetrackplatform.iam.interfaces.acl;
 import java.util.List;
 
 public interface IamContextFacade {
-    String createUser(String username, String password);
-    String createUser(String username, String password, List<String> roleNames);
-    String fetchUserIdByUsername(String username);
-    String fetchUsernameByUserId(String userId);
+    String createUser(String email, String password);
+    String createUser(String email, String password, List<String> roleNames);
+    String fetchUserIdByEmail(String email);
+    String fetchEmailByUserId(String userId);
 }
