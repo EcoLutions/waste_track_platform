@@ -6,8 +6,8 @@ import lombok.Builder;
 public record PlanCatalogResource(
     String id,
     String name,
-    String monthlyPriceAmount,
-    String monthlyPriceCurrency,
+    String priceAmount,
+    String billingPeriod,
     Integer maxVehicles,
     Integer maxDrivers,
     Integer maxContainers

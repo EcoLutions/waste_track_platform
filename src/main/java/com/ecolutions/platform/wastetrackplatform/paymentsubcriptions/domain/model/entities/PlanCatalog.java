@@ -1,11 +1,16 @@
 package com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.domain.model.entities;
 
+import com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.domain.model.commands.CreatePlanCatalogCommand;
+import com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.domain.model.valueobjects.BillingPeriod;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.entities.AuditableModel;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Currency;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Money;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.math.BigDecimal;
 
 @Entity
 @Getter
@@ -23,7 +28,11 @@ public class PlanCatalog extends AuditableModel {
         @AttributeOverride(name = "amount", column = @Column(name = "monthly_price_amount", nullable = false)),
         @AttributeOverride(name = "currency", column = @Column(name = "monthly_price_currency", nullable = false))
     })
-    private Money monthlyPrice;
+    private Money price;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private BillingPeriod billingPeriod;
 
     @NotNull
     private Integer maxVehicles;
@@ -38,14 +47,14 @@ public class PlanCatalog extends AuditableModel {
         super();
     }
 
-    public PlanCatalog(String name, Money monthlyPrice,
-                      Integer maxVehicles, Integer maxDrivers, Integer maxContainers) {
+    public PlanCatalog(CreatePlanCatalogCommand command) {
         this();
-        this.name = name;
-        this.monthlyPrice = monthlyPrice;
-        this.maxVehicles = maxVehicles;
-        this.maxDrivers = maxDrivers;
-        this.maxContainers = maxContainers;
+        this.name = command.name();
+        this.price = new Money(Currency.PEN.name(), new BigDecimal(command.priceAmount()));
+        this.billingPeriod = BillingPeriod.fromString(command.billingPeriod());
+        this.maxVehicles = command.maxVehicles();
+        this.maxDrivers = command.maxDrivers();
+        this.maxContainers = command.maxContainers();
     }
 
     public boolean canAddVehicle(int currentVehicles) {
