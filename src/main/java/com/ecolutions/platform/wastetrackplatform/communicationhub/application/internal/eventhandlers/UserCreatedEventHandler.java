@@ -8,7 +8,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("CommunicationHubUserCreatedEventHandler")
 public class UserCreatedEventHandler {
     private final EmailNotificationCommandService emailNotificationCommandService;
 
