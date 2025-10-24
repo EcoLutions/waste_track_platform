@@ -1,5 +1,6 @@
 package com.ecolutions.platform.wastetrackplatform.profile.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.profile.domain.model.commands.InitializeUserProfileCommand;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.Language;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.Photo;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.ProfileStatus;
@@ -84,6 +85,14 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
         this.timezone = timezone;
         this.photo = photo;
         this.districtId = districtId;
+    }
+
+    public UserProfile(InitializeUserProfileCommand command) {
+        this();
+        this.email = new EmailAddress(command.email());
+        this.userId = new UserId(command.userId());
+        this.districtId = new DistrictId(command.districtId());
+        this.status = ProfileStatus.INCOMPLETE;
     }
 
     public void enableNotificationChannel() {
