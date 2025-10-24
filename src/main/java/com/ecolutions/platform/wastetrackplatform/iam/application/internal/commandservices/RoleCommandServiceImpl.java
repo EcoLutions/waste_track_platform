@@ -2,7 +2,7 @@ package com.ecolutions.platform.wastetrackplatform.iam.application.internal.comm
 
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SeedRolesCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.entities.Role;
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.Roles;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Roles;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.services.RoleCommandService;
 import com.ecolutions.platform.wastetrackplatform.iam.infrastructure.persistence.jpa.repositories.RoleRepository;
 import org.springframework.stereotype.Service;
