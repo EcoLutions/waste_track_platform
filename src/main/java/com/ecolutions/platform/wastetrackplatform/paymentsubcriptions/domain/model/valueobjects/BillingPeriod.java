@@ -17,7 +17,7 @@ public enum BillingPeriod {
         }
     }
 
-    public String toStringOrNull(BillingPeriod period) {
+    public static String toStringOrNull(BillingPeriod period) {
         return period != null ? period.name() : null;
     }
 }
