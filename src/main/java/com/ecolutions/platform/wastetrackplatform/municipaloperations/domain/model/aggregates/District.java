@@ -1,6 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.aggregates;
 
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.CreateDistrictCommand;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.events.DistrictCreatedEvent;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
@@ -102,5 +103,16 @@ public class District extends AuditableAbstractAggregateRoot<District> {
         // This would require parsing the boundaryPolygon and checking if location is within
         // For now, return true as placeholder
         return true;
+    }
+
+    public DistrictCreatedEvent publishDistrictCreatedEvent() {
+        return DistrictCreatedEvent.builder()
+                .source(this)
+                .districtId(this.getId())
+                .name(this.name)
+                .code(this.code)
+                .primaryAdminEmail(EmailAddress.toStringOrNull(this.primaryAdminEmail))
+                .planId(PlanId.toStringOrNull(this.currentPlanId))
+                .build();
     }
 }

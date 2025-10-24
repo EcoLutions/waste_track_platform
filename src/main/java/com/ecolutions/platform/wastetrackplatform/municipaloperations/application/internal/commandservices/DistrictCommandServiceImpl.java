@@ -7,6 +7,7 @@ import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.mod
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.services.command.DistrictCommandService;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.infrastructure.persistence.jpa.repositories.DistrictRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -15,20 +16,20 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class DistrictCommandServiceImpl implements DistrictCommandService {
     private final DistrictRepository districtRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public Optional<District> handle(CreateDistrictCommand command) {
-        District newDistrict = new District(
-            command.name(),
-            command.code(),
-            command.boundaries(),
-            command.primaryAdminEmail()
-        );
+        if (districtRepository.existsByCode(command.code()))
+            throw new IllegalArgumentException("District with code " + command.code() + " already exists.");
 
         District newDistrict = new District(command);
         try {
-            var savedDistrict = districtRepository.save(newDistrict);
             District savedDistrict = districtRepository.save(newDistrict);
+
+            var event = savedDistrict.publishDistrictCreatedEvent();
+
+            eventPublisher.publishEvent(event);
 
             return Optional.of(savedDistrict);
         } catch (Exception e) {
