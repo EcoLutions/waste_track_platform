@@ -20,4 +20,20 @@ public enum Roles {
     public String toStringOrNull(Roles role) {
         return role != null ? role.name() : null;
     }
+
+    public static boolean isCitizen(Roles role) {
+        return role == Roles.ROLE_CITIZEN;
+    }
+
+    public static boolean isDriver(Roles role) {
+        return role == Roles.ROLE_DRIVER;
+    }
+
+    public static boolean isMunicipalAdministrator(Roles role) {
+        return role == Roles.ROLE_MUNICIPAL_ADMINISTRATOR;
+    }
+
+    public static boolean isSystemAdministrator(Roles role) {
+        return role == Roles.ROLE_SYSTEM_ADMINISTRATOR;
+    }
 }
