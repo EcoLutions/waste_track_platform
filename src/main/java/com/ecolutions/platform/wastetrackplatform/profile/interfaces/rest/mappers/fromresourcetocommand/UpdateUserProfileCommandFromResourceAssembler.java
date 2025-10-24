@@ -2,7 +2,6 @@ package com.ecolutions.platform.wastetrackplatform.profile.interfaces.rest.mappe
 
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.commands.UpdateUserProfileCommand;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.Language;
-import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.UserType;
 import com.ecolutions.platform.wastetrackplatform.profile.interfaces.rest.dto.request.UpdateUserProfileResource;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
@@ -13,7 +12,6 @@ public class UpdateUserProfileCommandFromResourceAssembler {
         return new UpdateUserProfileCommand(
             userProfileId,
             resource.photoPath(),
-            UserType.fromString(resource.userType()),
             DistrictId.of(resource.districtId()),
             EmailAddress.of(resource.email()),
             PhoneNumber.of(resource.phoneNumber()),
@@ -21,8 +19,7 @@ public class UpdateUserProfileCommandFromResourceAssembler {
             resource.smsNotificationsEnabled(),
             resource.pushNotificationsEnabled(),
             Language.fromString(resource.language()),
-            resource.timezone(),
-            resource.isActive()
+            resource.timezone()
         );
     }
 }

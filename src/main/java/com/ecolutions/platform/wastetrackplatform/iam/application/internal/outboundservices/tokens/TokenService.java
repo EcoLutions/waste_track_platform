@@ -9,15 +9,15 @@ package com.ecolutions.platform.wastetrackplatform.iam.application.internal.outb
  */
 public interface TokenService {
     /**
-     * Generate a token for a given username.
-     * @param username the username to generate the token for
+     * Generate a token for a given email.
+     * @param username the email to generate the token for
      * @return the generated token
      */
     String generateToken(String username);
     /**
-     * Extract the username from a token.
-     * @param token the token to extract the username from
-     * @return the username extracted from the token
+     * Extract the email from a token.
+     * @param token the token to extract the email from
+     * @return the email extracted from the token
      */
     String getUsernameFromToken(String token);
     /**

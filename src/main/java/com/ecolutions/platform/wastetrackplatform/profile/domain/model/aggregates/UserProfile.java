@@ -1,8 +1,9 @@
 package com.ecolutions.platform.wastetrackplatform.profile.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.profile.domain.model.commands.InitializeUserProfileCommand;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.Language;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.Photo;
-import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.UserType;
+import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.ProfileStatus;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
@@ -29,7 +30,7 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    private UserType userType;
+    private ProfileStatus status;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "district_id"))
@@ -64,9 +65,6 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
     @NotNull
     private String timezone;
 
-    @NotNull
-    private Boolean isActive;
-
     public UserProfile() {
         super();
         this.deviceTokens = new ArrayList<>();
@@ -75,19 +73,26 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
         this.pushNotificationsEnabled = true;
         this.language = Language.ES;
         this.timezone = "America/Lima";
-        this.isActive = true;
+        this.status = ProfileStatus.INCOMPLETE;
     }
 
-    public UserProfile(UserId userId, UserType userType, EmailAddress email, PhoneNumber phoneNumber, Language language, String timezone, Photo photo, DistrictId districtId) {
+    public UserProfile(UserId userId, EmailAddress email, PhoneNumber phoneNumber, Language language, String timezone, Photo photo, DistrictId districtId) {
         this();
         this.userId = userId;
-        this.userType = userType;
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.language = language;
         this.timezone = timezone;
         this.photo = photo;
         this.districtId = districtId;
+    }
+
+    public UserProfile(InitializeUserProfileCommand command) {
+        this();
+        this.email = new EmailAddress(command.email());
+        this.userId = new UserId(command.userId());
+        this.districtId = new DistrictId(command.districtId());
+        this.status = ProfileStatus.INCOMPLETE;
     }
 
     public void enableNotificationChannel() {
@@ -110,9 +115,5 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
 
     public boolean isNotificationEnabledFor() {
         return this.emailNotificationsEnabled || this.smsNotificationsEnabled || this.pushNotificationsEnabled;
-    }
-
-    public void deactivate() {
-        this.isActive = false;
     }
 }
