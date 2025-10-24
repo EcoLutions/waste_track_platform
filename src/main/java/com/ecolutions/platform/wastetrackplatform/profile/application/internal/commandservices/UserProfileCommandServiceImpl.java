@@ -22,7 +22,6 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
         var photo = Photo.of(command.photoUrl());
         UserProfile newUserProfile = new UserProfile(
             command.userId(),
-            command.userType(),
             command.email(),
             command.phoneNumber(),
             command.language(),
@@ -47,9 +46,6 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
         if (command.photoUrl() != null) {
             existingUserProfile.setPhoto(new Photo(command.photoUrl()));
         }
-        if (command.userType() != null) {
-            existingUserProfile.setUserType(command.userType());
-        }
         if (command.districtId() != null) {
             existingUserProfile.setDistrictId(command.districtId());
         }
@@ -73,9 +69,6 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
         }
         if (command.timezone() != null) {
             existingUserProfile.setTimezone(command.timezone());
-        }
-        if (command.isActive() != null) {
-            existingUserProfile.setIsActive(command.isActive());
         }
 
         try {
