@@ -6,6 +6,7 @@ import com.ecolutions.platform.wastetrackplatform.iam.domain.model.events.UserCr
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.AccountStatus;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.Password;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -41,6 +42,9 @@ public class User extends AuditableAbstractAggregateRoot<User> {
 
     @NotNull
     private Integer failedLoginAttempts;
+
+    @Transient
+    private DistrictId districtId;
 
     private LocalDateTime lastLoginAt;
 
@@ -83,6 +87,7 @@ public class User extends AuditableAbstractAggregateRoot<User> {
         this.password = new Password(this.generateTemporaryPassword());
         this.isTemporaryPassword = true;
         this.accountStatus = AccountStatus.PENDING_ACTIVATION;
+        this.districtId = DistrictId.of(command.district());
     }
 
     public void addRole(Role role) {
@@ -141,16 +146,16 @@ public class User extends AuditableAbstractAggregateRoot<User> {
                 .toString();
     }
 
-    public void invite() {
-        var event = UserCreatedEvent.builder()
+    public UserCreatedEvent publishUserCreatedEvent() {
+        return UserCreatedEvent.builder()
                 .source(this)
-                .email(this.email.value())
-                .temporalPassword(this.password.value())
+                .userId(this.getId())
+                .email(EmailAddress.toStringOrNull(this.email))
+                .temporalPassword(Password.toStringOrNull(this.password))
                 .roles(this.roles.stream()
-                        .map(role -> role.getName().toString())
+                        .map(role -> role.getName().name())
                         .toList())
+                .districtId(DistrictId.toStringOrNull(this.districtId))
                 .build();
-
-        registerEvent(event);
     }
 }
