@@ -3,10 +3,13 @@ package com.ecolutions.platform.wastetrackplatform.profile.application.internal.
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.aggregates.UserProfile;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.commands.CreateUserProfileCommand;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.commands.DeleteUserProfileCommand;
+import com.ecolutions.platform.wastetrackplatform.profile.domain.model.commands.InitializeUserProfileCommand;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.commands.UpdateUserProfileCommand;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.Photo;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.services.command.UserProfileCommandService;
 import com.ecolutions.platform.wastetrackplatform.profile.infrastructure.persistence.jpa.repositories.UserProfileRepository;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -88,6 +91,20 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
             return true;
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to delete user profile: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Optional<UserProfile> handle(InitializeUserProfileCommand command) {
+        userProfileRepository.findByUserId(new UserId(command.userId()))
+                .orElseThrow(() -> new IllegalArgumentException("UserProfile for User ID " + command.userId() + " already exists."));
+        userProfileRepository.findByEmail(new EmailAddress(command.email()))
+                .orElseThrow(() -> new IllegalArgumentException("UserProfile with email " + command.email() + " already exists."));
+        try {
+            UserProfile newUserProfile = new UserProfile(command);
+            return Optional.of(userProfileRepository.save(newUserProfile));
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Failed to retrieve user profile: " + e.getMessage(), e);
         }
     }
 }
