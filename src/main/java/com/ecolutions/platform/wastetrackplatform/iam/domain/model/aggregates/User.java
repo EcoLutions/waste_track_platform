@@ -87,7 +87,7 @@ public class User extends AuditableAbstractAggregateRoot<User> {
         this.password = new Password(this.generateTemporaryPassword());
         this.isTemporaryPassword = true;
         this.accountStatus = AccountStatus.PENDING_ACTIVATION;
-        this.districtId = DistrictId.of(command.district());
+        this.districtId = DistrictId.of(command.districtId());
     }
 
     public void addRole(Role role) {
