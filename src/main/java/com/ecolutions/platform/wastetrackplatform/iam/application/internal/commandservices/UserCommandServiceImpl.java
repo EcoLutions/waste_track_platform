@@ -8,12 +8,13 @@ import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.Seed
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SignInCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SignUpCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.entities.Role;
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.Roles;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Roles;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.services.UserCommandService;
 import com.ecolutions.platform.wastetrackplatform.iam.infrastructure.persistence.jpa.repositories.RoleRepository;
 import com.ecolutions.platform.wastetrackplatform.iam.infrastructure.persistence.jpa.repositories.UserRepository;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -28,12 +29,14 @@ public class UserCommandServiceImpl implements UserCommandService {
     private final HashingService hashingService;
     private final TokenService tokenService;
     private final RoleRepository roleRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public UserCommandServiceImpl(UserRepository userRepository, HashingService hashingService, TokenService tokenService, RoleRepository roleRepository) {
+    public UserCommandServiceImpl(UserRepository userRepository, HashingService hashingService, TokenService tokenService, RoleRepository roleRepository, ApplicationEventPublisher eventPublisher) {
         this.userRepository = userRepository;
         this.hashingService = hashingService;
         this.tokenService = tokenService;
         this.roleRepository = roleRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -85,10 +88,14 @@ public class UserCommandServiceImpl implements UserCommandService {
         var roles = command.roles().stream().map(role -> roleRepository.findByName(role.getName()).orElseThrow(() -> new RuntimeException("Role not found"))).toList();
         User newUser = new User(command);
         newUser.addRoles(roles);
-        newUser.invite();
         try {
-            userRepository.save(newUser);
-            return Optional.of(newUser);
+            User savedUser = userRepository.save(newUser);
+
+            var event = savedUser.publishUserCreatedEvent();
+
+            eventPublisher.publishEvent(event);
+
+            return Optional.of(savedUser);
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to create user" + e.getMessage(), e);
         }
