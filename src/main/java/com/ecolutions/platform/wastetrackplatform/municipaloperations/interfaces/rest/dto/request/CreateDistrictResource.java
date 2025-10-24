@@ -15,7 +15,10 @@ public record CreateDistrictResource(
     String boundaries,
 
     @NotBlank
-    String primaryAdminEmail
+    String primaryAdminEmail,
+
+    @NotBlank
+    String planId
 ) {
     public CreateDistrictResource {
         if (name == null || name.isBlank()) {
@@ -29,6 +32,9 @@ public record CreateDistrictResource(
         }
         if (primaryAdminEmail == null || primaryAdminEmail.isBlank()) {
             throw new IllegalArgumentException("Primary admin email cannot be null or blank");
+        }
+        if (planId == null || planId.isBlank()) {
+            throw new IllegalArgumentException("Plan ID cannot be null or blank");
         }
     }
 }

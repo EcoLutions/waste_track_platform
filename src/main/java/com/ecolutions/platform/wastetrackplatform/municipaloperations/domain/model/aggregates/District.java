@@ -1,9 +1,10 @@
 package com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.CreateDistrictCommand;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.SubscriptionId;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.PlanId;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -31,18 +32,14 @@ public class District extends AuditableAbstractAggregateRoot<District> {
 
     private LocalDate serviceStartDate;
 
+    @Transient
+    private PlanId currentPlanId;
+
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "subscription_id"))
-    private SubscriptionId subscriptionId;
-
-    // TODO: Make @NotNull after implementing subscription management
-    private Integer maxVehicles;
-
-    // TODO: Make @NotNull after implementing subscription management
-    private Integer maxDrivers;
-
-    // TODO: Make @NotNull after implementing subscription management
-    private Integer maxContainers;
+    @AttributeOverrides(
+            @AttributeOverride(name = "subscriptionId.value", column = @Column(name = "subscription_id"))
+    )
+    private SubscriptionSnapshot subscriptionSnapshot;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "primary_admin_email"))
@@ -62,6 +59,15 @@ public class District extends AuditableAbstractAggregateRoot<District> {
         this.primaryAdminEmail = primaryAdminEmail;
     }
 
+    public District(CreateDistrictCommand command) {
+        this();
+        this.name = command.name();
+        this.code = command.code();
+        this.boundaries = command.boundaries();
+        this.primaryAdminEmail = command.primaryAdminEmail();
+        this.currentPlanId = PlanId.of(command.planId());
+    }
+
     public void activate() {
         this.operationalStatus = OperationalStatus.ACTIVE;
     }
@@ -74,7 +80,7 @@ public class District extends AuditableAbstractAggregateRoot<District> {
     }
 
     public boolean isWithinServiceLimits(int vehicleCount, int driverCount) {
-        return vehicleCount <= maxVehicles && driverCount <= maxDrivers;
+        return vehicleCount <= subscriptionSnapshot.maxVehicles() && driverCount <= subscriptionSnapshot.maxDrivers();
     }
 
     public boolean canRegisterNewVehicle() {

@@ -11,7 +11,8 @@ public class CreateDistrictCommandFromResourceAssembler {
             resource.name(),
             resource.code(),
             new GeographicBoundaries(resource.boundaries()),
-            EmailAddress.of(resource.primaryAdminEmail())
+            EmailAddress.of(resource.primaryAdminEmail()),
+            resource.planId()
         );
     }
 }

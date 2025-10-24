@@ -7,7 +7,8 @@ public record CreateDistrictCommand(
     String name,
     String code,
     GeographicBoundaries boundaries,
-    EmailAddress primaryAdminEmail
+    EmailAddress primaryAdminEmail,
+    String planId
 ) {
     public CreateDistrictCommand {
         if (name == null || name.isBlank()) {
@@ -21,6 +22,9 @@ public record CreateDistrictCommand(
         }
         if (primaryAdminEmail == null) {
             throw new IllegalArgumentException("Primary admin email cannot be null");
+        }
+        if (planId == null || planId.isBlank()) {
+            throw new IllegalArgumentException("Plan ID cannot be null or blank");
         }
     }
 }

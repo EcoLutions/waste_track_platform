@@ -24,8 +24,12 @@ public class DistrictCommandServiceImpl implements DistrictCommandService {
             command.boundaries(),
             command.primaryAdminEmail()
         );
+
+        District newDistrict = new District(command);
         try {
             var savedDistrict = districtRepository.save(newDistrict);
+            District savedDistrict = districtRepository.save(newDistrict);
+
             return Optional.of(savedDistrict);
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to create district: " + e.getMessage(), e);

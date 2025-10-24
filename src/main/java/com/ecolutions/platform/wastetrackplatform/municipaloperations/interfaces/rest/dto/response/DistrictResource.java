@@ -11,9 +11,12 @@ public record DistrictResource(
     String operationalStatus,
     String serviceStartDate,
     String subscriptionId,
+    String planName,
     Integer maxVehicles,
     Integer maxDrivers,
     Integer maxContainers,
+    String subscriptionStartedAt,
+    String subscriptionEndedAt,
     String primaryAdminEmail,
     String createdAt,
     String updatedAt
