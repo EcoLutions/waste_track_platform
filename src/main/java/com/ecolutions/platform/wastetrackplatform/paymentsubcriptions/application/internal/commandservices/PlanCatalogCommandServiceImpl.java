@@ -21,16 +21,7 @@ public class PlanCatalogCommandServiceImpl implements PlanCatalogCommandService 
     @Override
     public Optional<PlanCatalog> handle(CreatePlanCatalogCommand command) {
         try {
-            var money = new Money(command.monthlyPriceCurrency(), new BigDecimal(command.monthlyPriceAmount()));
-
-            var planCatalog = new PlanCatalog(
-                command.name(),
-                money,
-                command.maxVehicles(),
-                command.maxDrivers(),
-                command.maxContainers()
-            );
-
+            var planCatalog = new PlanCatalog(command);
             var savedPlanCatalog = planCatalogRepository.save(planCatalog);
             return Optional.of(savedPlanCatalog);
         } catch (Exception e) {
@@ -50,7 +41,7 @@ public class PlanCatalogCommandServiceImpl implements PlanCatalogCommandService 
             if (command.monthlyPriceCurrency() != null && !command.monthlyPriceCurrency().isBlank() &&
                 command.monthlyPriceAmount() != null && !command.monthlyPriceAmount().isBlank()) {
                 var money = new Money(command.monthlyPriceCurrency(), new BigDecimal(command.monthlyPriceAmount()));
-                existingPlanCatalog.setMonthlyPrice(money);
+                existingPlanCatalog.setPrice(money);
             }
             if (command.maxVehicles() != null) {
                 existingPlanCatalog.setMaxVehicles(command.maxVehicles());

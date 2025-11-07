@@ -7,8 +7,8 @@ public class CreatePlanCatalogCommandFromResourceAssembler {
     public static CreatePlanCatalogCommand toCommandFromResource(CreatePlanCatalogResource resource) {
         return new CreatePlanCatalogCommand(
             resource.name(),
-            resource.monthlyPriceAmount(),
-            resource.monthlyPriceCurrency(),
+            resource.priceAmount(),
+            resource.billingPeriod(),
             resource.maxVehicles(),
             resource.maxDrivers(),
             resource.maxContainers()

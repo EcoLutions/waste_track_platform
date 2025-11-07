@@ -2,8 +2,8 @@ package com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.domain.mo
 
 public record CreatePlanCatalogCommand(
     String name,
-    String monthlyPriceAmount,
-    String monthlyPriceCurrency,
+    String priceAmount,
+    String billingPeriod,
     Integer maxVehicles,
     Integer maxDrivers,
     Integer maxContainers
@@ -12,11 +12,11 @@ public record CreatePlanCatalogCommand(
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Name cannot be null or blank");
         }
-        if (monthlyPriceAmount == null || monthlyPriceAmount.isBlank()) {
+        if (priceAmount == null || priceAmount.isBlank()) {
             throw new IllegalArgumentException("Monthly price amount cannot be null or blank");
         }
-        if (monthlyPriceCurrency == null || monthlyPriceCurrency.isBlank()) {
-            throw new IllegalArgumentException("Monthly price currency cannot be null or blank");
+        if (billingPeriod == null || billingPeriod.isBlank()) {
+            throw new IllegalArgumentException("Billing period cannot be null or blank");
         }
         if (maxVehicles == null || maxVehicles <= 0) {
             throw new IllegalArgumentException("Max vehicles must be greater than 0");
