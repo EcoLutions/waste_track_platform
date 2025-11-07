@@ -1,5 +1,6 @@
 package com.ecolutions.platform.wastetrackplatform.municipaloperations.application.internal.commandservices;
 
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.application.internal.outboundservices.acl.ExternalPaymentSubscriptionsService;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.aggregates.District;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.CreateDistrictCommand;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.DeleteDistrictCommand;
@@ -19,6 +20,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class DistrictCommandServiceImpl implements DistrictCommandService {
     private final DistrictRepository districtRepository;
+    private final ExternalPaymentSubscriptionsService externalPaymentSubscriptionsService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -27,9 +29,11 @@ public class DistrictCommandServiceImpl implements DistrictCommandService {
         if (districtRepository.existsByCode(command.code()))
             throw new IllegalArgumentException("District with code " + command.code() + " already exists.");
 
+        PlanSnapshot planSnapshot = externalPaymentSubscriptionsService.getPlanInfo(command.planId())
+                .orElseThrow(() -> new IllegalArgumentException("Plan with ID " + command.planId() + " not found."));
+
         District newDistrict = new District(command);
-        try {
-            District savedDistrict = districtRepository.save(newDistrict);
+        newDistrict.updatePlanSnapshot(planSnapshot);
 
         District savedDistrict = districtRepository.save(newDistrict);
 
