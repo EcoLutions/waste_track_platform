@@ -7,11 +7,11 @@ import java.time.LocalDateTime;
 
 @Getter
 public class DistrictCreatedEvent extends ApplicationEvent {
-
     private final String districtId;
     private final String name;
     private final String code;
     private final String primaryAdminEmail;
+    private final String primaryAdminUsername;
     private final String planId;
     private final LocalDateTime occurredAt;
 
@@ -21,6 +21,7 @@ public class DistrictCreatedEvent extends ApplicationEvent {
         this.name = builder.name;
         this.code = builder.code;
         this.primaryAdminEmail = builder.primaryAdminEmail;
+        this.primaryAdminUsername = builder.primaryAdminUsername;
         this.planId = builder.planId;
         this.occurredAt = LocalDateTime.now();
     }
@@ -35,6 +36,7 @@ public class DistrictCreatedEvent extends ApplicationEvent {
         private String name;
         private String code;
         private String primaryAdminEmail;
+        private String primaryAdminUsername;
         private String planId;
 
         private Builder() {}
@@ -61,6 +63,11 @@ public class DistrictCreatedEvent extends ApplicationEvent {
 
         public Builder primaryAdminEmail(String primaryAdminEmail) {
             this.primaryAdminEmail = primaryAdminEmail;
+            return this;
+        }
+
+        public Builder primaryAdminUsername(String primaryAdminUsername) {
+            this.primaryAdminUsername = primaryAdminUsername;
             return this;
         }
 
