@@ -1,7 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.domain.model.entities;
 
 import com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.domain.model.commands.CreatePlanCatalogCommand;
-import com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.domain.model.valueobjects.BillingPeriod;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.BillingPeriod;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.entities.AuditableModel;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Currency;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Money;
