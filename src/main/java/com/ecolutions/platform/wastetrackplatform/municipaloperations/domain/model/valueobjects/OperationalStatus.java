@@ -15,4 +15,8 @@ public enum OperationalStatus {
             throw new IllegalArgumentException("Invalid OperationalStatus: " + value);
         }
     }
+
+    public static String toStringOrNull(OperationalStatus operationalStatus) {
+        return operationalStatus != null ? operationalStatus.name() : null;
+    }
 }
