@@ -1,4 +1,4 @@
-package com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.domain.model.valueobjects;
+package com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects;
 
 public enum BillingPeriod {
     MONTHLY,
