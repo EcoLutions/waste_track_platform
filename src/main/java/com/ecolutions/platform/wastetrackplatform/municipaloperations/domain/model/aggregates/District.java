@@ -1,11 +1,10 @@
 package com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.aggregates;
 
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.CreateDistrictCommand;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.UpdateDistrictCommand;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.events.DistrictCreatedEvent;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.PlanId;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.*;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -24,49 +23,47 @@ public class District extends AuditableAbstractAggregateRoot<District> {
     @Column(unique = true)
     private String code;
 
-    @Embedded
-    private GeographicBoundaries boundaries;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OperationalStatus operationalStatus;
 
     private LocalDate serviceStartDate;
 
-    @Transient
-    private PlanId currentPlanId;
-
     @Embedded
-    @AttributeOverrides(
-            @AttributeOverride(name = "subscriptionId.value", column = @Column(name = "subscription_id"))
-    )
-    private SubscriptionSnapshot subscriptionSnapshot;
+    private PlanSnapshot planSnapshot;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "primary_admin_email"))
-    private EmailAddress primaryAdminEmail;
+    private Integer currentVehicleCount;
+    private Integer currentDriverCount;
+    private Integer currentContainerCount;
 
     public District() {
         super();
         this.operationalStatus = OperationalStatus.ACTIVE;
-    }
-
-    public District(String name, String code, GeographicBoundaries boundaries,
-                   EmailAddress primaryAdminEmail) {
-        this();
-        this.name = name;
-        this.code = code;
-        this.boundaries = boundaries;
-        this.primaryAdminEmail = primaryAdminEmail;
+        this.currentVehicleCount = 0;
+        this.currentDriverCount = 0;
+        this.currentContainerCount = 0;
     }
 
     public District(CreateDistrictCommand command) {
         this();
         this.name = command.name();
         this.code = command.code();
-        this.boundaries = command.boundaries();
-        this.primaryAdminEmail = command.primaryAdminEmail();
-        this.currentPlanId = PlanId.of(command.planId());
+    }
+
+    public void update(UpdateDistrictCommand command) {
+        if (command.name() != null && !command.name().isBlank() && !command.name().equals(this.name)) {
+            this.name = command.name();
+        }
+        if (command.code() != null && !command.code().isBlank() && !command.code().equals(this.code)) {
+            this.code = command.code();
+        }
+    }
+
+    public void updatePlanSnapshot(PlanSnapshot planSnapshot) {
+        if (planSnapshot == null) {
+            throw new IllegalArgumentException("Plan snapshot cannot be null");
+        }
+        this.planSnapshot = planSnapshot;
     }
 
     public void activate() {
@@ -80,39 +77,31 @@ public class District extends AuditableAbstractAggregateRoot<District> {
         this.operationalStatus = OperationalStatus.SUSPENDED;
     }
 
-    public boolean isWithinServiceLimits(int vehicleCount, int driverCount) {
-        return vehicleCount <= subscriptionSnapshot.maxVehicles() && driverCount <= subscriptionSnapshot.maxDrivers();
-    }
-
     public boolean canRegisterNewVehicle() {
-        // TODO: Implement actual limit checking
-        // This would need to be checked against actual counts from repository
-        // For now, just return true as this is domain logic
-        return operationalStatus == OperationalStatus.ACTIVE;
+        if (operationalStatus != OperationalStatus.ACTIVE) return false;
+        if (planSnapshot == null) return false;
+        return planSnapshot.getMaxVehicles() > currentVehicleCount;
     }
 
     public boolean canRegisterNewDriver() {
-        // TODO: Implement actual limit checking
-        // This would need to be checked against actual counts from repository
-        // For now, just return true as this is domain logic
-        return operationalStatus == OperationalStatus.ACTIVE;
+        if (operationalStatus != OperationalStatus.ACTIVE) return false;
+        if (planSnapshot == null) return false;
+        return planSnapshot.getMaxDrivers() > currentDriverCount;
     }
 
-    public boolean isLocationWithinBoundaries(Location location) {
-        // TODO: Implement actual geographic boundary checking
-        // This would require parsing the boundaryPolygon and checking if location is within
-        // For now, return true as placeholder
-        return true;
-    }
-
-    public DistrictCreatedEvent publishDistrictCreatedEvent() {
+    public DistrictCreatedEvent publishDistrictCreatedEvent(
+            String primaryAdminEmail,
+            String primaryAdminUsername,
+            String planId
+    ) {
         return DistrictCreatedEvent.builder()
                 .source(this)
                 .districtId(this.getId())
                 .name(this.name)
                 .code(this.code)
-                .primaryAdminEmail(EmailAddress.toStringOrNull(this.primaryAdminEmail))
-                .planId(PlanId.toStringOrNull(this.currentPlanId))
+                .primaryAdminEmail(primaryAdminEmail)
+                .primaryAdminUsername(primaryAdminUsername)
+                .planId(planId)
                 .build();
     }
 }
