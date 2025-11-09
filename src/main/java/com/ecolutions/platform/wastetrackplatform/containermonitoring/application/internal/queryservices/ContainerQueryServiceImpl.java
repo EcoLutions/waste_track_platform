@@ -1,18 +1,14 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.application.internal.queryservices;
 
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates.Container;
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetAllContainersByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetContainerByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetAllContainersQuery;
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetContainersInAlertByDistrictIdQuery;
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.ContainerStatus;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetContainersByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.services.queries.ContainerQueryService;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.infrastructure.persistence.jpa.repositories.ContainerRepository;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,29 +36,11 @@ public class ContainerQueryServiceImpl implements ContainerQueryService {
     }
 
     @Override
-    public List<Container> handle(GetAllContainersByDistrictIdQuery query) {
+    public List<Container> handle(GetContainersByDistrictIdQuery query) {
         try {
-            return containerRepository.findAllByDistrictId(new DistrictId(query.districtId()));
+            return containerRepository.findByDistrictId_Value(query.districtId());
         } catch (Exception e) {
             throw new IllegalArgumentException("Failed to retrieve containers by district ID: " + e.getMessage(), e);
-        }
-    }
-
-    @Override
-    public List<Container> handle(GetContainersInAlertByDistrictIdQuery query) {
-        try {
-            LocalDateTime now = LocalDateTime.now();
-            LocalDateTime cutoffDate = now.minusDays(3);
-            LocalDateTime sensorCutoffDate = now.minusHours(2);
-
-            return containerRepository.findContainersInAlert(
-                new DistrictId(query.districtId()),
-                ContainerStatus.MAINTENANCE,
-                cutoffDate,
-                sensorCutoffDate
-            );
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to retrieve containers in alert: " + e.getMessage(), e);
         }
     }
 }
