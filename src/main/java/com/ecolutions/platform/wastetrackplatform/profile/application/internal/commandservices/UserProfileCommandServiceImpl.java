@@ -97,9 +97,9 @@ public class UserProfileCommandServiceImpl implements UserProfileCommandService 
     @Override
     public Optional<UserProfile> handle(InitializeUserProfileCommand command) {
         userProfileRepository.findByUserId(new UserId(command.userId()))
-                .ifPresent(_ -> {throw new IllegalArgumentException("UserProfile for User ID " + command.userId() + " already exists.");});
+                .ifPresent(existing -> {throw new IllegalArgumentException("UserProfile for User ID " + command.userId() + " already exists.");});
         userProfileRepository.findByEmail(new EmailAddress(command.email()))
-                .ifPresent(_ -> {throw new IllegalArgumentException("UserProfile with Email " + command.email() + " already exists.");});
+                .ifPresent(existing -> {throw new IllegalArgumentException("UserProfile with Email " + command.email() + " already exists.");});
         try {
             UserProfile newUserProfile = new UserProfile(command);
             return Optional.of(userProfileRepository.save(newUserProfile));
