@@ -1,10 +1,9 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.controllers;
 
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.DeleteContainerCommand;
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetAllContainersByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetAllContainersQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetContainerByIdQuery;
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetContainersInAlertByDistrictIdQuery;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.queries.GetContainersByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.services.command.ContainerCommandService;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.services.queries.ContainerQueryService;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.request.CreateContainerResource;
@@ -79,18 +78,8 @@ public class ContainerControllerImpl implements ContainerController {
     }
 
     @Override
-    public ResponseEntity<List<ContainerResource>> getAllContainersByDistrictId(String districtId) {
-        var query = new GetAllContainersByDistrictIdQuery(districtId);
-        var containers = containerQueryService.handle(query);
-        var containerResources = containers.stream()
-                .map(ContainerResourceFromEntityAssembler::toResourceFromEntity)
-                .toList();
-        return ResponseEntity.ok(containerResources);
-    }
-
-    @Override
-    public ResponseEntity<List<ContainerResource>> getContainersInAlert(String districtId) {
-        var query = new GetContainersInAlertByDistrictIdQuery(districtId);
+    public ResponseEntity<List<ContainerResource>> getContainersByDistrictId(String districtId) {
+        var query = new GetContainersByDistrictIdQuery(districtId);
         var containers = containerQueryService.handle(query);
         var containerResources = containers.stream()
                 .map(ContainerResourceFromEntityAssembler::toResourceFromEntity)
