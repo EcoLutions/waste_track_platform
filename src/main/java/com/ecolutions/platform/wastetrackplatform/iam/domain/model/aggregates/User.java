@@ -11,8 +11,8 @@ import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Roles;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Username;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -56,11 +56,8 @@ public class User extends AuditableAbstractAggregateRoot<User> {
 
     private LocalDateTime passwordChangedAt;
 
-    @JsonIgnore
-    private String invitationToken;
-
-    @JsonIgnore
-    private LocalDateTime invitationTokenExpiresAt;
+    @NotNull
+    private Boolean hasProfile;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
@@ -75,6 +72,7 @@ public class User extends AuditableAbstractAggregateRoot<User> {
         this.accountStatus = AccountStatus.PENDING_ACTIVATION;
         this.failedLoginAttempts = 0;
         this.roles = new HashSet<>();
+        this.hasProfile = false;
     }
 
     public User(SeedSuperAdminCommand command, String password) {
@@ -108,6 +106,8 @@ public class User extends AuditableAbstractAggregateRoot<User> {
     public void addRoles(List<Role> roles) {
         var validatedRoles = Role.validateRoleSet(roles);
         this.roles.addAll(validatedRoles);
+
+        this.setHasProfileBaseOnRoles();
     }
 
     public void lockAccount() {
@@ -176,5 +176,9 @@ public class User extends AuditableAbstractAggregateRoot<User> {
                 .username(Username.toStringOrNull(this.username))
                 .resetToken(resetToken)
                 .build();
+    }
+
+    private void setHasProfileBaseOnRoles() {
+        this.hasProfile = !this.roles.contains(new Role(Roles.ROLE_SYSTEM_ADMINISTRATOR));
     }
 }
