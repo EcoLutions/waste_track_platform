@@ -160,6 +160,7 @@ public class User extends AuditableAbstractAggregateRoot<User> {
                 .userId(this.getId())
                 .email(EmailAddress.toStringOrNull(this.email))
                 .username(Username.toStringOrNull(this.username))
+                .hasProfile(this.hasProfile)
                 .activationToken(activationToken)
                 .roles(this.roles.stream()
                         .map(role -> role.getName().name())

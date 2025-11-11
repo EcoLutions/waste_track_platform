@@ -11,6 +11,7 @@ public class UserCreatedEvent extends ApplicationEvent {
     private final String userId;
     private final String email;
     private final String username;
+    private final Boolean hasProfile;
     private final String activationToken;
     private final List<String> roles;
     private final String districtId;
@@ -21,6 +22,7 @@ public class UserCreatedEvent extends ApplicationEvent {
         this.userId = builder.userId;
         this.email = builder.email;
         this.username = builder.username;
+        this.hasProfile = builder.hasProfile;
         this.activationToken = builder.activationToken;
         this.roles = builder.roles;
         this.districtId = builder.districtId;
@@ -36,6 +38,7 @@ public class UserCreatedEvent extends ApplicationEvent {
         private String userId;
         private String email;
         private String username;
+        private Boolean hasProfile;
         private String activationToken;
         private List<String> roles;
         private String districtId;
@@ -60,6 +63,11 @@ public class UserCreatedEvent extends ApplicationEvent {
 
         public Builder username(String username) {
             this.username = username;
+            return this;
+        }
+
+        public Builder hasProfile(Boolean hasProfile) {
+            this.hasProfile = hasProfile;
             return this;
         }
 
