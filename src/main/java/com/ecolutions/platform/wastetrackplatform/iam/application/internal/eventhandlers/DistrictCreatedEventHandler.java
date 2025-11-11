@@ -23,7 +23,7 @@ public class DistrictCreatedEventHandler {
     @Async
     public void on(DistrictCreatedEvent event) {
         var roleMunicipalAdministrator = new Role(Roles.ROLE_MUNICIPAL_ADMINISTRATOR);
-        var command = new CreateUserCommand(event.getPrimaryAdminEmail(), List.of(roleMunicipalAdministrator), event.getDistrictId());
+        var command = new CreateUserCommand(event.getPrimaryAdminEmail(), event.getPrimaryAdminUsername(), List.of(roleMunicipalAdministrator), event.getDistrictId());
         userCommandService.handle(command);
     }
 }
