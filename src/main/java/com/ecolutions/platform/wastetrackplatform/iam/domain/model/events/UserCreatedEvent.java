@@ -10,7 +10,8 @@ import java.util.List;
 public class UserCreatedEvent extends ApplicationEvent {
     private final String userId;
     private final String email;
-    private final String temporalPassword;
+    private final String username;
+    private final String activationToken;
     private final List<String> roles;
     private final String districtId;
     private final LocalDateTime occurredAt;
@@ -19,7 +20,8 @@ public class UserCreatedEvent extends ApplicationEvent {
         super(builder.source);
         this.userId = builder.userId;
         this.email = builder.email;
-        this.temporalPassword = builder.temporalPassword;
+        this.username = builder.username;
+        this.activationToken = builder.activationToken;
         this.roles = builder.roles;
         this.districtId = builder.districtId;
         this.occurredAt = LocalDateTime.now();
@@ -33,7 +35,8 @@ public class UserCreatedEvent extends ApplicationEvent {
         private Object source;
         private String userId;
         private String email;
-        private String temporalPassword;
+        private String username;
+        private String activationToken;
         private List<String> roles;
         private String districtId;
 
@@ -55,8 +58,13 @@ public class UserCreatedEvent extends ApplicationEvent {
             return this;
         }
 
-        public Builder temporalPassword(String temporalPassword) {
-            this.temporalPassword = temporalPassword;
+        public Builder username(String username) {
+            this.username = username;
+            return this;
+        }
+
+        public Builder activationToken(String activationToken) {
+            this.activationToken = activationToken;
             return this;
         }
 
