@@ -5,7 +5,10 @@ import com.ecolutions.platform.wastetrackplatform.communicationhub.domain.model.
 public record SendUserInvitationEmailCommand(
         SourceContext sourceContext,
         String recipientEmail,
-        String temporaryPassword,
-        String roleName
+        String username,
+        String invitationToken,
+        String activationUrl,
+        String roleName,
+        Long expirationDays
 ) {
 }
