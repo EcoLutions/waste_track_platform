@@ -1,4 +1,4 @@
-package com.tamci.equipmentservicemanagerplatform.iam.interfaces.rest.dto.request;
+package com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.request;
 
 public record SetInitialPasswordResource(String activationToken, String password) {
     public SetInitialPasswordResource {
