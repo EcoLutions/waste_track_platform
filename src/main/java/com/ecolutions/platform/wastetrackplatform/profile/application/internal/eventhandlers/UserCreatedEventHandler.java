@@ -21,10 +21,8 @@ public class UserCreatedEventHandler {
     public void on(UserCreatedEvent event) {
         var roles = event.getRoles().stream().map(Roles::fromString).toList();
 
-        var isMunicipalAdministrator = roles.contains(Roles.ROLE_MUNICIPAL_ADMINISTRATOR);
-        var isDriver = roles.contains(Roles.ROLE_DRIVER);
-
-        if (!isMunicipalAdministrator && !isDriver) return;
+        var isSystemAdministrator = roles.contains(Roles.ROLE_SYSTEM_ADMINISTRATOR);
+        if (isSystemAdministrator) {return;}
 
         var command = new InitializeUserProfileCommand(
                 event.getUserId(),
