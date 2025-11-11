@@ -18,11 +18,14 @@ public class ApplicationReadyEventHandler {
     private final RoleCommandService roleCommandService;
     private final UserCommandService userCommandService;
 
-    @Value("${app.admin.email:admin@wastetrack.com}")
+    @Value("${app.admin.email}")
     private String adminEmail;
 
-    @Value("${app.admin.password:Admin@123456}")
+    @Value("${app.admin.password}")
     private String adminPassword;
+
+    @Value("${app.admin.username}")
+    private String adminUsername;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationReadyEventHandler.class);
 
@@ -40,7 +43,7 @@ public class ApplicationReadyEventHandler {
         LOGGER.info("Roles seeding verification finished for {} at {}", applicationName, currentTimestamp());
 
         LOGGER.info("Starting to verify if super admin seeding is needed for {} at {}", applicationName, currentTimestamp());
-        var seedSuperAdminCommand = new SeedSuperAdminCommand(adminEmail, adminPassword);
+        var seedSuperAdminCommand = new SeedSuperAdminCommand(adminEmail, adminUsername, adminPassword);
         userCommandService.handle(seedSuperAdminCommand);
         LOGGER.info("Super admin seeding verification finished for {} at {}", applicationName, currentTimestamp());
     }

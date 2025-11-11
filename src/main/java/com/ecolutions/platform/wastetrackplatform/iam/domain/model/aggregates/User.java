@@ -1,24 +1,27 @@
 package com.ecolutions.platform.wastetrackplatform.iam.domain.model.aggregates;
 
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.CreateUserCommand;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SeedSuperAdminCommand;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SignUpCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.entities.Role;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.events.PasswordResetRequestedEvent;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.events.UserCreatedEvent;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.AccountStatus;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.Password;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Username;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 
 @Getter
@@ -30,11 +33,14 @@ public class User extends AuditableAbstractAggregateRoot<User> {
     @AttributeOverride(name = "value", column = @Column(name = "email", nullable = false, unique = true))
     private EmailAddress email;
 
+    @NotNull
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "username"))
+    private Username username;
+
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "password"))
     private Password password;
-
-    private Boolean isTemporaryPassword;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -50,6 +56,12 @@ public class User extends AuditableAbstractAggregateRoot<User> {
 
     private LocalDateTime passwordChangedAt;
 
+    @JsonIgnore
+    private String invitationToken;
+
+    @JsonIgnore
+    private LocalDateTime invitationTokenExpiresAt;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
@@ -63,29 +75,28 @@ public class User extends AuditableAbstractAggregateRoot<User> {
         this.accountStatus = AccountStatus.PENDING_ACTIVATION;
         this.failedLoginAttempts = 0;
         this.roles = new HashSet<>();
-        this.isTemporaryPassword = false;
     }
 
-    public User(String email, String password) {
+    public User(SeedSuperAdminCommand command, String password) {
         this();
-        this.email = new EmailAddress(email);
+        this.email = new EmailAddress(command.email());
+        this.username = new Username(command.username());
         this.password = new Password(password);
         this.accountStatus = AccountStatus.ACTIVE;
     }
 
-    public User(String email, String password, List<Role> roles) {
+    public User(SignUpCommand command, String password) {
         this();
-        this.email = new EmailAddress(email);
+        this.username = new Username(command.username());
+        this.email = new EmailAddress(command.email());
         this.password = new Password(password);
-        this.addRoles(roles);
         this.accountStatus = AccountStatus.ACTIVE;
     }
 
     public User(CreateUserCommand command) {
         this();
+        this.username = new Username(command.username());
         this.email = new EmailAddress(command.email());
-        this.password = new Password(this.generateTemporaryPassword());
-        this.isTemporaryPassword = true;
         this.accountStatus = AccountStatus.PENDING_ACTIVATION;
         this.districtId = DistrictId.of(command.districtId());
     }
@@ -113,6 +124,9 @@ public class User extends AuditableAbstractAggregateRoot<User> {
     public void recordSuccessfulLogin() {
         this.lastLoginAt = LocalDateTime.now();
         this.failedLoginAttempts = 0;
+        if (this.accountStatus == AccountStatus.PENDING_ACTIVATION) {
+            this.accountStatus = AccountStatus.ACTIVE;
+        }
     }
 
     public void recordFailedLogin() {
@@ -124,6 +138,10 @@ public class User extends AuditableAbstractAggregateRoot<User> {
 
     public void activateAccount() {
         this.accountStatus = AccountStatus.ACTIVE;
+    }
+
+    public void changePassword(String newPassword) {
+        this.password = new Password(newPassword);
         this.passwordChangedAt = LocalDateTime.now();
     }
 
@@ -131,31 +149,32 @@ public class User extends AuditableAbstractAggregateRoot<User> {
         return this.accountStatus == AccountStatus.LOCKED;
     }
 
-    public boolean requiresPasswordChange() {
-        // TODO: Implement password change policy (e.g., every 90 days)
-        // For now, return false as placeholder
-        return false;
+
+    public boolean isAccountPendingActivation() {
+        return this.accountStatus == AccountStatus.PENDING_ACTIVATION;
     }
 
-    private String generateTemporaryPassword() {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
-        SecureRandom random = new SecureRandom();
-        return IntStream.range(0, 10)
-                .map(i -> chars.charAt(random.nextInt(chars.length())))
-                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-                .toString();
-    }
-
-    public UserCreatedEvent publishUserCreatedEvent() {
+    public UserCreatedEvent publishUserCreatedEvent(String activationToken) {
         return UserCreatedEvent.builder()
                 .source(this)
                 .userId(this.getId())
                 .email(EmailAddress.toStringOrNull(this.email))
-                .temporalPassword(Password.toStringOrNull(this.password))
+                .username(Username.toStringOrNull(this.username))
+                .activationToken(activationToken)
                 .roles(this.roles.stream()
                         .map(role -> role.getName().name())
                         .toList())
                 .districtId(DistrictId.toStringOrNull(this.districtId))
+                .build();
+    }
+
+    public PasswordResetRequestedEvent publishPasswordResetRequestedEvent(String resetToken) {
+        return PasswordResetRequestedEvent.builder()
+                .source(this)
+                .userId(this.getId())
+                .email(EmailAddress.toStringOrNull(this.email))
+                .username(Username.toStringOrNull(this.username))
+                .resetToken(resetToken)
                 .build();
     }
 }

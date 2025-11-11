@@ -4,26 +4,21 @@ import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
-public class UserCreatedEvent extends ApplicationEvent {
+public class PasswordResetRequestedEvent extends ApplicationEvent {
     private final String userId;
     private final String email;
     private final String username;
-    private final String activationToken;
-    private final List<String> roles;
-    private final String districtId;
+    private final String resetToken;
     private final LocalDateTime occurredAt;
 
-    private UserCreatedEvent(Builder builder) {
+    private PasswordResetRequestedEvent(Builder builder) {
         super(builder.source);
         this.userId = builder.userId;
         this.email = builder.email;
         this.username = builder.username;
-        this.activationToken = builder.activationToken;
-        this.roles = builder.roles;
-        this.districtId = builder.districtId;
+        this.resetToken = builder.resetToken;
         this.occurredAt = LocalDateTime.now();
     }
 
@@ -36,9 +31,7 @@ public class UserCreatedEvent extends ApplicationEvent {
         private String userId;
         private String email;
         private String username;
-        private String activationToken;
-        private List<String> roles;
-        private String districtId;
+        private String resetToken;
 
         private Builder() {
         }
@@ -63,23 +56,13 @@ public class UserCreatedEvent extends ApplicationEvent {
             return this;
         }
 
-        public Builder activationToken(String activationToken) {
-            this.activationToken = activationToken;
+        public Builder resetToken(String resetToken) {
+            this.resetToken = resetToken;
             return this;
         }
 
-        public Builder roles(List<String> roles) {
-            this.roles = roles;
-            return this;
-        }
-
-        public Builder districtId(String districtId) {
-            this.districtId = districtId;
-            return this;
-        }
-
-        public UserCreatedEvent build() {
-            return new UserCreatedEvent(this);
+        public PasswordResetRequestedEvent build() {
+            return new PasswordResetRequestedEvent(this);
         }
     }
 }

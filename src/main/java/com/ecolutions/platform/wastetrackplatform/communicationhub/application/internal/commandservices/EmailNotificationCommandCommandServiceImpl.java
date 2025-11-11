@@ -1,80 +1,82 @@
 package com.ecolutions.platform.wastetrackplatform.communicationhub.application.internal.commandservices;
 
 import com.ecolutions.platform.wastetrackplatform.communicationhub.application.internal.outboundservices.email.EmailService;
-import com.ecolutions.platform.wastetrackplatform.communicationhub.application.internal.outboundservices.email.templates.EmailTemplateBuilder;
+import com.ecolutions.platform.wastetrackplatform.communicationhub.application.internal.outboundservices.templates.TemplateService;
 import com.ecolutions.platform.wastetrackplatform.communicationhub.domain.model.commands.SendPasswordResetEmailCommand;
-import com.ecolutions.platform.wastetrackplatform.communicationhub.domain.model.commands.SendUserInvitationEmailCommand;
-import com.ecolutions.platform.wastetrackplatform.communicationhub.domain.model.commands.SendWelcomeEmailCommand;
+import com.ecolutions.platform.wastetrackplatform.communicationhub.domain.model.commands.SendUserActivationEmailCommand;
 import com.ecolutions.platform.wastetrackplatform.communicationhub.domain.services.command.EmailNotificationCommandService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 public class EmailNotificationCommandCommandServiceImpl implements EmailNotificationCommandService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EmailNotificationCommandCommandServiceImpl.class);
 
     private final EmailService emailService;
-    private final EmailTemplateBuilder templateBuilder;
+    private final TemplateService templateService;
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+    @Value("${authorization.jwt.activation.expiration.days}")
+    private int activationTokenExpirationDays;
+    @Value("${authorization.jwt.password-reset.expiration.minutes}")
+    private int passwordResetTokenExpirationMinutes;
 
-    public EmailNotificationCommandCommandServiceImpl(
-            EmailService emailService,
-            EmailTemplateBuilder templateBuilder
-    ) {
+    public EmailNotificationCommandCommandServiceImpl(EmailService emailService, TemplateService templateService) {
         this.emailService = emailService;
-        this.templateBuilder = templateBuilder;
+        this.templateService = templateService;
     }
 
     @Override
-    public void handle(SendUserInvitationEmailCommand command) {
+    public void handle(SendUserActivationEmailCommand command) {
+
         try {
-            String subject = "Welcome to WasteTrack - Your Account Details";
-            String htmlContent = templateBuilder.buildUserInvitationTemplate(
-                    command.recipientEmail(),
-                    command.temporaryPassword(),
-                    command.roleName()
+            String activationLink = buildActivationLink(command.activationToken());
+            String expirationText = activationTokenExpirationDays + " días";
+
+            Map<String, String> variables = Map.of(
+                    "username", command.username(),
+                    "activationLink", activationLink,
+                    "activationToken", command.activationToken(),
+                    "expirationText", expirationText
             );
 
-            emailService.sendHtmlEmail(
-                    command.recipientEmail(),
-                    subject,
-                    htmlContent
-            );
-        } catch (Exception e) {
-            LOGGER.error("Failed to send user invitation email to: {}", command.recipientEmail(), e);
+            String htmlContent = templateService.render("iam/user-activation.html", variables);
+            String subject = "Activa tu cuenta - Ecolutions";
+
+            emailService.sendHtmlEmail(command.recipientEmail(), subject, htmlContent);
+
+        } catch (Exception _) {
         }
     }
 
     @Override
     public void handle(SendPasswordResetEmailCommand command) {
         try {
-            String subject = "Reset Your Password - WasteTrack";
-            String htmlContent = templateBuilder.buildPasswordResetTemplate(command.resetToken());
+            String resetLink = buildResetLink(command.resetToken());
+            String expirationText = passwordResetTokenExpirationMinutes + " minutos";
 
-            emailService.sendHtmlEmail(
-                    command.recipientEmail(),
-                    subject,
-                    htmlContent
+            Map<String, String> variables = Map.of(
+                    "username", command.username(),
+                    "resetLink", resetLink,
+                    "expirationText", expirationText
             );
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to send password reset email", e);
+
+            String htmlContent = templateService.render("iam/password-reset.html", variables);
+            String subject = "Resetea tu contraseña - Ecolutions";
+
+            emailService.sendHtmlEmail(command.recipientEmail(), subject, htmlContent);
+
+        } catch (Exception _) {
         }
     }
 
-    @Override
-    public void handle(SendWelcomeEmailCommand command) {
-        try {
-            String subject = "Welcome to WasteTrack Platform!";
-            String htmlContent = templateBuilder.buildWelcomeTemplate(command.userName());
-
-            emailService.sendHtmlEmail(
-                    command.recipientEmail(),
-                    subject,
-                    htmlContent
-            );
-
-        } catch (Exception e) {
-            LOGGER.error("❌ Failed to send welcome email to: {}", command.recipientEmail(), e);
-        }
+    private String buildActivationLink(String token) {
+        return frontendUrl + "/activate-account?token=" + token;
     }
+
+    private String buildResetLink(String token) {
+        return frontendUrl + "/reset-password?token=" + token;
+    }
+
 }

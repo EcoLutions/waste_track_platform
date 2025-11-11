@@ -1,6 +1,6 @@
 package com.ecolutions.platform.wastetrackplatform.iam.application.acl;
 
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SignUpCommand;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.CreateUserCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.entities.Role;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.queries.GetUserByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.queries.GetUserByEmailQuery;
@@ -24,18 +24,18 @@ public class IamContextFacadeImpl implements IamContextFacade {
     }
 
     @Override
-    public String createUser(String email, String password) {
-        var signUpCommand = new SignUpCommand(email, password, List.of(Role.getDefaultRole()));
-        var result = userCommandService.handle(signUpCommand);
+    public String createUser(String email, String username, String districtId) {
+        var command = new CreateUserCommand(email, username, List.of(Role.getDefaultRole()), districtId);
+        var result = userCommandService.handle(command);
         if (result.isEmpty()) return Strings.EMPTY;
         return result.get().getId();
     }
 
     @Override
-    public String createUser(String email, String password, List<String> roleNames) {
+    public String createUser(String email, String username, List<String> roleNames, String districtId) {
         var roles = roleNames == null ? new ArrayList<Role>() : roleNames.stream().map(Role::toRoleFromName).toList();
-        var signUpCommand = new SignUpCommand(email, password, roles);
-        var result = userCommandService.handle(signUpCommand);
+        var command = new CreateUserCommand(email, username, roles, districtId);
+        var result = userCommandService.handle(command);
         if (result.isEmpty()) return Strings.EMPTY;
         return result.get().getId();
     }
