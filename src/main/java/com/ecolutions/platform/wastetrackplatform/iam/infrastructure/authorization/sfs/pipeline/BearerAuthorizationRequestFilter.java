@@ -33,10 +33,9 @@ public class BearerAuthorizationRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         try {
             var token = tokenService.getBearerTokenFrom(request);
-            LOGGER.info("Token: {}", token);
             if (Objects.nonNull(token) && tokenService.validateToken(token)) {
-                var username = tokenService.getUsernameFromToken(token);
-                var userDetails = (UserDetailsImpl) userDetailsService.loadUserByUsername(username);
+                var email = tokenService.getEmailFromToken(token);
+                var userDetails = (UserDetailsImpl) userDetailsService.loadUserByUsername(email);
                 SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationTokenBuilder.build(userDetails, request));
             } else {
                 LOGGER.warn("Token is not valid");
@@ -47,3 +46,4 @@ public class BearerAuthorizationRequestFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
+
