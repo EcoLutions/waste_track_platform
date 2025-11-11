@@ -7,6 +7,6 @@ import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.reques
 public class CreateUserCommandFromResourceAssembler {
     public static CreateUserCommand toCommandFromResource(CreateUserResource resource) {
         var roles = RoleListFromStringAssembler.toRoleListFromStringList(resource.roles());
-        return new CreateUserCommand(resource.email(), roles, resource.districtId());
+        return new CreateUserCommand(resource.email(), resource.username(), roles, resource.districtId());
     }
 }

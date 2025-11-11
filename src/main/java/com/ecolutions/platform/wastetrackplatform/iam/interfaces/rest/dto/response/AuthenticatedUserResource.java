@@ -1,4 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.response;
 
-public record AuthenticatedUserResource(String id, String email, String token) {
+import lombok.Builder;
+
+@Builder
+public record AuthenticatedUserResource(String id, String email, String username, String token) {
 }
