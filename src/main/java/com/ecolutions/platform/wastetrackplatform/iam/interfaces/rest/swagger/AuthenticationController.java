@@ -65,6 +65,15 @@ public interface AuthenticationController {
     })
     ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordResource resource);
 
+    @SecurityRequirements()
+    @PostMapping("/resend-activation-token")
+    @Operation(summary = "Resend activation token", description = "Resend the activation token to a user who has not yet activated their account.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Activation token resent successfully."),
+            @ApiResponse(responseCode = "400", description = "Account is not pending activation."),
+            @ApiResponse(responseCode = "404", description = "User not found.")
+    })
+    ResponseEntity<Void> resendActivationToken(@RequestParam String userId);
 
     @GetMapping("/me")
     @Operation(summary = "Get current user", description = "Get the currently authenticated user information.")

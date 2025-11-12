@@ -1,6 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.controllers;
 
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.RequestPasswordResetCommand;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.ResendActivationTokenCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.queries.GetCurrentUserQuery;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.services.UserCommandService;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.services.UserQueryService;
@@ -66,6 +67,13 @@ public class AuthenticationControllerImpl implements AuthenticationController {
     @Override
     public ResponseEntity<Void> resetPassword(ResetPasswordResource resource) {
         var command = ResetPasswordCommandFromResourceAssembler.toCommandFromResource(resource);
+        userCommandService.handle(command);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<Void> resendActivationToken(String userId) {
+        var command = new ResendActivationTokenCommand(userId);
         userCommandService.handle(command);
         return ResponseEntity.ok().build();
     }
