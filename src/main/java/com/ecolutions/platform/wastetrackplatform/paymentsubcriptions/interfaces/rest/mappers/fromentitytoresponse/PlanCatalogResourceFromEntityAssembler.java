@@ -11,6 +11,7 @@ public class PlanCatalogResourceFromEntityAssembler {
             .id(entity.getId())
             .name(entity.getName())
             .priceAmount(Money.amountAsStringOrNull(entity.getPrice()))
+            .priceCurrency(Money.currencyOrNull(entity.getPrice()))
             .billingPeriod(BillingPeriod.toStringOrNull(entity.getBillingPeriod()))
             .maxVehicles(entity.getMaxVehicles())
             .maxDrivers(entity.getMaxDrivers())
