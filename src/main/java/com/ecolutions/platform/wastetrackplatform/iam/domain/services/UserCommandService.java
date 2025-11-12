@@ -14,4 +14,5 @@ public interface UserCommandService {
     void handle(SetInitialPasswordCommand command);
     void handle(RequestPasswordResetCommand command);
     void handle(ResetPasswordCommand command);
+    void handle(ResendActivationTokenCommand command);
 }

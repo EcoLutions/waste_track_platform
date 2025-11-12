@@ -146,6 +146,7 @@ public class UserCommandServiceImpl implements UserCommandService {
     }
 
     @Override
+    @Transactional
     public void handle(ResetPasswordCommand command) {
         if (!tokenService.validateToken(command.token())) {
             throw new IllegalArgumentException("Invalid or expired reset token");
@@ -165,5 +166,20 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         user.changePassword(hashingService.encode(command.password()));
         userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public void handle(ResendActivationTokenCommand command) {
+        User user = userRepository.findById(command.userId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + command.userId()));
+
+        if (!user.isAccountPendingActivation()) {
+            throw new IllegalArgumentException("Account is not pending activation");
+        }
+
+        var activationToken = tokenService.generateActivationToken(user.getEmail().value());
+        var event = user.publishActivationTokenResentEvent(activationToken);
+        eventPublisher.publishEvent(event);
     }
 }
