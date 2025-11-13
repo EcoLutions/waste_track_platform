@@ -4,6 +4,7 @@ import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.response.RouteResource;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DriverId;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.VehicleId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DateTimeUtils;
 import com.ecolutions.platform.wastetrackplatform.shared.interfaces.rest.mapper.DistanceResourceFromEntityAssembler;
@@ -24,6 +25,9 @@ public class RouteResourceFromEntityAssembler {
             .totalDistance(route.getTotalDistance() != null ? DistanceResourceFromEntityAssembler.toResourceFromEntity(route.getTotalDistance()) : null)
             .estimatedDuration(route.getEstimatedDuration() != null ? DurationResourceFromEntityAssembler.toResourceFromEntity(route.getEstimatedDuration()) : null)
             .actualDuration(route.getActualDuration() != null ? DurationResourceFromEntityAssembler.toResourceFromEntity(route.getActualDuration()) : null)
+            .currentLatitude(Location.latitudeAsStringOrNull(route.getCurrentLocation()))
+            .currentLongitude(Location.longitudeAsStringOrNull(route.getCurrentLocation()))
+            .lastLocationUpdate(DateTimeUtils.localDateTimeToStringOrNull(route.getLastLocationUpdate()))
             .createdAt(DateTimeUtils.dateToStringOrNull(route.getCreatedAt()))
             .updatedAt(DateTimeUtils.dateToStringOrNull(route.getUpdatedAt()))
             .build();

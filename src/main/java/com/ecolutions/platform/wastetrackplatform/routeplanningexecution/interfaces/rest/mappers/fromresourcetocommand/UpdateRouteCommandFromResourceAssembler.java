@@ -7,8 +7,6 @@ public class UpdateRouteCommandFromResourceAssembler {
     public static UpdateRouteCommand toCommandFromResource(UpdateRouteResource resource) {
         return new UpdateRouteCommand(
             resource.routeId(),
-            resource.districtId(),
-            resource.routeType(),
             resource.scheduledDate()
         );
     }

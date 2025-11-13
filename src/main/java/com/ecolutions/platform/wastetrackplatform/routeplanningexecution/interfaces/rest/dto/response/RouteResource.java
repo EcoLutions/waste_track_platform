@@ -22,6 +22,9 @@ public record RouteResource(
     DistanceResource totalDistance,
     DurationResource estimatedDuration,
     DurationResource actualDuration,
+    String currentLatitude,
+    String currentLongitude,
+    String lastLocationUpdate,
     String createdAt,
     String updatedAt
 ) {
