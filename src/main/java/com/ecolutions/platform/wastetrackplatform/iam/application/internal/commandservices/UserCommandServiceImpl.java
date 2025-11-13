@@ -114,7 +114,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     @Override
     @Transactional
-    public void handle(SetInitialPasswordCommand command) {
+    public Optional<User>  handle(SetInitialPasswordCommand command) {
         if (!tokenService.validateToken(command.activationToken())) {
             throw new IllegalArgumentException("Invalid or expired activation token");
         }
@@ -134,6 +134,8 @@ public class UserCommandServiceImpl implements UserCommandService {
         user.activateAccount();
         user.changePassword(hashingService.encode(command.password()));
         userRepository.save(user);
+
+        return Optional.of(user);
     }
 
     @Override
@@ -147,7 +149,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
     @Override
     @Transactional
-    public void handle(ResetPasswordCommand command) {
+    public Optional<User> handle(ResetPasswordCommand command) {
         if (!tokenService.validateToken(command.token())) {
             throw new IllegalArgumentException("Invalid or expired reset token");
         }
@@ -166,6 +168,8 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         user.changePassword(hashingService.encode(command.password()));
         userRepository.save(user);
+
+        return Optional.of(user);
     }
 
     @Override

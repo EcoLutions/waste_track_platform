@@ -11,8 +11,8 @@ public interface UserCommandService {
     Optional<ImmutablePair<User, String>> handle(SignInCommand command);
     Optional<User> handle(CreateUserCommand command);
     Optional<User> handle(SeedSuperAdminCommand command);
-    void handle(SetInitialPasswordCommand command);
+    Optional<User>  handle(SetInitialPasswordCommand command);
     void handle(RequestPasswordResetCommand command);
-    void handle(ResetPasswordCommand command);
+    Optional<User>  handle(ResetPasswordCommand command);
     void handle(ResendActivationTokenCommand command);
 }
