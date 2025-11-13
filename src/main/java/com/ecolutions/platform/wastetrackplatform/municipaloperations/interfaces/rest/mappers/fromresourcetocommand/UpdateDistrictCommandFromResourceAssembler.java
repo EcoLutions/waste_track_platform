@@ -8,7 +8,9 @@ public class UpdateDistrictCommandFromResourceAssembler {
         return new UpdateDistrictCommand(
             resource.districtId(),
             resource.name(),
-            resource.code()
+            resource.code(),
+            resource.depotLatitud(),
+            resource.depotLongitude()
         );
     }
 }
