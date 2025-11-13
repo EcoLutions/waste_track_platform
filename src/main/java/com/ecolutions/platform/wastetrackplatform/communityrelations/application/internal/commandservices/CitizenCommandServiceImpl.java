@@ -2,11 +2,12 @@ package com.ecolutions.platform.wastetrackplatform.communityrelations.applicatio
 
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.aggregates.Citizen;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.CreateCitizenCommand;
-import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.UpdateCitizenCommand;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.DeleteCitizenCommand;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.InitializeCitizenCommand;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.UpdateCitizenCommand;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.command.CitizenCommandService;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.infrastructure.persistence.jpa.repositories.CitizenRepository;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.*;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,65 +20,39 @@ public class CitizenCommandServiceImpl implements CitizenCommandService {
 
     @Override
     public Optional<Citizen> handle(CreateCitizenCommand command) {
-        try {
-            var userId = new UserId(command.userId());
-            var districtId = new DistrictId(command.districtId());
-            var fullName = new FullName(command.firstName(), command.lastName());
-            var email = new EmailAddress(command.email());
-            var phoneNumber = new PhoneNumber(command.phoneNumber());
+        var citizen = new Citizen(command);
+        var savedCitizen = citizenRepository.save(citizen);
+        return Optional.of(savedCitizen);
+    }
 
-            var citizen = new Citizen(userId, districtId, fullName, email, phoneNumber);
+    @Override
+    public Optional<Citizen> handle(InitializeCitizenCommand command) {
+        if (citizenRepository.existsByUserId(new UserId(command.userId())))
+            throw new IllegalArgumentException("Citizen already exists for user ID: " + command.userId());
 
-            var savedCitizen = citizenRepository.save(citizen);
-            return Optional.of(savedCitizen);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to create citizen: " + e.getMessage(), e);
-        }
+        var citizen = new Citizen(command);
+
+        var savedCitizen = citizenRepository.save(citizen);
+        return Optional.of(savedCitizen);
     }
 
     @Override
     public Optional<Citizen> handle(UpdateCitizenCommand command) {
-        try {
-            var existingCitizen = citizenRepository.findById(command.citizenId())
-                    .orElseThrow(() -> new IllegalArgumentException("Citizen with ID " + command.citizenId() + " not found."));
+        var existingCitizen = citizenRepository.findById(command.citizenId())
+                .orElseThrow(() -> new IllegalArgumentException("Citizen with ID " + command.citizenId() + " not found."));
 
-            if(command.firstName() != null && command.lastName() != null) {
-                var newFullName = new FullName(command.firstName(), command.lastName());
-                existingCitizen.setFullName(newFullName);
-            }
+        existingCitizen.update(command);
 
-            if(command.email() != null) {
-                var newEmail = new EmailAddress(command.email());
-                existingCitizen.setEmail(newEmail);
-            }
-
-            if(command.phoneNumber() != null) {
-                var newPhoneNumber = new PhoneNumber(command.phoneNumber());
-                existingCitizen.setPhoneNumber(newPhoneNumber);
-            }
-
-            if(command.districtId() != null) {
-                var newDistrictId = new DistrictId(command.districtId());
-                existingCitizen.changeDistrict(newDistrictId);
-            }
-
-            var updatedCitizen = citizenRepository.save(existingCitizen);
-            return Optional.of(updatedCitizen);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to update citizen: " + e.getMessage(), e);
-        }
+        var updatedCitizen = citizenRepository.save(existingCitizen);
+        return Optional.of(updatedCitizen);
     }
 
     @Override
     public Boolean handle(DeleteCitizenCommand command) {
-        try {
-            var existingCitizen = citizenRepository.findById(command.citizenId())
-                    .orElseThrow(() -> new IllegalArgumentException("Citizen with ID " + command.citizenId() + " not found."));
+        var existingCitizen = citizenRepository.findById(command.citizenId())
+                .orElseThrow(() -> new IllegalArgumentException("Citizen with ID " + command.citizenId() + " not found."));
 
-            citizenRepository.delete(existingCitizen);
-            return true;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to delete citizen: " + e.getMessage(), e);
-        }
+        citizenRepository.delete(existingCitizen);
+        return true;
     }
 }
