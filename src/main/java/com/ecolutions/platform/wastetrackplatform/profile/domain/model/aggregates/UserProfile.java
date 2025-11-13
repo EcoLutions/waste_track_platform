@@ -3,7 +3,6 @@ package com.ecolutions.platform.wastetrackplatform.profile.domain.model.aggregat
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.commands.InitializeUserProfileCommand;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.Language;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.Photo;
-import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.ProfileStatus;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
@@ -27,10 +26,6 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
 
     @Embedded
     private Photo photo;
-
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    private ProfileStatus status;
 
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "district_id"))
@@ -73,7 +68,6 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
         this.pushNotificationsEnabled = true;
         this.language = Language.ES;
         this.timezone = "America/Lima";
-        this.status = ProfileStatus.INCOMPLETE;
     }
 
     public UserProfile(UserId userId, EmailAddress email, PhoneNumber phoneNumber, Language language, String timezone, Photo photo, DistrictId districtId) {
@@ -92,7 +86,6 @@ public class UserProfile extends AuditableAbstractAggregateRoot<UserProfile> {
         this.email = new EmailAddress(command.email());
         this.userId = new UserId(command.userId());
         this.districtId = new DistrictId(command.districtId());
-        this.status = ProfileStatus.INCOMPLETE;
     }
 
     public void enableNotificationChannel() {

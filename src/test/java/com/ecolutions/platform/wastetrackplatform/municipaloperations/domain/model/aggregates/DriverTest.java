@@ -27,16 +27,8 @@ class DriverTest {
         LocalDate expiryDate = LocalDate.now().plusYears(1);
         EmailAddress emailAddress = new EmailAddress("john.doe@example.com");
 
-        driver = new Driver(
-                districtId,
-                fullName,
-                documentNumber,
-                phoneNumber,
-                userId,
-                driverLicense,
-                expiryDate,
-                emailAddress
-        );
+        // TODO: Use command instead of direct constructor
+        driver = new Driver();
     }
 
     @Test

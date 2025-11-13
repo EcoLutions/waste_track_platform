@@ -1,5 +1,9 @@
 package com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.CreateCitizenCommand;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.InitializeCitizenCommand;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.UpdateCitizenCommand;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.valueobjects.CitizenStatus;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.valueobjects.MembershipLevel;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.valueobjects.RewardPoints;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
@@ -50,22 +54,48 @@ public class Citizen extends AuditableAbstractAggregateRoot<Citizen> {
     @NotNull
     private LocalDateTime lastActivityDate;
 
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private CitizenStatus status;
+
     public Citizen() {
         super();
         this.totalPoints = RewardPoints.of(0);
         this.membershipLevel = MembershipLevel.BRONZE;
         this.totalReportsSubmitted = 0;
         this.lastActivityDate = LocalDateTime.now();
+        this.status = CitizenStatus.COMPLETE;
     }
 
-    public Citizen(UserId userId, DistrictId districtId, FullName fullName,
-                   EmailAddress email, PhoneNumber phoneNumber) {
+    public Citizen(CreateCitizenCommand command) {
         this();
-        this.userId = userId;
-        this.districtId = districtId;
-        this.fullName = fullName;
-        this.email = email;
-        this.phoneNumber = phoneNumber;
+        this.userId = UserId.of(command.userId());
+        this.districtId = DistrictId.of(command.districtId());
+        this.fullName = new FullName(command.firstName(), command.lastName());
+        this.email = new EmailAddress(command.email());
+        this.phoneNumber = new PhoneNumber(command.phoneNumber());
+    }
+
+    public Citizen(InitializeCitizenCommand command) {
+        this();
+        this.userId = UserId.of(command.userId());
+        this.status = CitizenStatus.INCOMPLETE;
+    }
+
+    public void update(UpdateCitizenCommand command) {
+        if (command.firstName() != null && command.lastName() != null) {
+            this.fullName = new FullName(command.firstName(), command.lastName());
+        }
+        if (command.email() != null) {
+            this.email = new EmailAddress(command.email());
+        }
+        if (command.phoneNumber() != null) {
+            this.phoneNumber = new PhoneNumber(command.phoneNumber());
+        }
+        if (command.districtId() != null) {
+            this.districtId = DistrictId.of(command.districtId());
+        }
+        this.lastActivityDate = LocalDateTime.now();
     }
 
     public void earnPoints(Integer points, String reason) {
