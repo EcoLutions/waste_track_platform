@@ -4,6 +4,7 @@ import com.ecolutions.platform.wastetrackplatform.profile.domain.model.commands.
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.queries.GetAllUserProfilesQuery;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.queries.GetUserProfileByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.queries.GetUserProfileByUserIdQuery;
+import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.Photo;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.services.command.UserProfileCommandService;
 import com.ecolutions.platform.wastetrackplatform.profile.domain.services.queries.UserProfileQueryService;
 import com.ecolutions.platform.wastetrackplatform.profile.interfaces.rest.dto.request.CreateUserProfileResource;
@@ -35,11 +36,11 @@ public class UserProfileControllerImpl implements UserProfileController {
     private final StorageService storageService;
 
     @Override
-    public ResponseEntity<UserProfileResource> createUserProfile(CreateUserProfileResource resource) throws IOException  {
+    public ResponseEntity<UserProfileResource> createUserProfile(CreateUserProfileResource resource) {
         var command = CreateUserProfileCommandFromResourceAssembler.toCommandFromResource(resource);
         var createdUserProfile = userProfileCommandService.handle(command);
         if (createdUserProfile.isEmpty()) return ResponseEntity.badRequest().build();
-        String freshPhotoUrl = storageService.getFileUrl(createdUserProfile.get().getPhoto().filePath());
+        String freshPhotoUrl = this.getFreshPhotoUrl(Photo.toStringOrNull(createdUserProfile.get().getPhoto()));
         var userProfileResource = UserProfileResourceFromEntityAssembler.toResourceFromEntity(createdUserProfile.get(), freshPhotoUrl);
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
@@ -54,7 +55,7 @@ public class UserProfileControllerImpl implements UserProfileController {
         var query = new GetUserProfileByIdQuery(id);
         var userProfile = userProfileQueryService.handle(query);
         if (userProfile.isEmpty()) return ResponseEntity.notFound().build();
-        String freshPhotoUrl = storageService.getFileUrl(userProfile.get().getPhoto().filePath());
+        String freshPhotoUrl = this.getFreshPhotoUrl(Photo.toStringOrNull(userProfile.get().getPhoto()));
         var userProfileResource = UserProfileResourceFromEntityAssembler.toResourceFromEntity(userProfile.get(), freshPhotoUrl);
         return ResponseEntity.status(HttpStatus.OK).body(userProfileResource);
     }
@@ -65,24 +66,19 @@ public class UserProfileControllerImpl implements UserProfileController {
         var userProfiles = userProfileQueryService.handle(query);
         var userProfileResources = userProfiles.stream()
                 .map(userProfile -> {
-                    try {
-                        String freshPhotoUrl = storageService.getFileUrl(userProfile.getPhoto().filePath());
-                        return UserProfileResourceFromEntityAssembler.toResourceFromEntity(userProfile, freshPhotoUrl);
-                    } catch (IOException e) {
-                        log.warn("Could not generate photo URL for user profile {}: {}", userProfile.getId(), e.getMessage());
-                        return UserProfileResourceFromEntityAssembler.toResourceFromEntity(userProfile, null);
-                    }
+                    String freshPhotoUrl = this.getFreshPhotoUrl(Photo.toStringOrNull(userProfile.getPhoto()));
+                    return UserProfileResourceFromEntityAssembler.toResourceFromEntity(userProfile, freshPhotoUrl);
                 })
                 .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(userProfileResources);
     }
 
     @Override
-    public ResponseEntity<UserProfileResource> updateUserProfile(String id, UpdateUserProfileResource resource) throws IOException {
+    public ResponseEntity<UserProfileResource> updateUserProfile(String id, UpdateUserProfileResource resource) {
         var command = UpdateUserProfileCommandFromResourceAssembler.toCommandFromResource(id, resource);
         var updatedUserProfile = userProfileCommandService.handle(command);
         if (updatedUserProfile.isEmpty()) return ResponseEntity.notFound().build();
-        String freshPhotoUrl = storageService.getFileUrl(updatedUserProfile.get().getPhoto().filePath());
+        String freshPhotoUrl = this.getFreshPhotoUrl(Photo.toStringOrNull(updatedUserProfile.get().getPhoto()));
         var userProfileResource = UserProfileResourceFromEntityAssembler.toResourceFromEntity(updatedUserProfile.get(), freshPhotoUrl);
         return ResponseEntity.status(HttpStatus.OK).body(userProfileResource);
     }
@@ -96,12 +92,22 @@ public class UserProfileControllerImpl implements UserProfileController {
     }
 
     @Override
-    public ResponseEntity<UserProfileResource> getUserProfileByUserId(String userId) throws IOException {
+    public ResponseEntity<UserProfileResource> getUserProfileByUserId(String userId) {
         var query = new GetUserProfileByUserIdQuery(userId);
         var userProfile = userProfileQueryService.handle(query);
         if (userProfile.isEmpty()) return ResponseEntity.notFound().build();
-        String freshPhotoUrl = storageService.getFileUrl(userProfile.get().getPhoto().filePath());
+        String freshPhotoUrl = this.getFreshPhotoUrl(Photo.toStringOrNull(userProfile.get().getPhoto()));
         var userProfileResource = UserProfileResourceFromEntityAssembler.toResourceFromEntity(userProfile.get(), freshPhotoUrl);
         return ResponseEntity.status(HttpStatus.OK).body(userProfileResource);
+    }
+
+    private String getFreshPhotoUrl(String photoFilePath) {
+        if (photoFilePath == null || photoFilePath.isBlank()) return null;
+        try {
+            return storageService.getFileUrl(photoFilePath);
+        } catch (IOException e) {
+            log.warn("Could not generate photo URL for file {}: {}", photoFilePath, e.getMessage());
+            return null;
+        }
     }
 }
