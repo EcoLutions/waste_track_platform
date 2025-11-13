@@ -1,7 +1,6 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects;
 
 public enum RouteStatus {
-    DRAFT,
     ASSIGNED,
     IN_PROGRESS,
     COMPLETED,

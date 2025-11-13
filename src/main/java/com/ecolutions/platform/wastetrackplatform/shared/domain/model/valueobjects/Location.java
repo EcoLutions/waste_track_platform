@@ -1,5 +1,6 @@
 package com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects;
 
+import com.google.maps.model.LatLng;
 import jakarta.persistence.Embeddable;
 
 import java.math.BigDecimal;
@@ -19,6 +20,14 @@ public record Location(
         if (longitude.compareTo(BigDecimal.valueOf(-180)) < 0 || longitude.compareTo(BigDecimal.valueOf(180)) > 0) {
             throw new IllegalArgumentException("Longitude must be between -180 and 180");
         }
+    }
+
+    public LatLng toGoogleLatLng() {
+        return new LatLng(latitude.doubleValue(), longitude.doubleValue());
+    }
+
+    public static Location fromGoogleLatLng(LatLng latLng) {
+        return new Location(BigDecimal.valueOf(latLng.lat), BigDecimal.valueOf(latLng.lng));
     }
 
     public static Location fromStrings(String latStr, String lonStr) {

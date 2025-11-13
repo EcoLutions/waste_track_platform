@@ -20,44 +20,19 @@ public class RouteCommandServiceImpl implements RouteCommandService {
 
     @Override
     public Optional<Route> handle(CreateRouteCommand command) {
-        try {
-            var districtId = DistrictId.of(command.districtId());
-            var routeType = RouteType.fromString(command.routeType());
-            var newRoute = new Route(districtId, routeType, command.scheduledDate());
-
-            var savedRoute = routeRepository.save(newRoute);
-
-            return Optional.of(savedRoute);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to create route: " + e.getMessage(), e);
-        }
+        var newRoute = new Route(command);
+        var savedRoute = routeRepository.save(newRoute);
+        return Optional.of(savedRoute);
     }
 
     @Override
     public Optional<Route> handle(UpdateRouteCommand command) {
-        try {
-            Route existingRoute = routeRepository.findById(command.routeId())
-                    .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
+        Route existingRoute = routeRepository.findById(command.routeId())
+                .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
 
-            if (command.districtId() != null && !command.districtId().isBlank()) {
-                var districtId = DistrictId.of(command.districtId());
-                existingRoute.setDistrictId(districtId);
-            }
-
-            if (command.routeType() != null && !command.routeType().isBlank()) {
-                var routeType = RouteType.fromString(command.routeType());
-                existingRoute.setRouteType(routeType);
-            }
-
-            if (command.scheduledDate() != null) {
-                existingRoute.setScheduledDate(command.scheduledDate());
-            }
-
-            var updatedRoute = routeRepository.save(existingRoute);
-            return Optional.of(updatedRoute);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to update route: " + e.getMessage(), e);
-        }
+        existingRoute.update(command);
+        var updatedRoute = routeRepository.save(existingRoute);
+        return Optional.of(updatedRoute);
     }
 
     @Override

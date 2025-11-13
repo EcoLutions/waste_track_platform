@@ -9,9 +9,7 @@ public class CreateWayPointCommandFromResourceAssembler {
             routeId,
             resource.containerId(),
             resource.sequenceOrder(),
-            resource.priority(),
-            resource.estimatedArrivalTime(),
-            resource.driverNote()
+            resource.priority()
         );
     }
 }

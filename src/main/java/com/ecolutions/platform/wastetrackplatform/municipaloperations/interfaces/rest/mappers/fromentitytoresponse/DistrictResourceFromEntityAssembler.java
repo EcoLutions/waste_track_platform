@@ -4,6 +4,7 @@ import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.mod
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.OperationalStatus;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.PlanSnapshot;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.rest.dto.response.DistrictResource;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DateTimeUtils;
 
 public class DistrictResourceFromEntityAssembler {
@@ -12,6 +13,8 @@ public class DistrictResourceFromEntityAssembler {
                 .id(entity.getId())
                 .name(entity.getName())
                 .code(entity.getCode())
+                .depotLatitud(Location.latitudeAsStringOrNull(entity.getDepotLocation()))
+                .depotLongitude(Location.longitudeAsStringOrNull(entity.getDepotLocation()))
                 .operationalStatus(OperationalStatus.toStringOrNull(entity.getOperationalStatus()))
                 .serviceStartDate(DateTimeUtils.localDateToStringOrNull(entity.getServiceStartDate()))
                 .planId(PlanSnapshot.planIdToStringOrNull(entity.getPlanSnapshot()))

@@ -2,6 +2,8 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interf
 
 public record CreateRouteResource(
     String districtId,
+    String driverId,
+    String vehicleId,
     String routeType,
     String scheduledDate
 ) {

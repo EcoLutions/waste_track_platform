@@ -30,6 +30,13 @@ public class District extends AuditableAbstractAggregateRoot<District> {
     private LocalDate serviceStartDate;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "depot_latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "depot_longitude"))
+    })
+    private Location depotLocation;
+
+    @Embedded
     private PlanSnapshot planSnapshot;
 
     private Integer currentVehicleCount;
@@ -56,6 +63,9 @@ public class District extends AuditableAbstractAggregateRoot<District> {
         }
         if (command.code() != null && !command.code().isBlank() && !command.code().equals(this.code)) {
             this.code = command.code();
+        }
+        if (command.depotLatitud() != null && !command.depotLatitud().isBlank() && command.depotLongitude() != null && !command.depotLongitude().isBlank() ){
+            this.depotLocation = Location.fromStrings(command.depotLatitud(), command.depotLongitude());
         }
     }
 
