@@ -1,11 +1,16 @@
 package com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.CreateDriverCommand;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.UpdateDriverCommand;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.events.DriverCreatedEvent;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.DriverLicense;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.DriverStatus;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.*;
-import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.*;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -59,20 +64,44 @@ public class Driver extends AuditableAbstractAggregateRoot<Driver> {
         this.status = DriverStatus.AVAILABLE;
     }
 
-    public Driver(DistrictId districtId,
-                  FullName fullName, DocumentNumber documentNumber,
-                  PhoneNumber phoneNumber, UserId userId,
-                  DriverLicense driverLicense, LocalDate licenseExpiryDate,
-                  EmailAddress emailAddress) {
+    public Driver(CreateDriverCommand command) {
         this();
-        this.districtId = districtId;
-        this.fullName = fullName;
-        this.documentNumber = documentNumber;
-        this.phoneNumber = phoneNumber;
-        this.userId = userId;
-        this.driverLicense = driverLicense;
-        this.licenseExpiryDate = licenseExpiryDate;
-        this.emailAddress = emailAddress;
+        this.districtId = new DistrictId(command.districtId());
+        this.fullName = new FullName(command.firstName(), command.lastName());
+        this.documentNumber = new DocumentNumber(command.documentNumber());
+        this.phoneNumber = new PhoneNumber(command.phoneNumber());
+        this.userId = new UserId(command.userId());
+        this.driverLicense = new DriverLicense(command.driverLicense());
+        this.licenseExpiryDate = command.licenseExpiryDate();
+        this.emailAddress = new EmailAddress(command.emailAddress());
+    }
+
+    public void update(UpdateDriverCommand command) {
+        if (command.districtId() != null && !command.districtId().isBlank()) {
+            this.districtId = new DistrictId(command.districtId());
+        }
+        if (command.firstName() != null && !command.firstName().isBlank() &&
+            command.lastName() != null && !command.lastName().isBlank()) {
+            this.fullName = new FullName(command.firstName(), command.lastName());
+        }
+        if (command.documentNumber() != null && !command.documentNumber().isBlank()) {
+            this.documentNumber = new DocumentNumber(command.documentNumber());
+        }
+        if (command.phoneNumber() != null && !command.phoneNumber().isBlank()) {
+            this.phoneNumber = new PhoneNumber(command.phoneNumber());
+        }
+        if (command.userId() != null && !command.userId().isBlank()) {
+            this.userId = new UserId(command.userId());
+        }
+        if (command.driverLicense() != null && !command.driverLicense().isBlank()) {
+            this.driverLicense = new DriverLicense(command.driverLicense());
+        }
+        if (command.licenseExpiryDate() != null) {
+            this.licenseExpiryDate = command.licenseExpiryDate();
+        }
+        if (command.emailAddress() != null && !command.emailAddress().isBlank()) {
+            this.emailAddress = new EmailAddress(command.emailAddress());
+        }
     }
 
     public void startRoute() {
@@ -131,5 +160,18 @@ public class Driver extends AuditableAbstractAggregateRoot<Driver> {
 
     public boolean isLicenseExpired() {
         return LocalDate.now().isAfter(licenseExpiryDate);
+    }
+
+    public DriverCreatedEvent publishDriverCreatedEvent() {
+        return DriverCreatedEvent.builder()
+                .source(this)
+                .driverId(this.getId())
+                .email(EmailAddress.toStringOrNull(this.emailAddress))
+                .firstName(this.fullName != null ? this.fullName.firstName() : null)
+                .lastName(this.fullName != null ? this.fullName.lastName() : null)
+                .documentNumber(DocumentNumber.toStringOrNull(this.documentNumber))
+                .phoneNumber(PhoneNumber.toStringOrNull(this.phoneNumber))
+                .districtId(DistrictId.toStringOrNull(this.districtId))
+                .build();
     }
 }
