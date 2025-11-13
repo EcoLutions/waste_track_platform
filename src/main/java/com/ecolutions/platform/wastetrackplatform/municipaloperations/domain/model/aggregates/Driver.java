@@ -56,9 +56,6 @@ public class Driver extends AuditableAbstractAggregateRoot<Driver> {
     @Column(nullable = false)
     private DriverStatus status;
 
-    @AttributeOverride(name = "value", column = @Column(name = "assigned_vehicle_id"))
-    private VehicleId assignedVehicleId;
-
     public Driver() {
         super();
         this.status = DriverStatus.AVAILABLE;
@@ -77,9 +74,6 @@ public class Driver extends AuditableAbstractAggregateRoot<Driver> {
     }
 
     public void update(UpdateDriverCommand command) {
-        if (command.districtId() != null && !command.districtId().isBlank()) {
-            this.districtId = new DistrictId(command.districtId());
-        }
         if (command.firstName() != null && !command.firstName().isBlank() &&
             command.lastName() != null && !command.lastName().isBlank()) {
             this.fullName = new FullName(command.firstName(), command.lastName());
@@ -90,17 +84,11 @@ public class Driver extends AuditableAbstractAggregateRoot<Driver> {
         if (command.phoneNumber() != null && !command.phoneNumber().isBlank()) {
             this.phoneNumber = new PhoneNumber(command.phoneNumber());
         }
-        if (command.userId() != null && !command.userId().isBlank()) {
-            this.userId = new UserId(command.userId());
-        }
         if (command.driverLicense() != null && !command.driverLicense().isBlank()) {
             this.driverLicense = new DriverLicense(command.driverLicense());
         }
         if (command.licenseExpiryDate() != null) {
             this.licenseExpiryDate = command.licenseExpiryDate();
-        }
-        if (command.emailAddress() != null && !command.emailAddress().isBlank()) {
-            this.emailAddress = new EmailAddress(command.emailAddress());
         }
     }
 
@@ -132,17 +120,6 @@ public class Driver extends AuditableAbstractAggregateRoot<Driver> {
             throw new IllegalArgumentException("Suspension reason cannot be null or blank");
         }
         this.status = DriverStatus.SUSPENDED;
-    }
-
-    public void assignVehicle(VehicleId vehicleId) {
-        if (vehicleId == null) {
-            throw new IllegalArgumentException("Vehicle ID cannot be null");
-        }
-        this.assignedVehicleId = vehicleId;
-    }
-
-    public void unassignVehicle() {
-        this.assignedVehicleId = null;
     }
 
     public void isAvailableForNewRoute() {

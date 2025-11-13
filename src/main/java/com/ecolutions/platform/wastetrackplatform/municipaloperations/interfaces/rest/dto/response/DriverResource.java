@@ -17,7 +17,6 @@ public record DriverResource(
     Integer totalHoursWorked,
     String lastRouteCompletedAt,
     String status,
-    String assignedVehicleId,
     String createdAt,
     String updatedAt
 ) {

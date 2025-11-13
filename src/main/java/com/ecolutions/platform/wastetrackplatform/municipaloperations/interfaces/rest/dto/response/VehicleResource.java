@@ -11,7 +11,6 @@ public record VehicleResource(
     Integer weightCapacity,
     Integer mileage,
     String districtId,
-    String assignedDriverId,
     String lastMaintenanceDate,
     String nextMaintenanceDate,
     Boolean isActive,

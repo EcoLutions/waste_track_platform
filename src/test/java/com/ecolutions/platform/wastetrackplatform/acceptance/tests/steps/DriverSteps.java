@@ -1,14 +1,19 @@
 
 package com.ecolutions.platform.wastetrackplatform.acceptance.tests.steps;
+
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.aggregates.Driver;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.DriverLicense;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.*;
-        import io.cucumber.datatable.DataTable;
-import io.cucumber.java.en.*;
-        import java.time.LocalDate;
+import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+
+import java.time.LocalDate;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class DriverSteps {
 
@@ -100,22 +105,6 @@ public class DriverSteps {
     @When("el administrador asigna el vehículo con id {string}")
     public void el_administrador_asigna_el_vehiculo_con_id(String idVehiculo) {
         vehicleId = new VehicleId(idVehiculo);
-        driver.assignVehicle(vehicleId);
-    }
-
-    @Then("el vehículo asignado debe ser {string}")
-    public void el_vehiculo_asignado_debe_ser(String idEsperado) {
-        assertEquals(idEsperado, (VehicleId.toStringOrNull(driver.getAssignedVehicleId())));
-    }
-
-    @When("el administrador desasigna el vehículo")
-    public void el_administrador_desasigna_el_vehiculo() {
-        driver.unassignVehicle();
-    }
-
-    @Then("el conductor no debe tener vehículo asignado")
-    public void el_conductor_no_debe_tener_vehiculo_asignado() {
-        assertNull(driver.getAssignedVehicleId());
     }
 
     private void setDefaultDriver() {

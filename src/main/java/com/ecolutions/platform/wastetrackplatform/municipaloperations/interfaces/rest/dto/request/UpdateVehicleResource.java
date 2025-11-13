@@ -9,7 +9,6 @@ public record UpdateVehicleResource(
     BigDecimal volumeCapacity,
     BigDecimal weightCapacity,
     String districtId,
-    String assignedDriverId,
     String lastMaintenanceDate,
     String nextMaintenanceDate,
     Boolean isActive
@@ -26,9 +25,6 @@ public record UpdateVehicleResource(
         }
         if (districtId != null && districtId.isBlank()) {
             throw new IllegalArgumentException("District ID cannot be blank");
-        }
-        if (assignedDriverId != null && assignedDriverId.isBlank()) {
-            throw new IllegalArgumentException("Assigned driver ID cannot be blank");
         }
         if (volumeCapacity != null && volumeCapacity.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Volume capacity must be greater than zero");

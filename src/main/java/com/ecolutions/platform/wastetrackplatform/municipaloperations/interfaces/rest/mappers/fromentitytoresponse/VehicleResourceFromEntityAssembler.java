@@ -4,7 +4,6 @@ import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.mod
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.*;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.rest.dto.response.VehicleResource;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DriverId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DateTimeUtils;
 
 public class VehicleResourceFromEntityAssembler {
@@ -17,7 +16,6 @@ public class VehicleResourceFromEntityAssembler {
                 .weightCapacity(WeightCapacity.toIntegerOrNull(entity.getWeightCapacity()))
                 .mileage(Mileage.toIntegerOrNull(entity.getMileage()))
                 .districtId(DistrictId.toStringOrNull(entity.getDistrictId()))
-                .assignedDriverId(DriverId.toStringOrNull(entity.getAssignedDriverId()))
                 .lastMaintenanceDate(DateTimeUtils.localDateTimeToStringOrNull(entity.getLastMaintenanceDate()))
                 .nextMaintenanceDate(DateTimeUtils.localDateTimeToStringOrNull(entity.getNextMaintenanceDate()))
                 .isActive(entity.getIsActive())

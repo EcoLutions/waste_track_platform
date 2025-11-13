@@ -7,15 +7,12 @@ public class UpdateDriverCommandFromResourceAssembler {
     public static UpdateDriverCommand toCommandFromResource(UpdateDriverResource resource) {
         return new UpdateDriverCommand(
             resource.driverId(),
-            resource.districtId(),
             resource.firstName(),
             resource.lastName(),
             resource.documentNumber(),
             resource.phoneNumber(),
-            resource.userId(),
             resource.driverLicense(),
-            resource.licenseExpiryDate(),
-            resource.emailAddress()
+            resource.licenseExpiryDate()
         );
     }
 }
