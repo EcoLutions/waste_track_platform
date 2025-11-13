@@ -15,4 +15,8 @@ public record Distance(BigDecimal kilometers) {
     public static String toStringOrNull(Distance distance) {
         return distance == null ? null : distance.kilometers.toString();
     }
+
+    public static Distance of(double km) {
+        return new Distance(BigDecimal.valueOf(km));
+    }
 }
