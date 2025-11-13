@@ -1,29 +1,28 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.mappers.fromentitytoresponse;
 
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates.Container;
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.SensorId;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.*;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.response.ContainerResource;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DateTimeUtils;
 
 public class ContainerResourceFromEntityAssembler {
     public static ContainerResource toResourceFromEntity(Container entity) {
         return ContainerResource.builder()
             .id(entity.getId())
-            .latitude(entity.getLocation() != null && entity.getLocation().latitude() != null ?
-                     entity.getLocation().latitude().toString() : null)
-            .longitude(entity.getLocation() != null && entity.getLocation().longitude() != null ?
-                      entity.getLocation().longitude().toString() : null)
-            .volumeLiters(entity.getCapacity() != null ? entity.getCapacity().volumeLiters() : null)
-            .maxWeightKg(entity.getCapacity() != null ? entity.getCapacity().maxWeightKg() : null)
-            .containerType(entity.getContainerType() != null ? entity.getContainerType().name() : null)
-            .status(entity.getStatus() != null ? entity.getStatus().name() : null)
-            .currentFillLevel(entity.getCurrentFillLevel() != null ? entity.getCurrentFillLevel().percentage() : null)
+            .latitude(Location.latitudeAsStringOrNull(entity.getLocation()))
+            .longitude(Location.longitudeAsStringOrNull(entity.getLocation()))
+            .volumeLiters(ContainerCapacity.volumeLitersToIntegerOrNull(entity.getCapacity()))
+            .maxWeightKg(ContainerCapacity.maxWeightToIntegerOrNull(entity.getCapacity()))
+            .containerType(ContainerType.toStringOrNull(entity.getContainerType()))
+            .status(ContainerStatus.toStringOrNull(entity.getStatus()))
+            .currentFillLevel(CurrentFillLevel.toIntegerOrNull(entity.getCurrentFillLevel()))
             .sensorId(SensorId.toStringOrNull(entity.getSensorId()))
             .lastReadingTimestamp(DateTimeUtils.localDateTimeToStringOrNull(entity.getLastReadingTimestamp()))
             .districtId(DistrictId.toStringOrNull(entity.getDistrictId()))
             .lastCollectionDate(DateTimeUtils.localDateTimeToStringOrNull(entity.getLastCollectionDate()))
-            .collectionFrequencyDays(entity.getCollectionFrequency() != null ? entity.getCollectionFrequency().days() : null)
+            .collectionFrequencyDays(CollectionFrequency.toIntegerOrNull(entity.getCollectionFrequency()))
             .createdAt(DateTimeUtils.dateToStringOrNull(entity.getCreatedAt()))
             .updatedAt(DateTimeUtils.dateToStringOrNull(entity.getUpdatedAt()))
             .build();

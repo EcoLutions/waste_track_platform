@@ -17,4 +17,8 @@ public record CurrentFillLevel(Integer percentage) {
     public boolean requiresCollection() {
         return percentage > 80;
     }
+
+    public static Integer toIntegerOrNull(CurrentFillLevel currentFillLevel) {
+        return currentFillLevel != null ? currentFillLevel.percentage : null;
+    }
 }

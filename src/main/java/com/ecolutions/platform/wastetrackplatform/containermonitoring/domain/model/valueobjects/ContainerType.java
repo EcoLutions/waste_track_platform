@@ -15,4 +15,8 @@ public enum ContainerType {
             throw new IllegalArgumentException("Invalid ContainerType: " + value);
         }
     }
+
+    public static String toStringOrNull(ContainerType containerType) {
+        return containerType != null ? containerType.name() : null;
+    }
 }

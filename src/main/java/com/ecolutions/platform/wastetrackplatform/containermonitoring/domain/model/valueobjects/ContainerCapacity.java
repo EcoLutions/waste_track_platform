@@ -12,4 +12,12 @@ public record ContainerCapacity(Integer volumeLiters, Integer maxWeightKg) {
             throw new IllegalArgumentException("Max weight kg cannot be null or less than or equal to zero");
         }
     }
+
+    public static Integer volumeLitersToIntegerOrNull(ContainerCapacity containerCapacity) {
+        return containerCapacity == null ? null : containerCapacity.volumeLiters();
+    }
+
+    public static Integer maxWeightToIntegerOrNull(ContainerCapacity containerCapacity) {
+        return containerCapacity == null ? null : containerCapacity.maxWeightKg();
+    }
 }

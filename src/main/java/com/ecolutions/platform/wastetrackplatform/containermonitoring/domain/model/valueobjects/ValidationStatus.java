@@ -15,4 +15,8 @@ public enum ValidationStatus {
             throw new IllegalArgumentException("Invalid ValidationStatus: " + value);
         }
     }
+
+    public static String toStringOrNull(ValidationStatus validationStatus) {
+        return validationStatus != null ? validationStatus.name() : null;
+    }
 }
