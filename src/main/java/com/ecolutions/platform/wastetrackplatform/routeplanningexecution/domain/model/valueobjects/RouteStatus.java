@@ -16,4 +16,8 @@ public enum RouteStatus {
             throw new IllegalArgumentException("Invalid RouteStatus: " + value);
         }
     }
+
+    public static String toStringOrNull(RouteStatus routeStatus){
+        return routeStatus != null ? routeStatus.name() : null;
+    }
 }
