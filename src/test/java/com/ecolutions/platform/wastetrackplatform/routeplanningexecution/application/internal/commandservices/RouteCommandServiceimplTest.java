@@ -2,11 +2,9 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.applic
 
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates.Route;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateRouteCommand;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.DeleteRouteCommand;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.RouteType;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.infrastructure.persistence.jpa.repositories.RouteRepository;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +13,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;

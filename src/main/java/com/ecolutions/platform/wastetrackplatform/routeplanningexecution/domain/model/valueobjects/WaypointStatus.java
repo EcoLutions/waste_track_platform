@@ -15,4 +15,8 @@ public enum WaypointStatus {
             throw new IllegalArgumentException("Invalid WaypointStatus: " + value);
         }
     }
+
+    public static String toStringOrNull(WaypointStatus status) {
+        return status != null ? status.name() : null;
+    }
 }
