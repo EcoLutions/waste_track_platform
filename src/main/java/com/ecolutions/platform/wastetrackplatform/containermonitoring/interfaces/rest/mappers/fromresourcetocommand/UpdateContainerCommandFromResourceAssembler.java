@@ -13,7 +13,6 @@ public class UpdateContainerCommandFromResourceAssembler {
             resource.maxWeightKg(),
             resource.sensorId(),
             resource.containerType(),
-            resource.districtId(),
             resource.collectionFrequencyDays()
         );
     }
