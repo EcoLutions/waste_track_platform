@@ -38,3 +38,5 @@ build/
 /.github/prompts/
 /.github/instructions/
 /GEMINI.md
+.claude/settings.local.json
+nul
