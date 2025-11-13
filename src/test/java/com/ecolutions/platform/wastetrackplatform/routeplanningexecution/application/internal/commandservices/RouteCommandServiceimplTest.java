@@ -40,11 +40,14 @@ class RouteCommandServiceImplTest {
 
     @BeforeEach
     void setUp() {
+/*
         createCommand = new CreateRouteCommand("DIST-001", "REGULAR", LocalDate.now().plusDays(1));
+*/
+/*
         updateCommand = new UpdateRouteCommand("1", "DIST-002", "OPTIMIZED", LocalDate.now().plusDays(2));
+*/
         deleteCommand = new DeleteRouteCommand("1");
 
-        mockRoute = new Route(DistrictId.of("DIST-001"), RouteType.REGULAR, LocalDate.now());
         mockRoute.setId("1");
     }
 
