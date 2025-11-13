@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 public record UpdateWayPointResource(
     Integer sequenceOrder,
     String priority,
-    LocalDateTime estimatedArrivalTime,
-    String driverNote
+    LocalDateTime estimatedArrivalTime
 ) {
 }

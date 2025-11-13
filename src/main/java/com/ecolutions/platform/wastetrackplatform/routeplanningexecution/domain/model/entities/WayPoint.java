@@ -1,13 +1,16 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.entities;
 
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.*;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateWayPointCommand;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateWayPointCommand;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.Priority;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.PriorityLevel;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.WaypointStatus;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.entities.AuditableModel;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.ContainerId;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Entity
@@ -39,33 +42,36 @@ public class WayPoint extends AuditableModel {
     @Column(name = "actual_arrival_time")
     private LocalDateTime actualArrivalTime;
 
-    @Column(name = "service_time")
-    private Duration serviceTime;
-
-    @Column(name = "driver_note")
-    private String driverNote;
-
     public WayPoint() {
         super();
         this.status = WaypointStatus.PENDING;
     }
 
-    public WayPoint(ContainerId containerId, Integer sequenceOrder, Priority priority) {
+    public WayPoint(CreateWayPointCommand command) {
         this();
-        this.containerId = containerId;
-        this.sequenceOrder = sequenceOrder;
-        this.priority = priority;
+        this.containerId = ContainerId.of(command.containerId());
+        this.sequenceOrder = command.sequenceOrder();
+        this.priority = new Priority(PriorityLevel.fromString(command.priority()));
     }
 
-    public void markAsVisited(LocalDateTime arrivalTime, Duration serviceTime) {
+    public void update(UpdateWayPointCommand command) {
+        if (command.sequenceOrder() != null) {
+            this.sequenceOrder = command.sequenceOrder();
+        }
+        if (command.priority() != null) {
+            this.priority = new Priority(PriorityLevel.fromString(command.priority()));
+        }
+        if (command.estimatedArrivalTime() != null) {
+            this.estimatedArrivalTime = command.estimatedArrivalTime();
+        }
+    }
+
+    public void markAsVisited(LocalDateTime arrivalTime) {
+        if (!canBeVisited()) {
+            throw new IllegalStateException("Waypoint cannot be visited in current state: " + status);
+        }
         this.actualArrivalTime = arrivalTime;
-        this.serviceTime = serviceTime;
         this.status = WaypointStatus.VISITED;
-    }
-
-    public void markAsSkipped(String reason) {
-        this.driverNote = reason;
-        this.status = WaypointStatus.SKIPPED;
     }
 
     public boolean isCompleted() {
@@ -74,5 +80,12 @@ public class WayPoint extends AuditableModel {
 
     public boolean canBeVisited() {
         return status == WaypointStatus.PENDING;
+    }
+
+    public void updatePriority(Priority newPriority) {
+        if (status != WaypointStatus.PENDING) {
+            throw new IllegalStateException("Cannot update priority of non-pending waypoint");
+        }
+        this.priority = newPriority;
     }
 }

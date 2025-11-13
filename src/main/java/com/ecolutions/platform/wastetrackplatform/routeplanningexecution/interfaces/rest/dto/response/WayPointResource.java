@@ -11,7 +11,6 @@ public record WayPointResource(
     String status,
     String estimatedArrivalTime,
     String actualArrivalTime,
-    String driverNote,
     String createdAt,
     String updatedAt
 ) {

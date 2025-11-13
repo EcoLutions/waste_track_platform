@@ -9,8 +9,7 @@ public class UpdateWayPointCommandFromResourceAssembler {
             wayPointId,
             resource.sequenceOrder(),
             resource.priority(),
-            resource.estimatedArrivalTime(),
-            resource.driverNote()
+            resource.estimatedArrivalTime()
         );
     }
 }

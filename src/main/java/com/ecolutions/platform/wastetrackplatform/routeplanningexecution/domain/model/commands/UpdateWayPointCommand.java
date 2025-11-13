@@ -6,15 +6,11 @@ public record UpdateWayPointCommand(
     String wayPointId,
     Integer sequenceOrder,
     String priority,
-    LocalDateTime estimatedArrivalTime,
-    String driverNote
+    LocalDateTime estimatedArrivalTime
 ) {
     public UpdateWayPointCommand {
         if (wayPointId == null || wayPointId.isBlank()) {
             throw new IllegalArgumentException("WayPoint ID cannot be null or blank");
-        }
-        if (sequenceOrder != null && sequenceOrder < 0) {
-            throw new IllegalArgumentException("Sequence order cannot be negative");
         }
     }
 }
