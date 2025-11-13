@@ -1,5 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.CreateSensorReadingCommand;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.UpdateSensorReadingCommand;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.BatteryLevel;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.CurrentFillLevel;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.Temperature;
@@ -53,13 +55,18 @@ public class SensorReading extends AuditableAbstractAggregateRoot<SensorReading>
         this.isValidated = false;
     }
 
-    public SensorReading(ContainerId containerId, CurrentFillLevel fillLevel,
-                        Temperature temperature, BatteryLevel batteryLevel) {
+    public SensorReading(CreateSensorReadingCommand command) {
         this();
-        this.containerId = containerId;
-        this.fillLevel = fillLevel;
-        this.temperature = temperature;
-        this.batteryLevel = batteryLevel;
+        this.containerId = ContainerId.of(command.containerId());
+        this.fillLevel = new CurrentFillLevel(command.fillLevelPercentage());
+        this.temperature = new Temperature(BigDecimal.valueOf(command.temperatureCelsius()));
+        this.batteryLevel = new BatteryLevel(command.batteryLevelPercentage());
+    }
+
+    public void update(UpdateSensorReadingCommand command) {
+        if (command.fillLevelPercentage() != null) this.fillLevel = new CurrentFillLevel(command.fillLevelPercentage());
+        if (command.temperatureCelsius() != null) this.temperature = new Temperature(BigDecimal.valueOf(command.temperatureCelsius()));
+        if (command.batteryLevelPercentage() != null) this.batteryLevel = new BatteryLevel(command.batteryLevelPercentage());
     }
 
     public void validate() {
