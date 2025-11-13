@@ -4,8 +4,6 @@ public record UpdateContainerCommand(
     String containerId,
     String latitude,
     String longitude,
-    String address,
-    String districtCode,
     Integer volumeLiters,
     Integer maxWeightKg,
     String sensorId,
@@ -22,12 +20,6 @@ public record UpdateContainerCommand(
         }
         if (longitude != null && longitude.isBlank()) {
             throw new IllegalArgumentException("Longitude cannot be blank if provided");
-        }
-        if (address != null && address.isBlank()) {
-            throw new IllegalArgumentException("Address cannot be blank if provided");
-        }
-        if (districtCode != null && districtCode.isBlank()) {
-            throw new IllegalArgumentException("District code cannot be blank if provided");
         }
         if (volumeLiters != null && volumeLiters <= 0) {
             throw new IllegalArgumentException("Volume liters must be greater than zero if provided");

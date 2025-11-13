@@ -9,8 +9,6 @@ public class UpdateContainerCommandFromResourceAssembler {
             resource.containerId(),
             resource.latitude(),
             resource.longitude(),
-            resource.address(),
-            resource.districtCode(),
             resource.volumeLiters(),
             resource.maxWeightKg(),
             resource.sensorId(),

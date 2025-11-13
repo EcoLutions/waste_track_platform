@@ -7,8 +7,6 @@ public record ContainerResource(
     String id,
     String latitude,
     String longitude,
-    String address,
-    String districtCode,
     Integer volumeLiters,
     Integer maxWeightKg,
     String containerType,

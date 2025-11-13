@@ -24,9 +24,7 @@ class ContainerTest {
         //  Arrange
         location = new Location(
                 new BigDecimal("12.0464"),
-                new BigDecimal("-77.0428"),
-                "Av. Arequipa 1234, Lima",
-                "150101"
+                new BigDecimal("-77.0428")
         );
         capacity = new ContainerCapacity(1000, 500);
         districtId = new DistrictId("SURCO");

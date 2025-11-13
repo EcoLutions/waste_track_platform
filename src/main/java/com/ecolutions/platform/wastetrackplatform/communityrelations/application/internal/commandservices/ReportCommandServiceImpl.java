@@ -24,12 +24,7 @@ public class ReportCommandServiceImpl implements ReportCommandService {
     public Optional<Report> handle(CreateReportCommand command) {
         try {
             var citizenId = new CitizenId(command.citizenId());
-            var location = Location.fromStrings(
-                command.latitude(),
-                command.longitude(),
-                command.address(),
-                command.districtCode()
-            );
+            var location = Location.fromStrings(command.latitude(), command.longitude());
             var containerId = ContainerId.of(command.containerId());
             var reportType = ReportType.fromString(command.reportType());
 
@@ -53,13 +48,8 @@ public class ReportCommandServiceImpl implements ReportCommandService {
             Report existingReport = reportRepository.findById(command.reportId())
                     .orElseThrow(() -> new IllegalArgumentException("Report with ID " + command.reportId() + " not found."));
 
-            if (command.latitude() != null && command.longitude() != null && command.address() != null && command.districtCode() != null) {
-                var newLocation = Location.fromStrings(
-                        command.latitude(),
-                        command.longitude(),
-                        command.address(),
-                        command.districtCode()
-                );
+            if (command.latitude() != null && command.longitude() != null) {
+                var newLocation = Location.fromStrings(command.latitude(), command.longitude());
                 existingReport.setLocation(newLocation);
             }
 

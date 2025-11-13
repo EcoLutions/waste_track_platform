@@ -8,8 +8,6 @@ public class CreateContainerCommandFromResourceAssembler {
         return new CreateContainerCommand(
             resource.latitude(),
             resource.longitude(),
-            resource.address(),
-            resource.districtCode(),
             resource.volumeLiters(),
             resource.maxWeightKg(),
             resource.sensorId(),

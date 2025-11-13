@@ -8,8 +8,6 @@ public record CreateReportResource(
     String citizenId,
     String latitude,
     String longitude,
-    String address,
-    String districtCode,
     String containerId, // Optional
     String reportType,
     String description,
@@ -24,12 +22,6 @@ public record CreateReportResource(
         }
         if (longitude == null || longitude.isBlank()) {
             throw new IllegalArgumentException("Longitude cannot be null or blank");
-        }
-        if (address == null || address.isBlank()) {
-            throw new IllegalArgumentException("Address cannot be null or blank");
-        }
-        if (districtCode == null || districtCode.isBlank()) {
-            throw new IllegalArgumentException("District code cannot be null or blank");
         }
         if (reportType == null || reportType.isBlank()) {
             throw new IllegalArgumentException("Report type cannot be null or blank");

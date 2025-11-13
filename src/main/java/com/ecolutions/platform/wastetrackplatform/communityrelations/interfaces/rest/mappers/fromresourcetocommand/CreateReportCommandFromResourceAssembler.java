@@ -9,8 +9,6 @@ public class CreateReportCommandFromResourceAssembler {
             resource.citizenId(),
             resource.latitude(),
             resource.longitude(),
-            resource.address(),
-            resource.districtCode(),
             resource.containerId(),
             resource.reportType(),
             resource.description(),

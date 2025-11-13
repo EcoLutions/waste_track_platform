@@ -23,12 +23,7 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
     @Override
     public Optional<Container> handle(CreateContainerCommand command) {
         try {
-            var location = new Location(
-                    new BigDecimal(command.latitude()),
-                    new BigDecimal(command.longitude()),
-                    command.address(),
-                    command.districtCode()
-            );
+            var location = new Location(new BigDecimal(command.latitude()), new BigDecimal(command.longitude()));
             var capacity = new ContainerCapacity(command.volumeLiters(), command.maxWeightKg());
             var containerType = ContainerType.fromString(command.containerType());
             var districtId = DistrictId.of(command.districtId());
@@ -50,13 +45,10 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
             var existingContainer = containerRepository.findById(command.containerId())
                 .orElseThrow(() -> new IllegalArgumentException("Container with ID " + command.containerId() + " not found."));
 
-            if (command.latitude() != null && command.longitude() != null && command.address() != null && command.districtCode() != null) {
+            if (command.latitude() != null && command.longitude() != null) {
                 var location = new Location(
                     new BigDecimal(command.latitude()),
-                    new BigDecimal(command.longitude()),
-                    command.address(),
-                    command.districtCode()
-                );
+                    new BigDecimal(command.longitude()));
                 existingContainer.setLocation(location);
             }
 

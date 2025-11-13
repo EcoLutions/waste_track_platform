@@ -7,9 +7,7 @@ import java.math.BigDecimal;
 @Embeddable
 public record Location(
     BigDecimal latitude,
-    BigDecimal longitude,
-    String address,
-    String districtCode
+    BigDecimal longitude
 ) {
     public Location {
         if (latitude == null || longitude == null) {
@@ -23,11 +21,11 @@ public record Location(
         }
     }
 
-    public static Location fromStrings(String latStr, String lonStr, String address, String districtCode) {
+    public static Location fromStrings(String latStr, String lonStr) {
         try {
             BigDecimal latitude = new BigDecimal(latStr);
             BigDecimal longitude = new BigDecimal(lonStr);
-            return new Location(latitude, longitude, address, districtCode);
+            return new Location(latitude, longitude);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid latitude or longitude format", e);
         }
@@ -39,13 +37,5 @@ public record Location(
 
     public static String longitudeAsStringOrNull(Location location) {
         return location != null ? location.longitude().toString() : null;
-    }
-
-    public static String addressOrNull(Location location) {
-        return location != null ? location.address() : null;
-    }
-
-    public static String districtCodeOrNull(Location location) {
-        return location != null ? location.districtCode() : null;
     }
 }

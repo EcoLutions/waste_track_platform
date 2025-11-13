@@ -17,8 +17,6 @@ public class ReportResourceFromEntityAssembler {
                 .citizenId(CitizenId.toStringOrNull(entity.getCitizenId()))
                 .latitude(Location.latitudeAsStringOrNull(entity.getLocation()))
                 .longitude(Location.longitudeAsStringOrNull(entity.getLocation()))
-                .address(Location.addressOrNull(entity.getLocation()))
-                .districtCode(Location.districtCodeOrNull(entity.getLocation()))
                 .containerId(ContainerId.toStringOrNull(entity.getContainerId()))
                 .reportType(ReportType.toStringOrNull(entity.getReportType()))
                 .description(entity.getDescription())

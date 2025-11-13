@@ -4,8 +4,6 @@ public record CreateContainerCommand(
     // Geographical Coordinates
     String latitude,
     String longitude,
-    String address,
-    String districtCode,
     // Physical Characteristics
     Integer volumeLiters,
     Integer maxWeightKg,
@@ -22,12 +20,6 @@ public record CreateContainerCommand(
         }
         if (longitude == null || longitude.isBlank()) {
             throw new IllegalArgumentException("Longitude cannot be null or blank");
-        }
-        if (address == null || address.isBlank()) {
-            throw new IllegalArgumentException("Address cannot be null or blank");
-        }
-        if (districtCode == null || districtCode.isBlank()) {
-            throw new IllegalArgumentException("District code cannot be null or blank");
         }
         if (volumeLiters == null || volumeLiters <= 0) {
             throw new IllegalArgumentException("Volume liters cannot be null or less than or equal to zero");

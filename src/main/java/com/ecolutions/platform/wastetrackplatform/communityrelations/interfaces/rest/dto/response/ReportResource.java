@@ -7,8 +7,6 @@ public record ReportResource(
     String citizenId,
     String latitude,
     String longitude,
-    String address,
-    String districtCode,
     String containerId,
     String reportType,
     String description,

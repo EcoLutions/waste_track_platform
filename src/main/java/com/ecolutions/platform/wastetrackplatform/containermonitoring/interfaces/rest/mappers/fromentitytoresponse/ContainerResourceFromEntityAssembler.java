@@ -14,8 +14,6 @@ public class ContainerResourceFromEntityAssembler {
                      entity.getLocation().latitude().toString() : null)
             .longitude(entity.getLocation() != null && entity.getLocation().longitude() != null ?
                       entity.getLocation().longitude().toString() : null)
-            .address(entity.getLocation() != null ? entity.getLocation().address() : null)
-            .districtCode(entity.getLocation() != null ? entity.getLocation().districtCode() : null)
             .volumeLiters(entity.getCapacity() != null ? entity.getCapacity().volumeLiters() : null)
             .maxWeightKg(entity.getCapacity() != null ? entity.getCapacity().maxWeightKg() : null)
             .containerType(entity.getContainerType() != null ? entity.getContainerType().name() : null)
