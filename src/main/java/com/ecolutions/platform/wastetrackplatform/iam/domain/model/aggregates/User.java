@@ -4,6 +4,7 @@ import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.Crea
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SeedSuperAdminCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.SignUpCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.entities.Role;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.events.ActivationTokenResentEvent;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.events.PasswordResetRequestedEvent;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.events.UserCreatedEvent;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.AccountStatus;
@@ -176,6 +177,16 @@ public class User extends AuditableAbstractAggregateRoot<User> {
                 .email(EmailAddress.toStringOrNull(this.email))
                 .username(Username.toStringOrNull(this.username))
                 .resetToken(resetToken)
+                .build();
+    }
+
+    public ActivationTokenResentEvent publishActivationTokenResentEvent(String activationToken) {
+        return ActivationTokenResentEvent.builder()
+                .source(this)
+                .userId(this.getId())
+                .email(EmailAddress.toStringOrNull(this.email))
+                .username(Username.toStringOrNull(this.username))
+                .activationToken(activationToken)
                 .build();
     }
 

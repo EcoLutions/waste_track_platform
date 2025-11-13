@@ -77,8 +77,7 @@ public class TokenServiceImpl implements BearerTokenService {
                 .compact();
     }
 
-    private String buildTokenWithPurpose(String username, String purpose, Date expiration) {
-        var issuedAt = new Date();
+    private String buildTokenWithPurpose(String username, String purpose, Date issuedAt, Date expiration) {
         var key = getSigningKey();
         return Jwts.builder()
                 .subject(username)
@@ -120,14 +119,14 @@ public class TokenServiceImpl implements BearerTokenService {
     public String generateActivationToken(String email) {
         var issuedAt = new Date();
         var expiration = DateUtils.addDays(issuedAt, activationExpirationDays);
-        return buildTokenWithPurpose(email, "activation", expiration);
+        return buildTokenWithPurpose(email, "activation", issuedAt, expiration);
     }
 
     @Override
     public String generatePasswordResetToken(String email) {
         var issuedAt = new Date();
         var expiration = DateUtils.addMinutes(issuedAt, passwordResetExpirationMinutes);
-        return buildTokenWithPurpose(email, "password_reset", expiration);
+        return buildTokenWithPurpose(email, "password_reset", issuedAt, expiration);
     }
 
     @Override

@@ -5,6 +5,8 @@ import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.reques
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.request.SignInResource;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.request.SignUpResource;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.response.AuthenticatedUserResource;
+import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.response.ResetCompletedPasswordResource;
+import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.response.SetCompletedInitialPasswordResource;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.response.UserResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -44,7 +46,7 @@ public interface AuthenticationController {
             @ApiResponse(responseCode = "400", description = "Invalid activation token or password."),
             @ApiResponse(responseCode = "404", description = "User not found.")
     })
-    ResponseEntity<Void> setInitialPassword(@RequestBody SetInitialPasswordResource resource);
+    ResponseEntity<SetCompletedInitialPasswordResource> setInitialPassword(@RequestBody SetInitialPasswordResource resource);
 
     @SecurityRequirements()
     @PostMapping("/forgot-password")
@@ -63,8 +65,17 @@ public interface AuthenticationController {
             @ApiResponse(responseCode = "400", description = "Invalid reset token or password."),
             @ApiResponse(responseCode = "404", description = "User not found.")
     })
-    ResponseEntity<Void> resetPassword(@RequestBody ResetPasswordResource resource);
+    ResponseEntity<ResetCompletedPasswordResource> resetPassword(@RequestBody ResetPasswordResource resource);
 
+    @SecurityRequirements()
+    @PostMapping("/resend-activation-token")
+    @Operation(summary = "Resend activation token", description = "Resend the activation token to a user who has not yet activated their account.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Activation token resent successfully."),
+            @ApiResponse(responseCode = "400", description = "Account is not pending activation."),
+            @ApiResponse(responseCode = "404", description = "User not found.")
+    })
+    ResponseEntity<Void> resendActivationToken(@RequestParam String userId);
 
     @GetMapping("/me")
     @Operation(summary = "Get current user", description = "Get the currently authenticated user information.")

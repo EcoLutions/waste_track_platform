@@ -1,6 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.controllers;
 
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.RequestPasswordResetCommand;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.ResendActivationTokenCommand;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.queries.GetCurrentUserQuery;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.services.UserCommandService;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.services.UserQueryService;
@@ -9,8 +10,12 @@ import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.reques
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.request.SignInResource;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.request.SignUpResource;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.response.AuthenticatedUserResource;
+import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.response.ResetCompletedPasswordResource;
+import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.response.SetCompletedInitialPasswordResource;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.response.UserResource;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.mappers.fromentitytoresponse.AuthenticatedUserResourceFromEntityAssembler;
+import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.mappers.fromentitytoresponse.ResetCompletedPasswordResourceFromEntityAssembler;
+import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.mappers.fromentitytoresponse.SetCompletedInitialPasswordResourceFromEntityAssembler;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.mappers.fromentitytoresponse.UserResourceFromEntityAssembler;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.mappers.fromresourcetocommand.ResetPasswordCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.mappers.fromresourcetocommand.SetInitialPasswordCommandFromResourceAssembler;
@@ -50,10 +55,12 @@ public class AuthenticationControllerImpl implements AuthenticationController {
     }
 
     @Override
-    public ResponseEntity<Void> setInitialPassword(SetInitialPasswordResource resource) {
+    public ResponseEntity<SetCompletedInitialPasswordResource> setInitialPassword(SetInitialPasswordResource resource) {
         var command = SetInitialPasswordCommandFromResourceAssembler.toCommandFromResource(resource);
-        userCommandService.handle(command);
-        return ResponseEntity.ok().build();
+        var user = userCommandService.handle(command);
+        if (user.isEmpty()) return ResponseEntity.badRequest().build();
+        var userResource = SetCompletedInitialPasswordResourceFromEntityAssembler.toResourceFromEntity(user.get());
+        return ResponseEntity.ok(userResource);
     }
 
     @Override
@@ -64,8 +71,17 @@ public class AuthenticationControllerImpl implements AuthenticationController {
     }
 
     @Override
-    public ResponseEntity<Void> resetPassword(ResetPasswordResource resource) {
+    public ResponseEntity<ResetCompletedPasswordResource> resetPassword(ResetPasswordResource resource) {
         var command = ResetPasswordCommandFromResourceAssembler.toCommandFromResource(resource);
+        var user = userCommandService.handle(command);
+        if (user.isEmpty()) return ResponseEntity.badRequest().build();
+        var userResource = ResetCompletedPasswordResourceFromEntityAssembler.toResourceFromEntity(user.get());
+        return ResponseEntity.ok(userResource);
+    }
+
+    @Override
+    public ResponseEntity<Void> resendActivationToken(String userId) {
+        var command = new ResendActivationTokenCommand(userId);
         userCommandService.handle(command);
         return ResponseEntity.ok().build();
     }
