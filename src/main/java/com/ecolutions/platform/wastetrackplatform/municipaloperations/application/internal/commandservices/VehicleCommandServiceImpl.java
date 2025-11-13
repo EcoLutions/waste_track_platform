@@ -59,9 +59,6 @@ public class VehicleCommandServiceImpl implements VehicleCommandService {
             if (command.weightCapacity() != null) {
                 existingVehicle.setWeightCapacity(new WeightCapacity(command.weightCapacity().intValue()));
             }
-            if (command.districtId() != null) {
-                existingVehicle.setDistrictId(DistrictId.of(command.districtId()));
-            }
             if (command.lastMaintenanceDate() != null) {
                 var lastMaintenanceDate = DateTimeUtils.stringToLocalDateTimeOrNull(command.lastMaintenanceDate());
                 existingVehicle.setLastMaintenanceDate(lastMaintenanceDate);
