@@ -6,6 +6,7 @@ import com.ecolutions.platform.wastetrackplatform.iam.domain.model.commands.Sign
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.entities.Role;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.events.ActivationTokenResentEvent;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.events.PasswordResetRequestedEvent;
+import com.ecolutions.platform.wastetrackplatform.iam.domain.model.events.SignedUpEvent;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.events.UserCreatedEvent;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.AccountStatus;
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.Password;
@@ -187,6 +188,18 @@ public class User extends AuditableAbstractAggregateRoot<User> {
                 .email(EmailAddress.toStringOrNull(this.email))
                 .username(Username.toStringOrNull(this.username))
                 .activationToken(activationToken)
+                .build();
+    }
+
+    public SignedUpEvent publishSignedUpEvent() {
+        return SignedUpEvent.builder()
+                .source(this)
+                .userId(this.getId())
+                .email(EmailAddress.toStringOrNull(this.email))
+                .username(Username.toStringOrNull(this.username))
+                .roles(this.roles.stream()
+                        .map(role -> role.getName().name())
+                        .toList())
                 .build();
     }
 

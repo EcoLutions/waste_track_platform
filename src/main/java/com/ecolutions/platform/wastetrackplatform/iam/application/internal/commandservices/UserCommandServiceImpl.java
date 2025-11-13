@@ -50,6 +50,10 @@ public class UserCommandServiceImpl implements UserCommandService {
 
         User savedUser = userRepository.save(user);
 
+        var event = savedUser.publishSignedUpEvent();
+
+        eventPublisher.publishEvent(event);
+
         return Optional.of(savedUser);
     }
 
