@@ -35,8 +35,8 @@ public class DriverSteps {
             DriverLicense license = new DriverLicense(data.get("driverLicense"));
             LocalDate expiryDate = LocalDate.parse(data.get("expiryDate"));
             EmailAddress email = new EmailAddress(data.get("emailAddress"));
-
-            driver = new Driver(districtId, fullName, documentNumber, phoneNumber, userId, license, expiryDate, email);
+            // TODO: Use command instead of direct constructor
+            driver = new Driver();
             generatedCredentials = "USR-001-TOKEN";
         } catch (Exception e) {
             exception = e;
@@ -120,15 +120,7 @@ public class DriverSteps {
 
     private void setDefaultDriver() {
         districtId = new DistrictId("150101");
-        driver = new Driver(
-                districtId,
-                new FullName("John", "Doe"),
-                new DocumentNumber("12345678"),
-                new PhoneNumber("+51987654321"),
-                new UserId("USR-001"),
-                new DriverLicense("A1234567"),
-                LocalDate.now().plusYears(1),
-                new EmailAddress("john.doe@example.com")
-        );
+        // TODO: Use command instead of direct constructor
+        driver = new Driver();
     }
 }
