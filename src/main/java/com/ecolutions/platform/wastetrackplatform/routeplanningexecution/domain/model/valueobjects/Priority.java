@@ -4,9 +4,14 @@ import jakarta.persistence.Embeddable;
 
 @Embeddable
 public record Priority(PriorityLevel level) {
-    public Priority {
-        if (level == null) {
-            throw new IllegalArgumentException("Priority level cannot be null");
-        }
+    public Priority() {
+        this(PriorityLevel.LOW);
+    }
+    public Priority(PriorityLevel level) {
+        this.level = level == null ? PriorityLevel.LOW : level;
+    }
+
+    public static String toStringOrNull(Priority priority) {
+        return priority != null ? priority.level().name() : null;
     }
 }

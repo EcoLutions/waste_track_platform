@@ -26,6 +26,10 @@ public record Location(
         return new LatLng(latitude.doubleValue(), longitude.doubleValue());
     }
 
+    public static Location fromGoogleLatLng(LatLng latLng) {
+        return new Location(BigDecimal.valueOf(latLng.lat), BigDecimal.valueOf(latLng.lng));
+    }
+
     public static Location fromStrings(String latStr, String lonStr) {
         try {
             BigDecimal latitude = new BigDecimal(latStr);
