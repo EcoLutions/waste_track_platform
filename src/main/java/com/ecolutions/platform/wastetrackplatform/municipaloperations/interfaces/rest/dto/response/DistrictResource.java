@@ -7,6 +7,8 @@ public record DistrictResource(
     String id,
     String name,
     String code,
+    String depotLatitud,
+    String depotLongitude,
     String operationalStatus,
     String serviceStartDate,
     String planId,
