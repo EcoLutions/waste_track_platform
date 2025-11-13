@@ -18,19 +18,11 @@ public class SensorReadingQueryServiceImpl implements SensorReadingQueryService 
 
     @Override
     public Optional<SensorReading> handle(GetSensorReadingByIdQuery query) {
-        try {
-            return sensorReadingRepository.findById(query.sensorReadingId());
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to retrieve sensor reading: " + e.getMessage(), e);
-        }
+        return sensorReadingRepository.findById(query.sensorReadingId());
     }
 
     @Override
     public List<SensorReading> handle(GetAllSensorReadingsQuery query) {
-        try {
-            return sensorReadingRepository.findAll();
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to retrieve sensor readings: " + e.getMessage(), e);
-        }
+        return sensorReadingRepository.findAll();
     }
 }

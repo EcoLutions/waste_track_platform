@@ -1,5 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.CreateContainerCommand;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.UpdateContainerCommand;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.*;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
@@ -8,6 +10,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -55,16 +58,32 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
         this.currentFillLevel = new CurrentFillLevel(0);
     }
 
-    public Container(Location location, ContainerCapacity capacity,
-                     ContainerType containerType, DistrictId districtId,
-                     CollectionFrequency collectionFrequency, SensorId sensorId) {
+    public Container(CreateContainerCommand command) {
         this();
-        this.location = location;
-        this.capacity = capacity;
-        this.containerType = containerType;
-        this.districtId = districtId;
-        this.collectionFrequency = collectionFrequency;
-        this.sensorId = sensorId;
+        this.location = new Location(new BigDecimal(command.latitude()), new BigDecimal(command.longitude()));
+        this.capacity = new ContainerCapacity(command.volumeLiters(), command.maxWeightKg());
+        this.containerType = ContainerType.fromString(command.containerType());
+        this.districtId = DistrictId.of(command.districtId());
+        this.collectionFrequency = new CollectionFrequency(command.collectionFrequencyDays());
+        this.sensorId = SensorId.of(command.sensorId());
+    }
+
+    public void update(UpdateContainerCommand command) {
+        if (command.latitude() != null && command.longitude() != null) {
+            this.location = new Location(new BigDecimal(command.latitude()), new BigDecimal(command.longitude()));
+        }
+        if (command.volumeLiters() != null && command.maxWeightKg() != null) {
+            this.capacity = new ContainerCapacity(command.volumeLiters(), command.maxWeightKg());
+        }
+        if (command.containerType() != null) {
+            this.containerType = ContainerType.fromString(command.containerType());
+        }
+        if (command.collectionFrequencyDays() != null) {
+            this.collectionFrequency = new CollectionFrequency(command.collectionFrequencyDays());
+            this.lastCollectionDate = null;
+        }
+        this.sensorId = SensorId.of(command.sensorId());
+
     }
 
     public void updateFillLevel(CurrentFillLevel newLevel, LocalDateTime timestamp) {
