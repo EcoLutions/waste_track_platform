@@ -3,6 +3,7 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.GenerateOptimizedWaypointsCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.MarkWayPointAsVisitedCommand;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateCurrentLocationRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.DeleteRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates.Route;
@@ -15,4 +16,5 @@ public interface RouteCommandService {
     Boolean handle(DeleteRouteCommand command);
     Optional<Route> handle(MarkWayPointAsVisitedCommand command);
     Optional<Route> handle(GenerateOptimizedWaypointsCommand command);
+    Optional<Route> handle(UpdateCurrentLocationRouteCommand command);
 }
