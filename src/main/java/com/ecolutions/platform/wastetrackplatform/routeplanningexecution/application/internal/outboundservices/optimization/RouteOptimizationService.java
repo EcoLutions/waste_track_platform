@@ -1,8 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.optimization;
 
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates.Container;
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.ContainerStatus;
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.infrastructure.persistence.jpa.repositories.ContainerRepository;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.acl.contexts.ContainerMonitoringContextFacade;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.acl.dtos.ContainerInfoDTO;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.acl.contexts.MunicipalOperationsContextFacade;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.acl.dtos.DistrictConfigDTO;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateWayPointCommand;
@@ -34,7 +33,7 @@ import java.util.List;
 @Slf4j
 public class RouteOptimizationService {
     private final GeoApiContext geoApiContext;
-    private final ContainerRepository containerRepository;
+    private final ContainerMonitoringContextFacade containerMonitoringFacade;
     private final MunicipalOperationsContextFacade municipalOperationsContextFacade;
 
     // Limit for Google Maps Api
@@ -44,139 +43,126 @@ public class RouteOptimizationService {
      * Optimize route for a given district and scheduled time
      */
     public OptimizedRouteResult optimizeRoute(String districtId, LocalDateTime scheduledStartAt) {
-        // 1. Get district configuration
-        DistrictConfigDTO districtConfig = municipalOperationsContextFacade
-                .getDistrictConfiguration(districtId)
-                .orElseThrow(() -> new IllegalArgumentException("District not found: " + districtId));
+        DistrictConfigDTO districtConfig = fetchDistrictConfiguration(districtId);
+        List<ContainerInfoDTO> candidates = getAndSortContainerCandidates(districtId);
+        RouteLocations locations = extractDepotAndDisposalLocations(districtConfig);
 
-        // 2. Get container candidates (require collection)
-        List<Container> candidates = getContainerCandidates(DistrictId.of(districtId));
-
-        // 3. Sort by calculated priority (create mutable copy)
-        List<Container> sortedCandidates = new ArrayList<>(candidates);
-        sortedCandidates.sort(Comparator.comparing(this::calculateContainerPriority).reversed());
-
-        // 4. Limit to MAX_WAYPOINTS
-        if (candidates.size() > MAX_WAYPOINTS) {
-            candidates = candidates.subList(0, MAX_WAYPOINTS);
-        }
-
-        if (candidates.isEmpty())
-            throw new IllegalArgumentException("No containers require collection in district: " + districtId);
-
-        // 5. Build locations for Google Maps
-        Location depotLocation = Location.fromBigDecimal(
-                districtConfig.depotLatitude(),
-                districtConfig.depotLongitude()
-        );
-
-        Location disposalLocation = districtConfig.disposalLatitude() != null
-                ? Location.fromBigDecimal(districtConfig.disposalLatitude(), districtConfig.disposalLongitude())
-                : depotLocation;
-
-        // 6. Call Google Maps API with a pessimistic traffic model
         try {
-            DirectionsResult result = callGoogleMapsDirections(depotLocation, disposalLocation, candidates, scheduledStartAt);
+            DirectionsResult result = callGoogleMapsDirections(locations.depot(), locations.disposal(), candidates, scheduledStartAt);
+            RouteDurations durations = calculateRouteDurations(result, locations, scheduledStartAt);
 
-            // 7. Calculate durations
-            Duration collectionDuration = calculateTotalDuration(result);
-            Duration returnDuration = calculateReturnDuration(disposalLocation, depotLocation, scheduledStartAt, collectionDuration);
-            Duration totalDuration = collectionDuration.plus(returnDuration).plusMinutes(15); // Add buffer
+            OptimizedRouteData optimizedData = adjustWaypointsToFitTimeConstraints(candidates, locations, districtConfig.maxRouteDuration(), scheduledStartAt, result, durations);
 
-            // 8. Adjust waypoints if exceeds maxRouteDuration
-            while (totalDuration.compareTo(districtConfig.maxRouteDuration()) > 0 && candidates.size() > 1) {
-                log.info("Route exceeds maxRouteDuration ({}), removing lowest priority container", districtConfig.maxRouteDuration());
-
-                // Remove the lowest priority container
-                Container lowestPriority = candidates.stream()
-                        .min(Comparator.comparing(this::calculateContainerPriority))
-                        .orElseThrow();
-                candidates.remove(lowestPriority);
-
-                // Recalculate
-                result = callGoogleMapsDirections(depotLocation, disposalLocation, candidates, scheduledStartAt);
-                collectionDuration = calculateTotalDuration(result);
-                returnDuration = calculateReturnDuration(disposalLocation, depotLocation, scheduledStartAt, collectionDuration);
-                totalDuration = collectionDuration.plus(returnDuration).plusMinutes(15);
-            }
-
-            // 9. Create waypoints with an optimized sequence
-            List<WayPoint> waypoints = createOptimizedWaypoints(candidates, result);
-
-            // 10. Calculate total distance
-            Distance totalDistance = calculateTotalDistance(result);
-
-            // 11. Build result
-            return OptimizedRouteResult.builder()
-                    .waypoints(waypoints)
-                    .totalDuration(totalDuration)
-                    .collectionDuration(collectionDuration)
-                    .returnDuration(returnDuration)
-                    .totalDistance(totalDistance)
-                    .scheduledEndAt(scheduledStartAt.plus(totalDuration))
-                    .encodedPolyline(result.routes[0].overviewPolyline.getEncodedPath())
-                    .build();
+            return buildOptimizedResult(candidates, optimizedData.result(), optimizedData.durations(), scheduledStartAt);
 
         } catch (Exception e) {
             log.error("Error calling Google Maps API, using fallback algorithm", e);
-            return optimizeWithFallbackAlgorithm(districtId, candidates, scheduledStartAt);
+            return optimizeWithFallbackAlgorithm(candidates, scheduledStartAt);
         }
     }
 
-    /**
-     * Get containers that require collection
-     */
-    private List<Container> getContainerCandidates(DistrictId districtId) {
-        List<Container> allContainers = containerRepository.findAllByDistrictId(districtId);
-        return allContainers.stream()
-                .filter(c -> c.getStatus() == ContainerStatus.ACTIVE)
-                .filter(Container::requiresCollection)
-                .toList();
+    private DistrictConfigDTO fetchDistrictConfiguration(String districtId) {
+        return municipalOperationsContextFacade
+                .getDistrictConfiguration(districtId)
+                .orElseThrow(() -> new IllegalArgumentException("District not found: " + districtId));
     }
 
-    /**
-     * Calculate priority score for container
-     * Higher score = higher priority
-     */
-    private int calculateContainerPriority(Container container) {
-        int score = container.getCurrentFillLevel().percentage();
+    private List<ContainerInfoDTO> getAndSortContainerCandidates(String districtId) {
+        List<ContainerInfoDTO> candidates = containerMonitoringFacade.getContainersRequiringCollection(DistrictId.of(districtId));
 
-        // Bonus for overflowing
-        if (container.isOverflowing()) {
-            score += 50;
+        List<ContainerInfoDTO> sortedCandidates = new ArrayList<>(candidates);
+        sortedCandidates.sort(Comparator.comparing(ContainerInfoDTO::fillLevelPercentage).reversed());
+
+        if (sortedCandidates.size() > MAX_WAYPOINTS) {
+            sortedCandidates = sortedCandidates.subList(0, MAX_WAYPOINTS);
         }
 
-        // Bonus for days since the last collection
-        if (container.getLastCollectionDate() != null) {
-            long daysSinceCollection = java.time.temporal.ChronoUnit.DAYS.between(
-                    container.getLastCollectionDate(),
-                    LocalDateTime.now()
-            );
-            score += (int) Math.min(daysSinceCollection * 2, 30);
+        if (sortedCandidates.isEmpty()) {
+            throw new IllegalArgumentException("No containers require collection in district: " + districtId);
         }
 
-        return score;
+        return sortedCandidates;
     }
 
-    /**
-     * Map container priority to PriorityLevel enum
-     */
-    public PriorityLevel calculatePriorityLevel(Container container) {
-        int fillLevel = container.getCurrentFillLevel().percentage();
+    private RouteLocations extractDepotAndDisposalLocations(DistrictConfigDTO config) {
+        Location depotLocation = Location.fromBigDecimal(
+                config.depotLatitude(),
+                config.depotLongitude()
+        );
 
-        if (fillLevel >= 90) return PriorityLevel.CRITICAL;
-        if (fillLevel >= 80) return PriorityLevel.HIGH;
-        if (fillLevel >= 70) return PriorityLevel.MEDIUM;
+        Location disposalLocation = config.disposalLatitude() != null
+                ? Location.fromBigDecimal(config.disposalLatitude(), config.disposalLongitude())
+                : depotLocation;
+
+        return new RouteLocations(depotLocation, disposalLocation);
+    }
+
+    private RouteDurations calculateRouteDurations(DirectionsResult result, RouteLocations locations, LocalDateTime scheduledStartAt) {
+        Duration collectionDuration = calculateTotalDuration(result);
+        Duration returnDuration = calculateReturnDuration(locations.disposal(), locations.depot(), scheduledStartAt, collectionDuration);
+        Duration totalDuration = collectionDuration.plus(returnDuration).plusMinutes(15); // Add buffer
+
+        return new RouteDurations(collectionDuration, returnDuration, totalDuration);
+    }
+
+    private OptimizedRouteData adjustWaypointsToFitTimeConstraints(List<ContainerInfoDTO> candidates, RouteLocations locations, Duration maxRouteDuration, LocalDateTime scheduledStartAt, DirectionsResult result, RouteDurations durations) throws Exception {
+
+        while (durations.total().compareTo(maxRouteDuration) > 0 && candidates.size() > 1) {
+            log.info("Route exceeds maxRouteDuration ({}), removing lowest priority container", maxRouteDuration);
+
+            removeLowestPriorityContainer(candidates);
+
+            result = callGoogleMapsDirections(locations.depot(), locations.disposal(), candidates, scheduledStartAt);
+            durations = calculateRouteDurations(result, locations, scheduledStartAt);
+        }
+
+        return new OptimizedRouteData(result, durations);
+    }
+
+    private void removeLowestPriorityContainer(List<ContainerInfoDTO> candidates) {
+        ContainerInfoDTO lowestPriority = candidates.stream()
+                .min(Comparator.comparing(ContainerInfoDTO::fillLevelPercentage))
+                .orElseThrow();
+        candidates.remove(lowestPriority);
+    }
+
+    private OptimizedRouteResult buildOptimizedResult(List<ContainerInfoDTO> candidates, DirectionsResult result, RouteDurations durations, LocalDateTime scheduledStartAt) {
+
+        List<WayPoint> waypoints = createOptimizedWaypoints(candidates, result);
+        Distance totalDistance = calculateTotalDistance(result);
+
+        return OptimizedRouteResult.builder()
+                .waypoints(waypoints)
+                .totalDuration(durations.total())
+                .collectionDuration(durations.collection())
+                .returnDuration(durations.returnDuration())
+                .totalDistance(totalDistance)
+                .scheduledEndAt(scheduledStartAt.plus(durations.total()))
+                .encodedPolyline(result.routes[0].overviewPolyline.getEncodedPath())
+                .build();
+    }
+
+    private record RouteLocations(Location depot, Location disposal) {}
+    private record RouteDurations(Duration collection, Duration returnDuration, Duration total) {}
+    private record OptimizedRouteData(DirectionsResult result, RouteDurations durations) {}
+
+    /**
+     * Map fill level to PriorityLevel enum
+     */
+    public PriorityLevel calculatePriorityLevel(Integer fillLevelPercentage) {
+        if (fillLevelPercentage >= 90) return PriorityLevel.CRITICAL;
+        if (fillLevelPercentage >= 80) return PriorityLevel.HIGH;
+        if (fillLevelPercentage >= 70) return PriorityLevel.MEDIUM;
         return PriorityLevel.LOW;
     }
 
     /**
      * Call Google Maps Directions API
      */
-    private DirectionsResult callGoogleMapsDirections(Location origin, Location destination, List<Container> containers, LocalDateTime scheduledStartAt) throws Exception {
+    private DirectionsResult callGoogleMapsDirections(Location origin, Location destination, List<ContainerInfoDTO> containers, LocalDateTime scheduledStartAt) throws Exception {
         // Build waypoints
         DirectionsApiRequest.Waypoint[] waypoints = containers.stream()
-                .map(c -> new DirectionsApiRequest.Waypoint(c.getLocation().toGoogleLatLng()))
+                .map(c -> new DirectionsApiRequest.Waypoint(c.location().toGoogleLatLng()))
                 .toArray(DirectionsApiRequest.Waypoint[]::new);
 
         // Convert to Instant
@@ -246,17 +232,17 @@ public class RouteOptimizationService {
     /**
      * Create optimized waypoints based on a Google Maps result
      */
-    private List<WayPoint> createOptimizedWaypoints(List<Container> containers, DirectionsResult result) {
+    private List<WayPoint> createOptimizedWaypoints(List<ContainerInfoDTO> containers, DirectionsResult result) {
         List<WayPoint> waypoints = new ArrayList<>();
         int[] waypointOrder = result.routes[0].waypointOrder;
 
         for (int i = 0; i < waypointOrder.length; i++) {
-            Container container = containers.get(waypointOrder[i]);
-            PriorityLevel priority = calculatePriorityLevel(container);
+            ContainerInfoDTO container = containers.get(waypointOrder[i]);
+            PriorityLevel priority = calculatePriorityLevel(container.fillLevelPercentage());
 
             CreateWayPointCommand command = new CreateWayPointCommand(
                     null, // routeId will be set later
-                    container.getId(),
+                    container.containerId(),
                     i + 1, // sequence order
                     priority.name()
             );
@@ -270,12 +256,8 @@ public class RouteOptimizationService {
     /**
      * Fallback algorithm if Google Maps fails (simple greedy)
      */
-    private OptimizedRouteResult optimizeWithFallbackAlgorithm(String districtId, List<Container> containers, LocalDateTime scheduledStartAt) {
+    private OptimizedRouteResult optimizeWithFallbackAlgorithm(List<ContainerInfoDTO> containers, LocalDateTime scheduledStartAt) {
         log.info("Using fallback greedy algorithm for route optimization");
-
-        DistrictConfigDTO districtConfig = municipalOperationsContextFacade
-                .getDistrictConfiguration(districtId)
-                .orElseThrow();
 
         // Simple estimation: 8 minutes per container + 5 minutes per km
         Duration estimatedDuration = Duration.ofMinutes(containers.size() * 8L);
@@ -283,12 +265,12 @@ public class RouteOptimizationService {
 
         List<WayPoint> waypoints = new ArrayList<>();
         for (int i = 0; i < containers.size(); i++) {
-            Container container = containers.get(i);
+            ContainerInfoDTO container = containers.get(i);
             CreateWayPointCommand command = new CreateWayPointCommand(
                     null,
-                    container.getId(),
+                    container.containerId(),
                     i + 1,
-                    calculatePriorityLevel(container).name()
+                    calculatePriorityLevel(container.fillLevelPercentage()).name()
             );
             waypoints.add(new WayPoint(command));
         }
