@@ -14,4 +14,5 @@ import java.util.List;
 public interface RouteRepository extends JpaRepository<Route, String> {
     @Query("SELECT r FROM Route r WHERE r.districtId = :districtId AND r.status IN :activeStatuses")
     List<Route> findActiveRoutesByDistrictId(@Param("districtId") DistrictId districtId, @Param("activeStatuses") List<RouteStatus> activeStatuses);
+    List<Route> findByStatus(RouteStatus routeStatus);
 }
