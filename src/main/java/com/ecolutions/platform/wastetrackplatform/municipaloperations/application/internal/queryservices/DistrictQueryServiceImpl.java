@@ -3,6 +3,7 @@ package com.ecolutions.platform.wastetrackplatform.municipaloperations.applicati
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.aggregates.District;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetAllDistrictsQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetDistrictByIdQuery;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.ValidateDistrictScheduleTimeQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.services.queries.DistrictQueryService;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.infrastructure.persistence.jpa.repositories.DistrictRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,19 +19,19 @@ public class DistrictQueryServiceImpl implements DistrictQueryService {
 
     @Override
     public Optional<District> handle(GetDistrictByIdQuery query) {
-        try {
-            return districtRepository.findById(query.districtId());
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to retrieve district: " + e.getMessage(), e);
-        }
+        return districtRepository.findById(query.districtId());
     }
 
     @Override
     public List<District> handle(GetAllDistrictsQuery query) {
-        try {
-            return districtRepository.findAll();
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to retrieve districts: " + e.getMessage(), e);
-        }
+        return districtRepository.findAll();
+    }
+
+    @Override
+    public boolean handle(ValidateDistrictScheduleTimeQuery query) {
+        var district = districtRepository.findById(query.districtId())
+                .orElseThrow(() -> new IllegalArgumentException("District not found: " + query.districtId()));
+        if (district.getOperationStartTime() == null || district.getOperationEndTime() == null) return true;
+        return district.isWithinOperatingHours(query.startedAt().toLocalTime());
     }
 }
