@@ -70,4 +70,15 @@ public interface CitizenController {
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
     ResponseEntity<Void> deleteCitizen(@PathVariable String id);
+
+    @GetMapping("/user/{userId}")
+    @Operation(summary = "Get citizen by user ID", description = "Retrieves a citizen by the associated user ID.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Citizen retrieved successfully."),
+            @ApiResponse(responseCode = "404", description = "Citizen not found."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<CitizenResource> getCitizenByUserId(@PathVariable String userId);
+
+
 }

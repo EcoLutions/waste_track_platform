@@ -4,6 +4,7 @@ import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.mode
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllCitizensByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllCitizensQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetCitizenByIdQuery;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetCitizenByUserIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.command.CitizenCommandService;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.queries.CitizenQueryService;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.request.CreateCitizenResource;
@@ -85,5 +86,14 @@ public class CitizenControllerImpl implements CitizenController {
         var deleted = citizenCommandService.handle(command);
         if (!deleted) return ResponseEntity.notFound().build();
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<CitizenResource> getCitizenByUserId(String userId) {
+        var query = new GetCitizenByUserIdQuery(userId);
+        var citizen = citizenQueryService.handle(query);
+        if (citizen.isEmpty()) return ResponseEntity.notFound().build();
+        var citizenResource = CitizenResourceFromEntityAssembler.toResourceFromEntity(citizen.get());
+        return ResponseEntity.ok(citizenResource);
     }
 }
