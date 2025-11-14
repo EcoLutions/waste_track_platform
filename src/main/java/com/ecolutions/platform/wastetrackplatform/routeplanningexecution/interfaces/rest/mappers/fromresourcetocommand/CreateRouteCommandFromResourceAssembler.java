@@ -11,7 +11,7 @@ public class CreateRouteCommandFromResourceAssembler {
             resource.driverId(),
             resource.vehicleId(),
             resource.routeType(),
-            DateTimeUtils.stringToLocalDateOrNull(resource.scheduledDate())
+            DateTimeUtils.stringToLocalDateTimeOrNull(resource.scheduledDate())
         );
     }
 }

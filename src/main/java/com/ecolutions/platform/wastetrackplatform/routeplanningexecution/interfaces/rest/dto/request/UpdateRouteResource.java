@@ -1,10 +1,8 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request;
 
-import java.time.LocalDate;
-
 public record UpdateRouteResource(
     String routeId,
-    LocalDate scheduledDate
+    String scheduledDate
 ) {
     public UpdateRouteResource {
         if (routeId == null || routeId.isBlank()) {

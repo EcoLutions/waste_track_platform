@@ -3,9 +3,7 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.entities.WayPoint;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.Distance;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.RouteStatus;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.RouteType;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.*;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DriverId;
@@ -16,7 +14,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Comparator;
@@ -48,8 +45,9 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     @Column(nullable = false)
     private RouteStatus status;
 
-    @Column(name = "scheduled_date", nullable = false)
-    private LocalDate scheduledDate;
+    private LocalDateTime scheduledStartAt;
+
+    private LocalDateTime scheduledEndAt;
 
     @Column(name = "started_at")
     private LocalDateTime startedAt;
@@ -93,12 +91,12 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         this.driverId = DriverId.of(command.driverId());
         this.vehicleId = VehicleId.of(command.vehicleId());
         this.routeType = RouteType.fromString(command.routeType());
-        this.scheduledDate = command.scheduledDate();
+        this.scheduledStartAt = command.scheduledDate();
     }
 
     public void update(UpdateRouteCommand command) {
         if (command.scheduledDate() != null) {
-            this.scheduledDate = command.scheduledDate();
+            this.scheduledStartAt = command.scheduledDate();
         }
     }
 
@@ -161,14 +159,8 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     }
 
     public boolean isOverdue() {
-        if (status == RouteStatus.COMPLETED || status == RouteStatus.CANCELLED) {
-            return false;
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime scheduledDateTime = scheduledDate.atStartOfDay();
-
-        return now.isAfter(scheduledDateTime.plusHours(2));
+        if (status == RouteStatus.COMPLETED || status == RouteStatus.CANCELLED) return false;
+        return LocalDateTime.now().isAfter(scheduledStartAt);
     }
 
     public void addWayPoint(WayPoint wayPoint) {
@@ -194,7 +186,6 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
             return;
         }
 
-        LocalDateTime currentETA = scheduledDate.atTime(startTime);
         long totalMinutes = estimatedDuration.toMinutes();
         long minutesPerWaypoint = totalMinutes / waypoints.size();
 
@@ -203,8 +194,8 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
                 .toList();
 
         for (WayPoint waypoint : sortedWaypoints) {
-            waypoint.setEstimatedArrivalTime(currentETA);
-            currentETA = currentETA.plusMinutes(minutesPerWaypoint);
+            waypoint.setEstimatedArrivalTime(scheduledStartAt);
+            scheduledStartAt = scheduledStartAt.plusMinutes(minutesPerWaypoint);
         }
     }
 
@@ -236,5 +227,32 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
             throw new IllegalStateException("Cannot cancel completed routes");
         }
         this.status = RouteStatus.CANCELLED;
+    }
+
+    public void addOptimizedWaypoints(List<ContainerForOptimization> containers) {
+        if (!canBeModified()) {
+            throw new IllegalStateException("Cannot modify route that is in progress or completed");
+        }
+
+        if (containers == null || containers.isEmpty()) {
+            throw new IllegalArgumentException("Cannot optimize route without containers");
+        }
+
+        // 1. Order by priority (CRITICAL first)
+        List<ContainerForOptimization> sorted = containers.stream()
+                .sorted(Comparator.comparing(ContainerForOptimization::priority).reversed())
+                .toList();
+
+        // 2. Create and add waypoints in optimized order
+        for (int i = 0; i < sorted.size(); i++) {
+            ContainerForOptimization container = sorted.get(i);
+
+            WayPoint waypoint = new WayPoint();
+            waypoint.setContainerId(container.containerId());
+            waypoint.setSequenceOrder(i + 1);
+            waypoint.setPriority(new Priority(container.priority()));
+
+            this.waypoints.add(waypoint);
+        }
     }
 }
