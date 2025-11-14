@@ -70,4 +70,20 @@ public interface RouteController {
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
     ResponseEntity<List<RouteResource>> getActiveRoutesByDistrictId(@PathVariable String districtId);
+
+    @PostMapping("/{id}/generate-waypoints")
+    @Operation(
+        summary = "Generate optimized waypoints for route",
+        description = "Generates optimized waypoints for a route using Google Maps API. " +
+                      "Selects containers based on fill level priority (>=90% CRITICAL, >=80% HIGH, >=70% MEDIUM, <70% LOW), " +
+                      "optimizes route order, and adjusts to fit within district's maxRouteDuration. " +
+                      "Route must be in ASSIGNED status."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Waypoints generated successfully."),
+            @ApiResponse(responseCode = "404", description = "Route not found."),
+            @ApiResponse(responseCode = "400", description = "Route cannot be modified (not in ASSIGNED status) or no containers available."),
+            @ApiResponse(responseCode = "500", description = "Internal server error or Google Maps API error.")
+    })
+    ResponseEntity<RouteResource> generateOptimizedWaypoints(@PathVariable String id);
 }

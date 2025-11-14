@@ -83,4 +83,21 @@ public class RouteControllerImpl implements RouteController {
                 .toList();
         return ResponseEntity.status(HttpStatus.OK).body(routeResources);
     }
+
+    @Override
+    public ResponseEntity<RouteResource> generateOptimizedWaypoints(String id) {
+        var command = new com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.GenerateOptimizedWaypointsCommand(id);
+        try {
+            var updatedRoute = routeCommandService.handle(command);
+            if (updatedRoute.isEmpty()) return ResponseEntity.notFound().build();
+            var routeResource = RouteResourceFromEntityAssembler.toResourceFromEntity(updatedRoute.get());
+            return ResponseEntity.status(HttpStatus.OK).body(routeResource);
+        } catch (IllegalStateException e) {
+            // Route cannot be modified (not in ASSIGNED status)
+            return ResponseEntity.badRequest().build();
+        } catch (IllegalArgumentException e) {
+            // No containers available or other validation error
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }
