@@ -21,8 +21,8 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
 
     @Override
     public Optional<Container> handle(CreateContainerCommand command) {
-        if (containerRepository.existsBySensorId(new SensorId(command.sensorId())))
-            throw new IllegalArgumentException("A container with sensor Id" + command.sensorId() + " already exists.");
+        Optional.ofNullable(command.sensorId()).ifPresent(sensorId -> {
+            if (containerRepository.existsBySensorId(new SensorId(sensorId))) throw new IllegalArgumentException("Container with sensor Id " + sensorId + " already exists.");});
         if (containerRepository.existsByLocation(new Location(new BigDecimal(command.latitude()), new BigDecimal(command.longitude()))))
             throw new IllegalArgumentException("A container with location" + command.latitude() + "," + command.longitude() + " already exists.");
         var container = new Container(command);
