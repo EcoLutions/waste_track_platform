@@ -9,6 +9,8 @@ public record UpdateDistrictCommand(
     String code,
     String depotLatitud,
     String depotLongitude,
+    String disposalLatitude,
+    String disposalLongitude,
     LocalTime operationStartTime,
     LocalTime operationEndTime,
     Duration maxRouteDuration

@@ -46,6 +46,13 @@ public class District extends AuditableAbstractAggregateRoot<District> {
     private Location depotLocation;
 
     @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "disposal_latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "disposal_longitude"))
+    })
+    private Location disposalSiteLocation;
+
+    @Embedded
     private PlanSnapshot planSnapshot;
 
     private Integer currentVehicleCount;
@@ -75,6 +82,9 @@ public class District extends AuditableAbstractAggregateRoot<District> {
         }
         if (command.depotLatitud() != null && !command.depotLatitud().isBlank() && command.depotLongitude() != null && !command.depotLongitude().isBlank() ){
             this.depotLocation = Location.fromStrings(command.depotLatitud(), command.depotLongitude());
+        }
+        if (command.disposalLatitude() != null && !command.disposalLatitude().isBlank() && command.disposalLongitude() != null && !command.disposalLongitude().isBlank()) {
+            this.disposalSiteLocation = Location.fromStrings(command.disposalLatitude(), command.disposalLongitude());
         }
         if (command.operationStartTime() != null) {
             this.operationStartTime = command.operationStartTime();
@@ -123,6 +133,19 @@ public class District extends AuditableAbstractAggregateRoot<District> {
 
     public Duration getAvailableWorkingHours() {
         return Duration.between(operationStartTime, operationEndTime);
+    }
+
+    public boolean requiresDisposalTrip() {
+        return disposalSiteLocation != null
+            && !disposalSiteLocation.equals(depotLocation);
+    }
+
+    public Location getEffectiveStartLocation() {
+        return depotLocation;
+    }
+
+    public Location getEffectiveEndLocation() {
+        return disposalSiteLocation != null ? disposalSiteLocation : depotLocation;
     }
 
     public DistrictCreatedEvent publishDistrictCreatedEvent(

@@ -13,6 +13,8 @@ public class UpdateDistrictCommandFromResourceAssembler {
             resource.code(),
             resource.depotLatitud(),
             resource.depotLongitude(),
+            resource.disposalLatitude(),
+            resource.disposalLongitude(),
             DateTimeUtils.stringToLocalTimeOrNull(resource.operationStartTime()),
             DateTimeUtils.stringToLocalTimeOrNull(resource.operationEndTime()),
             DurationUtils.stringToDurationOrNull(resource.maxRouteDuration())
