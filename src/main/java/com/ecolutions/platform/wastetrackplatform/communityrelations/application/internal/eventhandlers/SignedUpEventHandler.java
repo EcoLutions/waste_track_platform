@@ -18,7 +18,7 @@ public class SignedUpEventHandler {
     @EventListener(SignedUpEvent.class)
     @Async
     public void on(SignedUpEvent event) {
-        var command = new InitializeCitizenCommand(event.getUserId());
+        var command = new InitializeCitizenCommand(event.getUserId(), event.getEmail());
         citizenCommandService.handle(command);
     }
 }
