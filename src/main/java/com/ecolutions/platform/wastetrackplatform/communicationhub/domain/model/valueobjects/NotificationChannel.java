@@ -3,7 +3,8 @@ package com.ecolutions.platform.wastetrackplatform.communicationhub.domain.model
 public enum NotificationChannel {
     EMAIL,
     SMS,
-    PUSH;
+    PUSH,
+    WEBSOCKET;
 
     public static NotificationChannel fromString(String value) {
         if (value == null || value.isBlank()) {
@@ -14,5 +15,9 @@ public enum NotificationChannel {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid NotificationChannel: " + value);
         }
+    }
+
+    public static String toStringOrNull(NotificationChannel value) {
+        return value == null ? null : value.toString();
     }
 }

@@ -16,4 +16,8 @@ public enum NotificationPriority {
             throw new IllegalArgumentException("Invalid NotificationPriority: " + value);
         }
     }
+
+    public static String toStringOrNull(NotificationPriority value) {
+        return value == null ? null : value.toString();
+    }
 }
