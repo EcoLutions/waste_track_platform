@@ -2,6 +2,8 @@ package com.ecolutions.platform.wastetrackplatform.municipaloperations.interface
 
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.UpdateDistrictCommand;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.rest.dto.request.UpdateDistrictResource;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DateTimeUtils;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DurationUtils;
 
 public class UpdateDistrictCommandFromResourceAssembler {
     public static UpdateDistrictCommand toCommandFromResource(UpdateDistrictResource resource) {
@@ -10,7 +12,10 @@ public class UpdateDistrictCommandFromResourceAssembler {
             resource.name(),
             resource.code(),
             resource.depotLatitud(),
-            resource.depotLongitude()
+            resource.depotLongitude(),
+            DateTimeUtils.stringToLocalTimeOrNull(resource.operationStartTime()),
+            DateTimeUtils.stringToLocalTimeOrNull(resource.operationEndTime()),
+            DurationUtils.stringToDurationOrNull(resource.maxRouteDuration())
         );
     }
 }

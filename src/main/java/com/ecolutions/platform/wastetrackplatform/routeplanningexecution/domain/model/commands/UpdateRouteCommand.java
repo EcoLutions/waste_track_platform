@@ -1,10 +1,10 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record UpdateRouteCommand(
     String routeId,
-    LocalDate scheduledDate
+    LocalDateTime scheduledDate
 ) {
     public UpdateRouteCommand {
         if (routeId == null || routeId.isBlank()) {

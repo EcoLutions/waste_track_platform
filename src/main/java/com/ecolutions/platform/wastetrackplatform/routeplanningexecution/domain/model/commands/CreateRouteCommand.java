@@ -1,13 +1,13 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record CreateRouteCommand(
     String districtId,
     String driverId,
     String vehicleId,
     String routeType,
-    LocalDate scheduledDate
+    LocalDateTime scheduledDate
 ) {
     public CreateRouteCommand {
         if (districtId == null || districtId.isBlank()) {

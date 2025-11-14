@@ -15,4 +15,8 @@ public enum RouteType {
             throw new IllegalArgumentException("Invalid RouteType: " + value);
         }
     }
+
+    public static String toStringOrNull(RouteType routeType) {
+        return routeType != null ? routeType.name() : null;
+    }
 }
