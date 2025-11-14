@@ -228,31 +228,4 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         }
         this.status = RouteStatus.CANCELLED;
     }
-
-    public void addOptimizedWaypoints(List<ContainerForOptimization> containers) {
-        if (!canBeModified()) {
-            throw new IllegalStateException("Cannot modify route that is in progress or completed");
-        }
-
-        if (containers == null || containers.isEmpty()) {
-            throw new IllegalArgumentException("Cannot optimize route without containers");
-        }
-
-        // 1. Order by priority (CRITICAL first)
-        List<ContainerForOptimization> sorted = containers.stream()
-                .sorted(Comparator.comparing(ContainerForOptimization::priority).reversed())
-                .toList();
-
-        // 2. Create and add waypoints in optimized order
-        for (int i = 0; i < sorted.size(); i++) {
-            ContainerForOptimization container = sorted.get(i);
-
-            WayPoint waypoint = new WayPoint();
-            waypoint.setContainerId(container.containerId());
-            waypoint.setSequenceOrder(i + 1);
-            waypoint.setPriority(new Priority(container.priority()));
-
-            this.waypoints.add(waypoint);
-        }
-    }
 }
