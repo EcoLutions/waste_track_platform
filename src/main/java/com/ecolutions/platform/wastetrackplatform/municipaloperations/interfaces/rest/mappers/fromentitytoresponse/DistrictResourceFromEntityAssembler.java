@@ -16,6 +16,8 @@ public class DistrictResourceFromEntityAssembler {
                 .code(entity.getCode())
                 .depotLatitud(Location.latitudeAsStringOrNull(entity.getDepotLocation()))
                 .depotLongitude(Location.longitudeAsStringOrNull(entity.getDepotLocation()))
+                .disposalLatitude(Location.latitudeAsStringOrNull(entity.getDisposalSiteLocation()))
+                .disposalLongitude(Location.longitudeAsStringOrNull(entity.getDisposalSiteLocation()))
                 .operationalStatus(OperationalStatus.toStringOrNull(entity.getOperationalStatus()))
                 .serviceStartDate(DateTimeUtils.localDateToStringOrNull(entity.getServiceStartDate()))
                 .operationStartTime(DateTimeUtils.localTimeToStringOrNull(entity.getOperationStartTime()))
