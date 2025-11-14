@@ -26,11 +26,10 @@ public class Citizen extends AuditableAbstractAggregateRoot<Citizen> {
     private UserId userId;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "district_id", nullable = false))
+    @AttributeOverride(name = "value", column = @Column(name = "district_id"))
     private DistrictId districtId;
 
     @Embedded
-    @NotNull
     private FullName fullName;
 
     @Embedded
@@ -38,7 +37,7 @@ public class Citizen extends AuditableAbstractAggregateRoot<Citizen> {
     private EmailAddress email;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "phone_number", nullable = false, unique = true))
+    @AttributeOverride(name = "value", column = @Column(name = "phone_number", unique = true))
     private PhoneNumber phoneNumber;
 
     @Embedded
@@ -79,6 +78,7 @@ public class Citizen extends AuditableAbstractAggregateRoot<Citizen> {
     public Citizen(InitializeCitizenCommand command) {
         this();
         this.userId = UserId.of(command.userId());
+        this.email = new EmailAddress(command.email());
         this.status = CitizenStatus.INCOMPLETE;
     }
 
