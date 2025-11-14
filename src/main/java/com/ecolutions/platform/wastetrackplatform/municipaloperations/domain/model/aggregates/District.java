@@ -10,7 +10,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Getter
@@ -28,6 +31,12 @@ public class District extends AuditableAbstractAggregateRoot<District> {
     private OperationalStatus operationalStatus;
 
     private LocalDate serviceStartDate;
+
+    private LocalTime operationStartTime;
+
+    private LocalTime operationEndTime;
+
+    private Duration maxRouteDuration;
 
     @Embedded
     @AttributeOverrides({
@@ -67,6 +76,15 @@ public class District extends AuditableAbstractAggregateRoot<District> {
         if (command.depotLatitud() != null && !command.depotLatitud().isBlank() && command.depotLongitude() != null && !command.depotLongitude().isBlank() ){
             this.depotLocation = Location.fromStrings(command.depotLatitud(), command.depotLongitude());
         }
+        if (command.operationStartTime() != null) {
+            this.operationStartTime = command.operationStartTime();
+        }
+        if (command.operationEndTime() != null) {
+            this.operationEndTime = command.operationEndTime();
+        }
+        if (command.maxRouteDuration() != null) {
+            this.maxRouteDuration = command.maxRouteDuration();
+        }
     }
 
     public void updatePlanSnapshot(PlanSnapshot planSnapshot) {
@@ -97,6 +115,14 @@ public class District extends AuditableAbstractAggregateRoot<District> {
         if (operationalStatus != OperationalStatus.ACTIVE) return false;
         if (planSnapshot == null) return false;
         return planSnapshot.getMaxDrivers() > currentDriverCount;
+    }
+
+    public boolean isWithinOperatingHours(LocalTime time) {
+        return !time.isBefore(operationStartTime) && !time.isAfter(operationEndTime);
+    }
+
+    public Duration getAvailableWorkingHours() {
+        return Duration.between(operationStartTime, operationEndTime);
     }
 
     public DistrictCreatedEvent publishDistrictCreatedEvent(

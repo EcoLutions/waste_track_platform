@@ -8,7 +8,10 @@ public record UpdateDistrictResource(
     String name,
     String code,
     String depotLatitud,
-    String depotLongitude
+    String depotLongitude,
+    String operationStartTime,
+    String operationEndTime,
+    String maxRouteDuration
 ) {
     public UpdateDistrictResource {
         if (districtId == null || districtId.isBlank()) {

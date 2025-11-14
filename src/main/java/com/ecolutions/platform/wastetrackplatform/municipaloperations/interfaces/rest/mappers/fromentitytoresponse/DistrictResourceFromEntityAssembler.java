@@ -6,6 +6,7 @@ import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.mod
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.rest.dto.response.DistrictResource;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DateTimeUtils;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DurationUtils;
 
 public class DistrictResourceFromEntityAssembler {
     public static DistrictResource toResourceFromEntity(District entity) {
@@ -17,6 +18,9 @@ public class DistrictResourceFromEntityAssembler {
                 .depotLongitude(Location.longitudeAsStringOrNull(entity.getDepotLocation()))
                 .operationalStatus(OperationalStatus.toStringOrNull(entity.getOperationalStatus()))
                 .serviceStartDate(DateTimeUtils.localDateToStringOrNull(entity.getServiceStartDate()))
+                .operationStartTime(DateTimeUtils.localTimeToStringOrNull(entity.getOperationStartTime()))
+                .operationEndTime(DateTimeUtils.localTimeToStringOrNull(entity.getOperationEndTime()))
+                .maxRouteDuration(DurationUtils.durationToStringOrNull(entity.getMaxRouteDuration()))
                 .planId(PlanSnapshot.planIdToStringOrNull(entity.getPlanSnapshot()))
                 .planName(PlanSnapshot.planNameOrNull(entity.getPlanSnapshot()))
                 .maxVehicles(PlanSnapshot.maxVehiclesOrNull(entity.getPlanSnapshot()))
