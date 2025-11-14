@@ -1,10 +1,13 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.update;
 
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.infrastructure.persistence.jpa.repositories.ContainerRepository;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.acl.contexts.ContainerMonitoringContextFacade;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.acl.contexts.MunicipalOperationsContextFacade;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.acl.dtos.DistrictConfigDTO;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.websocket.RouteWebSocketPublisherService;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.websocket.transform.WaypointPayloadAssembler;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates.Route;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.entities.WayPoint;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.events.RouteWaypointRemovedEvent;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.Distance;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.PriorityLevel;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.WaypointStatus;
@@ -17,6 +20,7 @@ import com.google.maps.model.LatLng;
 import com.google.maps.model.TrafficModel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -31,9 +35,11 @@ import java.util.List;
 @Slf4j
 public class RouteUpdateService {
     private final GeoApiContext geoApiContext;
-    private final ContainerRepository containerRepository;
+    private final ContainerMonitoringContextFacade containerMonitoringFacade;
     private final MunicipalOperationsContextFacade municipalOperationsContextFacade;
     private final RouteRepository routeRepository;
+    private final RouteWebSocketPublisherService routeWebSocketPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Determine if the route needs update based on time since the last update
@@ -134,8 +140,8 @@ public class RouteUpdateService {
      */
     private DirectionsResult recalculateWithCurrentTraffic(Location currentLocation, List<WayPoint> remainingWaypoints) throws Exception {
         List<LatLng> locations = remainingWaypoints.stream()
-                .map(wp -> containerRepository.findById(wp.getContainerId().value())
-                        .map(c -> c.getLocation().toGoogleLatLng())
+                .map(wp -> containerMonitoringFacade.getContainerInfo(wp.getContainerId().value())
+                        .map(c -> c.location().toGoogleLatLng())
                         .orElseThrow())
                 .toList();
 
@@ -165,8 +171,34 @@ public class RouteUpdateService {
         log.info("Removing waypoint {} (priority: {}) from route {}",
                 lowestPriority.getId(), lowestPriority.getPriority().level(), route.getId());
 
+        // Get container info before removal
+        var containerInfo = containerMonitoringFacade.getContainerInfo(lowestPriority.getContainerId().value()).orElseThrow();
+
+        // Publish WebSocket notification for route-specific updates
+        var waypointRemovedPayload = WaypointPayloadAssembler.toRemovedPayload(
+                route.getId(),
+                lowestPriority,
+                lowestPriority.getContainerId().value(),
+                "Route exceeds maxRouteDuration with current traffic, lowest priority waypoint removed"
+        );
+        routeWebSocketPublisher.publishWaypointRemoved(waypointRemovedPayload);
+
         route.removeWaypoint(lowestPriority.getId());
         routeRepository.save(route);
+
+        // Publish domain event for a notification system
+        RouteWaypointRemovedEvent event = RouteWaypointRemovedEvent.builder()
+                .source(this)
+                .routeId(route.getId())
+                .driverId(route.getDriverId() != null ? route.getDriverId().value() : null)
+                .districtId(route.getDistrictId().value())
+                .waypointId(lowestPriority.getId())
+                .containerId(containerInfo.containerId())
+                .containerLocation(containerInfo.location())
+                .priority(lowestPriority.getPriority().level().name())
+                .reason("Route exceeds maxRouteDuration with current traffic, lowest priority waypoint removed")
+                .build();
+        eventPublisher.publishEvent(event);
     }
 
     /**
