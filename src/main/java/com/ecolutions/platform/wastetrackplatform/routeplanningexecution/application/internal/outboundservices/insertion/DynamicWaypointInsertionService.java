@@ -1,13 +1,18 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.insertion;
 
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates.Container;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.events.ContainerBecameCriticalEvent;
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.infrastructure.persistence.jpa.repositories.ContainerRepository;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.acl.contexts.ContainerMonitoringContextFacade;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.acl.dtos.ContainerInfoDTO;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.acl.contexts.MunicipalOperationsContextFacade;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.acl.dtos.DistrictConfigDTO;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.websocket.RouteWebSocketPublisherService;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.websocket.transform.WaypointPayloadAssembler;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates.Route;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateWayPointCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.entities.WayPoint;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.events.CriticalContainerNotAddedEvent;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.events.RouteWaypointAddedEvent;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.events.RouteWaypointReplacedEvent;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.PriorityLevel;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.WaypointStatus;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.infrastructure.persistence.jpa.repositories.RouteRepository;
@@ -20,6 +25,7 @@ import com.google.maps.model.TrafficModel;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -34,15 +40,17 @@ import java.util.List;
 @Slf4j
 public class DynamicWaypointInsertionService {
     private final GeoApiContext geoApiContext;
-    private final ContainerRepository containerRepository;
+    private final ContainerMonitoringContextFacade containerMonitoringFacade;
     private final MunicipalOperationsContextFacade municipalOperationsContextFacade;
     private final RouteRepository routeRepository;
+    private final RouteWebSocketPublisherService routeWebSocketPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Attempt to insert critical container into active route
      */
     public void attemptInsertCriticalContainer(Route route, ContainerBecameCriticalEvent event) {
-        Container criticalContainer = containerRepository.findById(event.getContainerId())
+        ContainerInfoDTO criticalContainer = containerMonitoringFacade.getContainerInfo(event.getContainerId())
                 .orElseThrow(() -> new IllegalArgumentException("Container not found: " + event.getContainerId()));
 
         DistrictConfigDTO districtConfig = municipalOperationsContextFacade
@@ -57,7 +65,7 @@ public class DynamicWaypointInsertionService {
 
         if (remainingWaypoints.isEmpty()) {
             log.warn("No remaining waypoints in route {}, cannot insert", route.getId());
-            notifyAdmin(route, "Container " + event.getContainerId() + " is CRITICAL but route has no pending waypoints");
+            publishCriticalContainerNotAdded(route, criticalContainer, "Container is CRITICAL but route has no pending waypoints");
             return;
         }
 
@@ -65,8 +73,7 @@ public class DynamicWaypointInsertionService {
         InsertionResult insertionResult = tryInsertWithoutReplacing(route, remainingWaypoints, criticalContainer, districtConfig.maxRouteDuration());
 
         if (insertionResult.success()) {
-            applyInsertion(route, insertionResult);
-            notifyDriver(route, "New CRITICAL container added to your route at position " + insertionResult.insertionPosition());
+            applyInsertion(route, criticalContainer, insertionResult);
             log.info("Successfully inserted container {} into route {} at position {}", event.getContainerId(), route.getId(), insertionResult.insertionPosition());
             return;
         }
@@ -75,27 +82,26 @@ public class DynamicWaypointInsertionService {
         InsertionResult replacementResult = tryReplaceLowestPriority(route, remainingWaypoints, criticalContainer, districtConfig.maxRouteDuration());
 
         if (replacementResult.success()) {
-            applyReplacement(route, replacementResult);
-            notifyDriver(route, "Waypoint replaced by CRITICAL container");
+            applyReplacement(route, criticalContainer, replacementResult);
             log.info("Successfully replaced waypoint {} with container {} in route {}", replacementResult.replacedWaypointId(), event.getContainerId(), route.getId());
             return;
         }
 
         // Cannot insert
         log.warn("Cannot insert container {} into route {}: exceeds time constraints", event.getContainerId(), route.getId());
-        notifyAdmin(route, "Container CRITICAL " + event.getContainerId() + " could not be added to route (time constraint)");
+        publishCriticalContainerNotAdded(route, criticalContainer, "Container could not be added to route (time constraint)");
     }
 
     /**
      * Try to insert without replacing any existing waypoint
      */
-    private InsertionResult tryInsertWithoutReplacing(Route route, List<WayPoint> remainingWaypoints, Container criticalContainer, Duration maxDuration) {
+    private InsertionResult tryInsertWithoutReplacing(Route route, List<WayPoint> remainingWaypoints, ContainerInfoDTO criticalContainer, Duration maxDuration) {
         Location currentLocation = route.getCurrentLocation();
         if (currentLocation == null) {
             // Route hasn't started tracking, use the first waypoint location
-            currentLocation = containerRepository
-                    .findById(remainingWaypoints.getFirst().getContainerId().value())
-                    .map(Container::getLocation)
+            currentLocation = containerMonitoringFacade
+                    .getContainerInfo(remainingWaypoints.getFirst().getContainerId().value())
+                    .map(ContainerInfoDTO::location)
                     .orElse(null);
         }
 
@@ -119,7 +125,7 @@ public class DynamicWaypointInsertionService {
     /**
      * Try to replace the lowest priority waypoint
      */
-    private InsertionResult tryReplaceLowestPriority(Route route, List<WayPoint> remainingWaypoints, Container criticalContainer, Duration maxDuration) {
+    private InsertionResult tryReplaceLowestPriority(Route route, List<WayPoint> remainingWaypoints, ContainerInfoDTO criticalContainer, Duration maxDuration) {
         // Find the lowest priority waypoint (not CRITICAL)
         WayPoint lowestPriority = remainingWaypoints.stream()
                 .filter(wp -> wp.getPriority().level() != PriorityLevel.CRITICAL)
@@ -164,8 +170,8 @@ public class DynamicWaypointInsertionService {
 
         try {
             List<LatLng> locations = waypoints.stream()
-                    .map(wp -> containerRepository.findById(wp.getContainerId().value())
-                            .map(c -> c.getLocation().toGoogleLatLng())
+                    .map(wp -> containerMonitoringFacade.getContainerInfo(wp.getContainerId().value())
+                            .map(c -> c.location().toGoogleLatLng())
                             .orElseThrow())
                     .toList();
 
@@ -191,10 +197,10 @@ public class DynamicWaypointInsertionService {
     /**
      * Create waypoint for container
      */
-    private WayPoint createWaypoint(Container container, int sequenceOrder) {
+    private WayPoint createWaypoint(ContainerInfoDTO container, int sequenceOrder) {
         CreateWayPointCommand command = new CreateWayPointCommand(
                 null, // routeId will be set later
-                container.getId(),
+                container.containerId(),
                 sequenceOrder,
                 PriorityLevel.CRITICAL.name()
         );
@@ -204,39 +210,106 @@ public class DynamicWaypointInsertionService {
     /**
      * Apply insertion to route
      */
-    private void applyInsertion(Route route, InsertionResult result) {
+    private void applyInsertion(Route route, ContainerInfoDTO container, InsertionResult result) {
         WayPoint newWaypoint = result.newWaypoint();
         route.addWayPoint(newWaypoint);
         route.updateEstimates(null, result.newDuration());
         routeRepository.save(route);
+
+        // Publish WebSocket notification for route-specific updates
+        var waypointAddedPayload = WaypointPayloadAssembler.toAddedPayload(
+                route.getId(),
+                newWaypoint,
+                container,
+                "Container became CRITICAL and was added to route"
+        );
+        routeWebSocketPublisher.publishWaypointAdded(waypointAddedPayload);
+
+        // Publish domain event for a notification system
+        RouteWaypointAddedEvent event = RouteWaypointAddedEvent.builder()
+                .source(this)
+                .routeId(route.getId())
+                .driverId(route.getDriverId() != null ? route.getDriverId().value() : null)
+                .districtId(route.getDistrictId().value())
+                .waypointId(newWaypoint.getId())
+                .containerId(container.containerId())
+                .containerLocation(container.location())
+                .fillLevel(container.fillLevelPercentage())
+                .priority(newWaypoint.getPriority().level().name())
+                .sequenceOrder(newWaypoint.getSequenceOrder())
+                .reason("Container became CRITICAL and was added to route")
+                .build();
+        eventPublisher.publishEvent(event);
+
         log.info("Inserted new waypoint into route {}", route.getId());
     }
 
     /**
      * Apply replacement to route
      */
-    private void applyReplacement(Route route, InsertionResult result) {
+    private void applyReplacement(Route route, ContainerInfoDTO addedContainer, InsertionResult result) {
+        // Get removed waypoint and container info before removal
+        WayPoint removedWaypoint = route.getWaypoints().stream()
+                .filter(wp -> wp.getId().equals(result.replacedWaypointId()))
+                .findFirst()
+                .orElseThrow();
+        ContainerInfoDTO removedContainer = containerMonitoringFacade.getContainerInfo(removedWaypoint.getContainerId().value()).orElseThrow();
+
         route.removeWaypoint(result.replacedWaypointId());
         route.addWayPoint(result.newWaypoint());
         route.updateEstimates(null, result.newDuration());
         routeRepository.save(route);
+
+        // Publish WebSocket notification for route-specific updates
+        var waypointReplacedPayload = WaypointPayloadAssembler.toReplacedPayload(
+                route.getId(),
+                removedWaypoint,
+                removedContainer,
+                result.newWaypoint(),
+                addedContainer,
+                "Lower priority waypoint replaced by CRITICAL container"
+        );
+        routeWebSocketPublisher.publishWaypointReplaced(waypointReplacedPayload);
+
+        // Publish domain event for a notification system
+        RouteWaypointReplacedEvent event = RouteWaypointReplacedEvent.builder()
+                .source(this)
+                .routeId(route.getId())
+                .driverId(route.getDriverId() != null ? route.getDriverId().value() : null)
+                .districtId(route.getDistrictId().value())
+                .removedWaypointId(removedWaypoint.getId())
+                .removedContainerId(removedContainer.containerId())
+                .removedContainerLocation(removedContainer.location())
+                .removedPriority(removedWaypoint.getPriority().level().name())
+                .addedWaypointId(result.newWaypoint().getId())
+                .addedContainerId(addedContainer.containerId())
+                .addedContainerLocation(addedContainer.location())
+                .addedFillLevel(addedContainer.fillLevelPercentage())
+                .addedPriority(result.newWaypoint().getPriority().level().name())
+                .reason("Lower priority waypoint replaced by CRITICAL container")
+                .build();
+        eventPublisher.publishEvent(event);
+
         log.info("Replaced waypoint {} in route {}", result.replacedWaypointId(), route.getId());
     }
 
     /**
-     * Notify driver (stub - implement with WebSocket/SMS)
+     * Publish event when a critical container cannot be added to a route
      */
-    private void notifyDriver(Route route, String message) {
-        log.info("[DRIVER NOTIFICATION] Route {}: {}", route.getId(), message);
-        // TODO: Implement WebSocket push notification or SMS
-    }
+    private void publishCriticalContainerNotAdded(Route route, ContainerInfoDTO container, String reason) {
+        log.warn("[CRITICAL CONTAINER NOT ADDED] Route {}: {}", route.getId(), reason);
 
-    /**
-     * Notify admin (stub - implement with email/dashboard)
-     */
-    private void notifyAdmin(Route route, String message) {
-        log.warn("[ADMIN NOTIFICATION] Route {}: {}", route.getId(), message);
-        // TODO: Implement admin notification
+        CriticalContainerNotAddedEvent event = CriticalContainerNotAddedEvent.builder()
+                .source(this)
+                .routeId(route.getId())
+                .districtId(route.getDistrictId().value())
+                .containerId(container.containerId())
+                .containerLocation(container.location())
+                .fillLevel(container.fillLevelPercentage())
+                .reason(reason)
+                .build();
+
+        eventPublisher.publishEvent(event);
     }
 
     /**
