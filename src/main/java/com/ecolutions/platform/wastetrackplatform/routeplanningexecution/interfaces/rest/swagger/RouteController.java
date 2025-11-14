@@ -1,6 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.swagger;
 
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request.CreateRouteResource;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request.UpdateCurrentLocationResource;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request.UpdateRouteResource;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.response.RouteResource;
 import io.swagger.v3.oas.annotations.Operation;
@@ -72,13 +73,7 @@ public interface RouteController {
     ResponseEntity<List<RouteResource>> getActiveRoutesByDistrictId(@PathVariable String districtId);
 
     @PostMapping("/{id}/generate-waypoints")
-    @Operation(
-        summary = "Generate optimized waypoints for route",
-        description = "Generates optimized waypoints for a route using Google Maps API. " +
-                      "Selects containers based on fill level priority (>=90% CRITICAL, >=80% HIGH, >=70% MEDIUM, <70% LOW), " +
-                      "optimizes route order, and adjusts to fit within district's maxRouteDuration. " +
-                      "Route must be in ASSIGNED status."
-    )
+    @Operation(summary = "Generate optimized waypoints for route", description = "Generates optimized waypoints for a route using Google Maps API. " + "Selects containers based on fill level priority (>=90% CRITICAL, >=80% HIGH, >=70% MEDIUM, <70% LOW), " + "optimizes route order, and adjusts to fit within district's maxRouteDuration. " + "Route must be in ASSIGNED status.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Waypoints generated successfully."),
             @ApiResponse(responseCode = "404", description = "Route not found."),
@@ -86,4 +81,14 @@ public interface RouteController {
             @ApiResponse(responseCode = "500", description = "Internal server error or Google Maps API error.")
     })
     ResponseEntity<RouteResource> generateOptimizedWaypoints(@PathVariable String id);
+
+    @PatchMapping("/{id}/current-location")
+    @Operation(summary = "Update route current location", description = "Updates the current GPS location of an in-progress route. " + "This endpoint should be called periodically by the driver's mobile app to track route progress. " + "The updated location is broadcasted via WebSocket to /topic/routes/{routeId}/location for real-time tracking. " + "Route must be in IN_PROGRESS status.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Current location updated successfully."),
+            @ApiResponse(responseCode = "404", description = "Route not found."),
+            @ApiResponse(responseCode = "400", description = "Route is not IN_PROGRESS or invalid coordinates."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<RouteResource> updateCurrentLocation(@PathVariable String id, @RequestBody UpdateCurrentLocationResource resource);
 }

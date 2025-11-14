@@ -1,8 +1,10 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.controllers;
 
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateCurrentLocationRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.services.command.RouteCommandService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.services.queries.RouteQueryService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request.CreateRouteResource;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request.UpdateCurrentLocationResource;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request.UpdateRouteResource;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.response.RouteResource;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.mappers.fromresourcetocommand.CreateRouteCommandFromResourceAssembler;
@@ -87,17 +89,18 @@ public class RouteControllerImpl implements RouteController {
     @Override
     public ResponseEntity<RouteResource> generateOptimizedWaypoints(String id) {
         var command = new com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.GenerateOptimizedWaypointsCommand(id);
-        try {
-            var updatedRoute = routeCommandService.handle(command);
-            if (updatedRoute.isEmpty()) return ResponseEntity.notFound().build();
-            var routeResource = RouteResourceFromEntityAssembler.toResourceFromEntity(updatedRoute.get());
-            return ResponseEntity.status(HttpStatus.OK).body(routeResource);
-        } catch (IllegalStateException e) {
-            // Route cannot be modified (not in ASSIGNED status)
-            return ResponseEntity.badRequest().build();
-        } catch (IllegalArgumentException e) {
-            // No containers available or other validation error
-            return ResponseEntity.badRequest().build();
-        }
+        var updatedRoute = routeCommandService.handle(command);
+        if (updatedRoute.isEmpty()) return ResponseEntity.notFound().build();
+        var routeResource = RouteResourceFromEntityAssembler.toResourceFromEntity(updatedRoute.get());
+        return ResponseEntity.status(HttpStatus.OK).body(routeResource);
+    }
+
+    @Override
+    public ResponseEntity<RouteResource> updateCurrentLocation(String id, UpdateCurrentLocationResource resource) {
+        var command = new UpdateCurrentLocationRouteCommand(id, resource.latitude(), resource.longitude());
+        var updatedRoute = routeCommandService.handle(command);
+        if (updatedRoute.isEmpty()) return ResponseEntity.notFound().build();
+        var routeResource = RouteResourceFromEntityAssembler.toResourceFromEntity(updatedRoute.get());
+        return ResponseEntity.status(HttpStatus.OK).body(routeResource);
     }
 }
