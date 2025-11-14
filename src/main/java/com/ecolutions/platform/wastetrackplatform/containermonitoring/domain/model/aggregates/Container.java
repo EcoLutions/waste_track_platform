@@ -2,6 +2,7 @@ package com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.mo
 
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.CreateContainerCommand;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.UpdateContainerCommand;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.events.ContainerBecameCriticalEvent;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.*;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
@@ -129,5 +130,15 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
         boolean wasCritical = previousLevel != null && previousLevel.percentage() >= 90;
         boolean isCritical = this.currentFillLevel.percentage() >= 90;
         return !wasCritical && isCritical;
+    }
+
+    public ContainerBecameCriticalEvent buildContainerBecameCriticalEvent() {
+        return ContainerBecameCriticalEvent.builder()
+                .source(this)
+                .containerId(this.getId())
+                .districtId(this.districtId.value())
+                .location(this.location)
+                .fillLevel(this.currentFillLevel.percentage())
+                .build();
     }
 }
