@@ -8,7 +8,7 @@ public class UpdateRouteCommandFromResourceAssembler {
     public static UpdateRouteCommand toCommandFromResource(UpdateRouteResource resource) {
         return new UpdateRouteCommand(
             resource.routeId(),
-            DateTimeUtils.stringToLocalDateTimeOrNull(resource.scheduledDate())
+            DateTimeUtils.stringToLocalDateTimeOrNull(resource.scheduledStartAt())
         );
     }
 }

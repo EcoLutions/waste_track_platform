@@ -9,6 +9,8 @@ public record UpdateDistrictResource(
     String code,
     String depotLatitud,
     String depotLongitude,
+    String disposalLatitude,
+    String disposalLongitude,
     String operationStartTime,
     String operationEndTime,
     String maxRouteDuration

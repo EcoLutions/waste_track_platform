@@ -124,4 +124,10 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
     public void decommission() {
         this.status = ContainerStatus.DECOMMISSIONED;
     }
+
+    public boolean hasBecomeCritical(CurrentFillLevel previousLevel) {
+        boolean wasCritical = previousLevel != null && previousLevel.percentage() >= 90;
+        boolean isCritical = this.currentFillLevel.percentage() >= 90;
+        return !wasCritical && isCritical;
+    }
 }

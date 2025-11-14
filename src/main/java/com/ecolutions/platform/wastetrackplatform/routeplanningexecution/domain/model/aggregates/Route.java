@@ -66,6 +66,12 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     @Column(name = "estimated_duration")
     private Duration estimatedDuration;
 
+    @Column(name = "collection_duration")
+    private Duration collectionDuration;
+
+    @Column(name = "return_duration")
+    private Duration returnDuration;
+
     @Column(name = "actual_duration")
     private Duration actualDuration;
 
@@ -95,8 +101,8 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     }
 
     public void update(UpdateRouteCommand command) {
-        if (command.scheduledDate() != null) {
-            this.scheduledStartAt = command.scheduledDate();
+        if (command.scheduledStartAt() != null) {
+            this.scheduledStartAt = command.scheduledStartAt();
         }
     }
 
@@ -227,5 +233,26 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
             throw new IllegalStateException("Cannot cancel completed routes");
         }
         this.status = RouteStatus.CANCELLED;
+    }
+
+    public LocalDateTime getEstimatedDisposalArrival() {
+        if (collectionDuration == null) return null;
+        return scheduledStartAt.plus(collectionDuration);
+    }
+
+    public LocalDateTime getEstimatedDepotReturn() {
+        if (estimatedDuration == null) return null;
+        return scheduledStartAt.plus(estimatedDuration);
+    }
+
+    public boolean isWithinTimeConstraint(Duration maxDuration) {
+        if (estimatedDuration == null) return true;
+        return estimatedDuration.compareTo(maxDuration) <= 0;
+    }
+
+    public void updateDurations(Duration collection, Duration returnTrip) {
+        this.collectionDuration = collection;
+        this.returnDuration = returnTrip;
+        this.estimatedDuration = collection.plus(returnTrip);
     }
 }

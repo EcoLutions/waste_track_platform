@@ -19,4 +19,8 @@ public record Distance(BigDecimal kilometers) {
     public static Distance of(double km) {
         return new Distance(BigDecimal.valueOf(km));
     }
+
+    public static Distance fromMeters(long sum) {
+        return new Distance(BigDecimal.valueOf(sum / 1000.0));
+    }
 }

@@ -2,7 +2,7 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interf
 
 public record UpdateRouteResource(
     String routeId,
-    String scheduledDate
+    String scheduledStartAt
 ) {
     public UpdateRouteResource {
         if (routeId == null || routeId.isBlank()) {

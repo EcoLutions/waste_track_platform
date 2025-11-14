@@ -27,6 +27,8 @@ public class RouteResourceFromEntityAssembler {
             .completedAt(DateTimeUtils.localDateTimeToStringOrNull(route.getCompletedAt()))
             .totalDistance(Distance.toStringOrNull(route.getTotalDistance()))
             .estimatedDuration(DurationUtils.durationToStringOrNull(route.getEstimatedDuration()))
+            .collectionDuration(DurationUtils.durationToStringOrNull(route.getCollectionDuration()))
+            .returnDuration(DurationUtils.durationToStringOrNull(route.getReturnDuration()))
             .actualDuration(DurationUtils.durationToStringOrNull(route.getActualDuration()))
             .currentLatitude(Location.latitudeAsStringOrNull(route.getCurrentLocation()))
             .currentLongitude(Location.longitudeAsStringOrNull(route.getCurrentLocation()))
