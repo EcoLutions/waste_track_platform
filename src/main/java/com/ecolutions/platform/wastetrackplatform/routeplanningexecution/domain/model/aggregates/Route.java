@@ -95,8 +95,8 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     }
 
     public void update(UpdateRouteCommand command) {
-        if (command.scheduledDate() != null) {
-            this.scheduledStartAt = command.scheduledDate();
+        if (command.scheduledStartAt() != null) {
+            this.scheduledStartAt = command.scheduledStartAt();
         }
     }
 
