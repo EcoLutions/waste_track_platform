@@ -20,6 +20,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
 
     @Override
     public Optional<Route> handle(CreateRouteCommand command) {
+        // TODO: Consume ACL of District Context for getting max hours and validate if it within the permitted hours
         var newRoute = new Route(command);
         var savedRoute = routeRepository.save(newRoute);
         return Optional.of(savedRoute);
@@ -37,14 +38,9 @@ public class RouteCommandServiceImpl implements RouteCommandService {
 
     @Override
     public Boolean handle(DeleteRouteCommand command) {
-        try {
-            var existingRoute = routeRepository.findById(command.routeId())
-                    .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
-
-            routeRepository.delete(existingRoute);
-            return true;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to delete route: " + e.getMessage(), e);
-        }
+        var existingRoute = routeRepository.findById(command.routeId())
+                .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
+        routeRepository.delete(existingRoute);
+        return true;
     }
 }
