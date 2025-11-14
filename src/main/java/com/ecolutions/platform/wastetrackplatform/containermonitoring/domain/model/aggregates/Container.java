@@ -134,11 +134,11 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
 
     public ContainerBecameCriticalEvent buildContainerBecameCriticalEvent() {
         return ContainerBecameCriticalEvent.builder()
+                .source(this)
                 .containerId(this.getId())
                 .districtId(this.districtId.value())
                 .location(this.location)
                 .fillLevel(this.currentFillLevel.percentage())
-                .timestamp(LocalDateTime.now())
                 .build();
     }
 }
