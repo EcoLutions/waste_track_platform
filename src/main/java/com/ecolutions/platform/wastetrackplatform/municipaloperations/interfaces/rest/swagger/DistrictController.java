@@ -44,7 +44,7 @@ public interface DistrictController {
     })
     ResponseEntity<List<DistrictResource>> getAllDistricts();
 
-    @PutMapping()
+    @PutMapping("/{id}")
     @Operation(summary = "Update district", description = "Updates an existing district.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "District updated successfully."),
@@ -52,7 +52,7 @@ public interface DistrictController {
             @ApiResponse(responseCode = "400", description = "Invalid input data."),
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
-    ResponseEntity<DistrictResource> updateDistrict(@RequestBody UpdateDistrictResource resource);
+    ResponseEntity<DistrictResource> updateDistrict(@PathVariable String id, @RequestBody UpdateDistrictResource resource);
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete district", description = "Deletes a district by its ID.")

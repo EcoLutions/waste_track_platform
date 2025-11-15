@@ -6,9 +6,9 @@ import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DateTimeUt
 import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DurationUtils;
 
 public class UpdateDistrictCommandFromResourceAssembler {
-    public static UpdateDistrictCommand toCommandFromResource(UpdateDistrictResource resource) {
+    public static UpdateDistrictCommand toCommandFromResource(String districtId, UpdateDistrictResource resource) {
         return new UpdateDistrictCommand(
-            resource.districtId(),
+            districtId,
             resource.name(),
             resource.code(),
             resource.depotLatitud(),

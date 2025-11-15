@@ -71,6 +71,7 @@ public class District extends AuditableAbstractAggregateRoot<District> {
         this();
         this.name = command.name();
         this.code = command.code();
+        this.serviceStartDate = LocalDate.now();
     }
 
     public void update(UpdateDistrictCommand command) {

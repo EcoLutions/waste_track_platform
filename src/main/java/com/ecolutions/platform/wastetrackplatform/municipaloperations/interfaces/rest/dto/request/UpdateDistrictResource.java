@@ -4,7 +4,6 @@ import lombok.Builder;
 
 @Builder
 public record UpdateDistrictResource(
-    String districtId,
     String name,
     String code,
     String depotLatitud,
@@ -15,9 +14,4 @@ public record UpdateDistrictResource(
     String operationEndTime,
     String maxRouteDuration
 ) {
-    public UpdateDistrictResource {
-        if (districtId == null || districtId.isBlank()) {
-            throw new IllegalArgumentException("District ID cannot be null or blank");
-        }
-    }
 }
