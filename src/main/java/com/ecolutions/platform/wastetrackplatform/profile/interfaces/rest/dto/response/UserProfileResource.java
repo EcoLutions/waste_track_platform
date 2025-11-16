@@ -7,7 +7,6 @@ public record UserProfileResource(
     String id,
     String userId,
     String photoPath,
-    String userType,
     String districtId,
     String email,
     String phoneNumber,
