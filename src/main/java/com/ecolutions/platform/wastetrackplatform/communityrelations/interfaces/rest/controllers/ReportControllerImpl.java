@@ -1,6 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.controllers;
 
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.DeleteReportCommand;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllReportsByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllReportsQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetReportByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.command.ReportCommandService;
@@ -13,6 +14,7 @@ import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.mappers.fromresourcetocommand.UpdateReportCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.swagger.ReportController;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -57,6 +59,16 @@ public class ReportControllerImpl implements ReportController {
                 .map(ReportResourceFromEntityAssembler::toResourceFromEntity)
                 .toList();
         return ResponseEntity.ok(reportResources);
+    }
+
+    @Override
+    public ResponseEntity<List<ReportResource>> getAllReportsByDistrictId(String districtId) {
+        var query = new GetAllReportsByDistrictIdQuery(districtId);
+        var reports = reportQueryService.handle(query);
+        var reportResources = reports.stream()
+                .map(ReportResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.status(HttpStatus.OK).body(reportResources);
     }
 
     @Override

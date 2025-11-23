@@ -44,6 +44,14 @@ public interface ReportController {
     })
     ResponseEntity<List<ReportResource>> getAllReports();
 
+    @GetMapping("/district/{districtId}")
+    @Operation(summary = "Get all reports by district ID", description = "Retrieves all reports for a specific district.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reports retrieved successfully."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<List<ReportResource>> getAllReportsByDistrictId(@PathVariable String districtId);
+
     @PutMapping("/{id}")
     @Operation(summary = "Update report", description = "Updates an existing report.")
     @ApiResponses(value = {
