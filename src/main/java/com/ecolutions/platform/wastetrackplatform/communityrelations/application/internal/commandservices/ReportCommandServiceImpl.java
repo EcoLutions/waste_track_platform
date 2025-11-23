@@ -6,6 +6,7 @@ import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.mode
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.UpdateReportCommand;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.valueobjects.ReportType;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.command.ReportCommandService;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.infrastructure.persistence.jpa.repositories.EvidenceRepository;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.infrastructure.persistence.jpa.repositories.ReportRepository;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.CitizenId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.ContainerId;
@@ -20,6 +21,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ReportCommandServiceImpl implements ReportCommandService {
     private final ReportRepository reportRepository;
+    private final EvidenceRepository evidenceRepository;
 
     @Override
     public Optional<Report> handle(CreateReportCommand command) {
@@ -38,6 +40,15 @@ public class ReportCommandServiceImpl implements ReportCommandService {
                 containerId,
                 command.description()
             );
+
+            if (command.evidenceIds() != null && !command.evidenceIds().isEmpty()) {
+                var evidences = evidenceRepository.findAllById(command.evidenceIds());
+                if (evidences.size() != command.evidenceIds().size()) {
+                    throw new IllegalArgumentException("Algunas evidencias no se encontraron por sus ids");
+                }
+                evidences.forEach(newReport::addEvidence);
+            }
+
             var savedReport = reportRepository.save(newReport);
             return Optional.of(savedReport);
         } catch (Exception e) {
