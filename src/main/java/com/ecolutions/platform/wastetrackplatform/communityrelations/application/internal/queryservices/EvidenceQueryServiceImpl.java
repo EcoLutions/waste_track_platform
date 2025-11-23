@@ -1,6 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.communityrelations.application.internal.queryservices;
 
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.entities.Evidence;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllEvidencesByReportId;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllEvidencesQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetEvidenceByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.queries.EvidenceQueryService;
@@ -38,6 +39,16 @@ public class EvidenceQueryServiceImpl implements EvidenceQueryService {
             return evidenceRepository.findAll();
         } catch (Exception e) {
             log.error("Failed to retrieve evidences: {}", e.getMessage());
+            throw new IllegalArgumentException("Failed to retrieve evidences: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Evidence> handle(GetAllEvidencesByReportId query) {
+        try {
+            return evidenceRepository.findAllByReportId(query.reportId());
+        } catch (Exception e) {
+            log.error("Failed to retrieve evidences by report ID {}: {}", query.reportId(), e.getMessage());
             throw new IllegalArgumentException("Failed to retrieve evidences: " + e.getMessage());
         }
     }
