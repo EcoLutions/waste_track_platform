@@ -1,14 +1,18 @@
 package com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.controllers;
 
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.DeleteReportCommand;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllEvidencesByReportId;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllReportsByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllReportsQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetReportByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.command.ReportCommandService;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.queries.EvidenceQueryService;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.queries.ReportQueryService;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.request.CreateReportResource;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.request.UpdateReportResource;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.response.EvidenceResource;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.response.ReportResource;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.mappers.fromentitytoresponse.EvidenceResourceFromEntityAssembler;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.mappers.fromentitytoresponse.ReportResourceFromEntityAssembler;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.mappers.fromresourcetocommand.CreateReportCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.mappers.fromresourcetocommand.UpdateReportCommandFromResourceAssembler;
@@ -27,6 +31,7 @@ import java.util.List;
 public class ReportControllerImpl implements ReportController {
     private final ReportCommandService reportCommandService;
     private final ReportQueryService reportQueryService;
+    private final EvidenceQueryService evidenceQueryService;
 
     @Override
     public ResponseEntity<ReportResource> createReport(CreateReportResource resource) {
@@ -86,5 +91,15 @@ public class ReportControllerImpl implements ReportController {
         var deleted = reportCommandService.handle(command);
         if (!deleted) return ResponseEntity.notFound().build();
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<List<EvidenceResource>> getEvidencesByReportId(String reportId) {
+        var query = new GetAllEvidencesByReportId(reportId);
+        var evidences = evidenceQueryService.handle(query);
+        var evidenceResources = evidences.stream()
+                .map(EvidenceResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.status(HttpStatus.OK).body(evidenceResources);
     }
 }

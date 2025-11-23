@@ -2,6 +2,7 @@ package com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces
 
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.request.CreateReportResource;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.request.UpdateReportResource;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.response.EvidenceResource;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.response.ReportResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -70,4 +71,14 @@ public interface ReportController {
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
     ResponseEntity<Void> deleteReport(@PathVariable String id);
+
+    @GetMapping("/{reportId}/evidences")
+    @Operation(summary = "Get all evidences for a report", description = "Retrieves all evidences associated with a specific report.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Evidences retrieved successfully."),
+            @ApiResponse(responseCode = "404", description = "Report not found."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<List<EvidenceResource>> getEvidencesByReportId(@PathVariable String reportId);
+
 }
