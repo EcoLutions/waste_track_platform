@@ -4,10 +4,7 @@ import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.mode
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.valueobjects.ReportStatus;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.valueobjects.ReportType;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.CitizenId;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.ContainerId;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.UserId;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -27,6 +24,10 @@ public class Report extends AuditableAbstractAggregateRoot<Report> {
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "citizen_id", nullable = false))
     private CitizenId citizenId;
+
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "district_id"))
+    private DistrictId districtId;
 
     @Embedded
     private Location location;
@@ -71,12 +72,14 @@ public class Report extends AuditableAbstractAggregateRoot<Report> {
     }
 
     public Report(CitizenId citizenId,
+                  DistrictId districtId,
                   Location location,
                   ReportType reportType,
                   ContainerId containerId,
                   String description) {
         this();
         this.citizenId = citizenId;
+        this.districtId = districtId;
         this.location = location;
         this.reportType = reportType;
         this.containerId = containerId;

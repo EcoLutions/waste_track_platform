@@ -4,6 +4,7 @@ import java.util.List;
 
 public record CreateReportCommand(
     String citizenId,
+    String districtId,
     String latitude,
     String longitude,
     String containerId,
@@ -14,6 +15,9 @@ public record CreateReportCommand(
     public CreateReportCommand {
         if (citizenId == null || citizenId.isBlank()) {
             throw new IllegalArgumentException("Citizen ID cannot be null or blank");
+        }
+        if (districtId == null || districtId.isBlank()) {
+            throw new IllegalArgumentException("District ID cannot be null or blank");
         }
         if (latitude == null || latitude.isBlank()) {
             throw new IllegalArgumentException("Latitude cannot be null or blank");

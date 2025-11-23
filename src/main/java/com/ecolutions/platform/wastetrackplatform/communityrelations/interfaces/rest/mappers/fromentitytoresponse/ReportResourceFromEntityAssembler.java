@@ -4,10 +4,7 @@ import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.mode
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.valueobjects.ReportStatus;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.valueobjects.ReportType;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.response.ReportResource;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.CitizenId;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.ContainerId;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.UserId;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.*;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DateTimeUtils;
 
 public class ReportResourceFromEntityAssembler {
@@ -15,6 +12,7 @@ public class ReportResourceFromEntityAssembler {
         return ReportResource.builder()
                 .id(entity.getId())
                 .citizenId(CitizenId.toStringOrNull(entity.getCitizenId()))
+                .districtId(DistrictId.toStringOrNull(entity.getDistrictId()))
                 .latitude(Location.latitudeAsStringOrNull(entity.getLocation()))
                 .longitude(Location.longitudeAsStringOrNull(entity.getLocation()))
                 .containerId(ContainerId.toStringOrNull(entity.getContainerId()))

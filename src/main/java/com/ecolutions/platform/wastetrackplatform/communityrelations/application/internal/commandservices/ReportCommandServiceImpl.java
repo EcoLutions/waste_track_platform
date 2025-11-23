@@ -9,6 +9,7 @@ import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.serv
 import com.ecolutions.platform.wastetrackplatform.communityrelations.infrastructure.persistence.jpa.repositories.ReportRepository;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.CitizenId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.ContainerId;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,10 +27,12 @@ public class ReportCommandServiceImpl implements ReportCommandService {
             var citizenId = new CitizenId(command.citizenId());
             var location = Location.fromStrings(command.latitude(), command.longitude());
             var containerId = ContainerId.of(command.containerId());
+            var districtId = DistrictId.of(command.districtId());
             var reportType = ReportType.fromString(command.reportType());
 
             var newReport = new Report(
                 citizenId,
+                districtId,
                 location,
                 reportType,
                 containerId,
