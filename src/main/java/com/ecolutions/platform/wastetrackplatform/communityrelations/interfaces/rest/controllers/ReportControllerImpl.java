@@ -17,21 +17,27 @@ import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.mappers.fromresourcetocommand.CreateReportCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.mappers.fromresourcetocommand.UpdateReportCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.swagger.ReportController;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.services.storage.StorageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class ReportControllerImpl implements ReportController {
     private final ReportCommandService reportCommandService;
     private final ReportQueryService reportQueryService;
     private final EvidenceQueryService evidenceQueryService;
+    private final StorageService storageService;
 
     @Override
     public ResponseEntity<ReportResource> createReport(CreateReportResource resource) {
@@ -98,8 +104,16 @@ public class ReportControllerImpl implements ReportController {
         var query = new GetAllEvidencesByReportId(reportId);
         var evidences = evidenceQueryService.handle(query);
         var evidenceResources = evidences.stream()
-                .map(EvidenceResourceFromEntityAssembler::toResourceFromEntity)
-                .toList();
+                .map(evidence -> {
+                    try {
+                        String freshUrl = storageService.getFileUrl(evidence.getFilePath());
+                        return EvidenceResourceFromEntityAssembler.toResourceWithUrl(evidence, freshUrl);
+                    } catch (IOException e) {
+                        log.warn("Could not generate URL for evidence {}: {}", evidence.getId(), e.getMessage());
+                        return EvidenceResourceFromEntityAssembler.toResourceFromEntity(evidence);
+                    }
+                })
+                .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK).body(evidenceResources);
     }
 }
