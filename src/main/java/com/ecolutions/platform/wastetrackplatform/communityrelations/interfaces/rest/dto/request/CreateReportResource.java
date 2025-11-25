@@ -6,6 +6,7 @@ import java.util.List;
 @Builder
 public record CreateReportResource(
     String citizenId,
+    String districtId,
     String latitude,
     String longitude,
     String containerId, // Optional
@@ -16,6 +17,9 @@ public record CreateReportResource(
     public CreateReportResource {
         if (citizenId == null || citizenId.isBlank()) {
             throw new IllegalArgumentException("Citizen ID cannot be null or blank");
+        }
+        if (districtId == null || districtId.isBlank()) {
+            throw new IllegalArgumentException("District ID cannot be null or blank");
         }
         if (latitude == null || latitude.isBlank()) {
             throw new IllegalArgumentException("Latitude cannot be null or blank");
