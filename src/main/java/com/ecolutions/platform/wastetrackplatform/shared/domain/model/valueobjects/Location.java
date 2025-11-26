@@ -1,13 +1,24 @@
 package com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects;
 
 import com.google.maps.model.LatLng;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 import java.math.BigDecimal;
 
+/**
+ * Value object representing geographic coordinates.
+ * Uses precision=10, scale=8 to store coordinates with ~1mm accuracy.
+ * Example: -12.04318380 (latitude), -77.02824040 (longitude)
+ *
+ * @author Salim Ramirez
+ */
 @Embeddable
 public record Location(
+    @Column(precision = 10, scale = 8)
     BigDecimal latitude,
+
+    @Column(precision = 11, scale = 8)
     BigDecimal longitude
 ) {
     public Location {
