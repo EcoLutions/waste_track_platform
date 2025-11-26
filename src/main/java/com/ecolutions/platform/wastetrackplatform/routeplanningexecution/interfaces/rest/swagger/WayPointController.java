@@ -1,6 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.swagger;
 
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request.CreateWayPointResource;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request.MarkWayPointAsVisitedResource;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request.UpdateWayPointResource;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.response.WayPointResource;
 import io.swagger.v3.oas.annotations.Operation;
@@ -63,4 +64,14 @@ public interface WayPointController {
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
     ResponseEntity<Void> deleteWayPoint(@Parameter(description = "WayPoint ID") @PathVariable String id);
+
+    @PatchMapping("/{id}/mark-visited")
+    @Operation(summary = "Mark waypoint as visited", description = "Marks a waypoint as visited with the actual arrival time.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "WayPoint marked as visited successfully."),
+            @ApiResponse(responseCode = "404", description = "WayPoint not found."),
+            @ApiResponse(responseCode = "400", description = "Invalid input data or waypoint cannot be visited."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<WayPointResource> markWayPointAsVisited(@Parameter(description = "WayPoint ID") @PathVariable String id, @RequestBody MarkWayPointAsVisitedResource resource);
 }
