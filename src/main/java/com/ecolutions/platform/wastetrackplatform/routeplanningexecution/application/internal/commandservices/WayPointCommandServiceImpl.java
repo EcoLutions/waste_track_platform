@@ -3,6 +3,7 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.applic
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates.Route;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateWayPointCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.DeleteWayPointCommand;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.MarkWayPointAsVisitedCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateWayPointCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.entities.WayPoint;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.services.command.WayPointCommandService;
@@ -49,5 +50,14 @@ public class WayPointCommandServiceImpl implements WayPointCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("WayPoint with ID " + command.wayPointId() + " not found."));
         wayPointRepository.delete(existingWayPoint);
         return true;
+    }
+
+    @Override
+    public Optional<WayPoint> handle(MarkWayPointAsVisitedCommand command) {
+        WayPoint existingWayPoint = wayPointRepository.findById(command.waypointId())
+                .orElseThrow(() -> new IllegalArgumentException("WayPoint with ID " + command.waypointId() + " not found."));
+        existingWayPoint.markAsVisited(command.arrivalTime());
+        WayPoint updatedWayPoint = wayPointRepository.save(existingWayPoint);
+        return Optional.of(updatedWayPoint);
     }
 }
