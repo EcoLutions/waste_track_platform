@@ -108,7 +108,7 @@ public class DynamicWaypointInsertionService {
         // Try inserting at each position
         for (int insertPos = 0; insertPos < remainingWaypoints.size(); insertPos++) {
             List<WayPoint> modifiedWaypoints = new ArrayList<>(remainingWaypoints);
-            WayPoint newWaypoint = createWaypoint(criticalContainer, insertPos + 1);
+            WayPoint newWaypoint = createWaypoint(route.getId(), criticalContainer, insertPos + 1);
             modifiedWaypoints.add(insertPos, newWaypoint);
 
             // Recalculate duration
@@ -142,7 +142,7 @@ public class DynamicWaypointInsertionService {
         modifiedWaypoints.remove(lowestPriority);
 
         int position = lowestPriority.getSequenceOrder() - 1;
-        WayPoint newWaypoint = createWaypoint(criticalContainer, lowestPriority.getSequenceOrder());
+        WayPoint newWaypoint = createWaypoint(route.getId(), criticalContainer, lowestPriority.getSequenceOrder());
 
         if (position >= modifiedWaypoints.size()) {
             modifiedWaypoints.add(newWaypoint);
@@ -197,9 +197,9 @@ public class DynamicWaypointInsertionService {
     /**
      * Create waypoint for container
      */
-    private WayPoint createWaypoint(ContainerInfoDTO container, int sequenceOrder) {
+    private WayPoint createWaypoint(String routeId, ContainerInfoDTO container, int sequenceOrder) {
         CreateWayPointCommand command = new CreateWayPointCommand(
-                null, // routeId will be set later
+                routeId,
                 container.containerId(),
                 sequenceOrder,
                 PriorityLevel.CRITICAL.name()

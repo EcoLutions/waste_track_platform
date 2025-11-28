@@ -106,6 +106,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
 
         log.info("4. Generating optimized waypoints using RouteOptimizationService for district {}", route.getDistrictId());
         OptimizedRouteResult result = routeOptimizationService.optimizeRoute(
+                route.getId(),
                 route.getDistrictId().value(),
                 route.getScheduledStartAt()
         );
