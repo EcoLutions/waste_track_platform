@@ -70,4 +70,13 @@ public interface DriverController {
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
     ResponseEntity<Void> deleteDriver(@PathVariable String id);
+
+    @GetMapping("/me")
+    @Operation(summary = "Get current driver", description = "Retrieves the currently authenticated driver.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Current driver retrieved successfully."),
+            @ApiResponse(responseCode = "401", description = "Unauthorized access."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<DriverResource> getCurrentDriver();
 }

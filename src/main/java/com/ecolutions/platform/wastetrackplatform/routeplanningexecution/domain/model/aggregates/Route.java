@@ -161,7 +161,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     }
 
     public boolean canBeModified() {
-        return status != RouteStatus.ASSIGNED;
+        return status == RouteStatus.ASSIGNED;
     }
 
     public boolean isOverdue() {
@@ -170,7 +170,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     }
 
     public void addWayPoint(WayPoint wayPoint) {
-        if (canBeModified()) {
+        if (!canBeModified()) {
             throw new IllegalStateException("Cannot modify route that is in progress or completed");
         }
         this.waypoints.add(wayPoint);

@@ -43,9 +43,22 @@ public class RouteOptimizationService {
      * Optimize route for a given district and scheduled time
      */
     public OptimizedRouteResult optimizeRoute(String districtId, LocalDateTime scheduledStartAt) {
+        return optimizeRoute(null, districtId, scheduledStartAt);
+    }
+
+    /**
+     * Optimize route for a given district and scheduled time with routeId
+     */
+    public OptimizedRouteResult optimizeRoute(String routeId, String districtId, LocalDateTime scheduledStartAt) {
         DistrictConfigDTO districtConfig = fetchDistrictConfiguration(districtId);
         List<ContainerInfoDTO> candidates = getAndSortContainerCandidates(districtId);
         RouteLocations locations = extractDepotAndDisposalLocations(districtConfig);
+
+        // Validate scheduledStartAt is not in the past
+        if (scheduledStartAt.isBefore(LocalDateTime.now())) {
+            log.warn("Scheduled start time {} is in the past. Using fallback algorithm without Google Maps traffic data.", scheduledStartAt);
+            return optimizeWithFallbackAlgorithm(routeId, candidates, scheduledStartAt);
+        }
 
         try {
             DirectionsResult result = callGoogleMapsDirections(locations.depot(), locations.disposal(), candidates, scheduledStartAt);
@@ -53,11 +66,11 @@ public class RouteOptimizationService {
 
             OptimizedRouteData optimizedData = adjustWaypointsToFitTimeConstraints(candidates, locations, districtConfig.maxRouteDuration(), scheduledStartAt, result, durations);
 
-            return buildOptimizedResult(candidates, optimizedData.result(), optimizedData.durations(), scheduledStartAt);
+            return buildOptimizedResult(routeId, candidates, optimizedData.result(), optimizedData.durations(), scheduledStartAt);
 
         } catch (Exception e) {
             log.error("Error calling Google Maps API, using fallback algorithm", e);
-            return optimizeWithFallbackAlgorithm(candidates, scheduledStartAt);
+            return optimizeWithFallbackAlgorithm(routeId, candidates, scheduledStartAt);
         }
     }
 
@@ -126,9 +139,9 @@ public class RouteOptimizationService {
         candidates.remove(lowestPriority);
     }
 
-    private OptimizedRouteResult buildOptimizedResult(List<ContainerInfoDTO> candidates, DirectionsResult result, RouteDurations durations, LocalDateTime scheduledStartAt) {
+    private OptimizedRouteResult buildOptimizedResult(String routeId, List<ContainerInfoDTO> candidates, DirectionsResult result, RouteDurations durations, LocalDateTime scheduledStartAt) {
 
-        List<WayPoint> waypoints = createOptimizedWaypoints(candidates, result);
+        List<WayPoint> waypoints = createOptimizedWaypoints(routeId, candidates, result);
         Distance totalDistance = calculateTotalDistance(result);
 
         return OptimizedRouteResult.builder()
@@ -232,7 +245,7 @@ public class RouteOptimizationService {
     /**
      * Create optimized waypoints based on a Google Maps result
      */
-    private List<WayPoint> createOptimizedWaypoints(List<ContainerInfoDTO> containers, DirectionsResult result) {
+    private List<WayPoint> createOptimizedWaypoints(String routeId, List<ContainerInfoDTO> containers, DirectionsResult result) {
         List<WayPoint> waypoints = new ArrayList<>();
         int[] waypointOrder = result.routes[0].waypointOrder;
 
@@ -241,7 +254,7 @@ public class RouteOptimizationService {
             PriorityLevel priority = calculatePriorityLevel(container.fillLevelPercentage());
 
             CreateWayPointCommand command = new CreateWayPointCommand(
-                    null, // routeId will be set later
+                    routeId,
                     container.containerId(),
                     i + 1, // sequence order
                     priority.name()
@@ -256,7 +269,7 @@ public class RouteOptimizationService {
     /**
      * Fallback algorithm if Google Maps fails (simple greedy)
      */
-    private OptimizedRouteResult optimizeWithFallbackAlgorithm(List<ContainerInfoDTO> containers, LocalDateTime scheduledStartAt) {
+    private OptimizedRouteResult optimizeWithFallbackAlgorithm(String routeId, List<ContainerInfoDTO> containers, LocalDateTime scheduledStartAt) {
         log.info("Using fallback greedy algorithm for route optimization");
 
         // Simple estimation: 8 minutes per container + 5 minutes per km
@@ -267,7 +280,7 @@ public class RouteOptimizationService {
         for (int i = 0; i < containers.size(); i++) {
             ContainerInfoDTO container = containers.get(i);
             CreateWayPointCommand command = new CreateWayPointCommand(
-                    null,
+                    routeId,
                     container.containerId(),
                     i + 1,
                     calculatePriorityLevel(container.fillLevelPercentage()).name()
