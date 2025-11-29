@@ -11,7 +11,7 @@ public class UpdateContainerCommandFromResourceAssembler {
             resource.longitude(),
             resource.volumeLiters(),
             resource.maxWeightKg(),
-            resource.sensorId(),
+            resource.deviceId(),
             resource.containerType(),
             resource.collectionFrequencyDays()
         );
