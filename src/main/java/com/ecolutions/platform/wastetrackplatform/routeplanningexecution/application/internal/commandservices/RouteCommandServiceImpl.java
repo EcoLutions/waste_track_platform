@@ -49,6 +49,9 @@ public class RouteCommandServiceImpl implements RouteCommandService {
         }
 
         log.debug("3. Calculating scheduledEndAt = scheduledStartAt + maxRouteDuration - buffer");
+        if (districtConfig.maxRouteDuration() == null) {
+            throw new IllegalArgumentException("District " + command.districtId() + " does not have maxRouteDuration configured");
+        }
         Duration bufferTime = Duration.ofMinutes(30); // Safety buffer
         Duration effectiveMaxDuration = districtConfig.maxRouteDuration().minus(bufferTime);
         LocalDateTime scheduledEndAt = command.scheduledDate().plus(effectiveMaxDuration);
