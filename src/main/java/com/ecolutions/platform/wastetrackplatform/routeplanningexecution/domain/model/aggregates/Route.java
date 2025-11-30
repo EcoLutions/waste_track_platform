@@ -39,10 +39,6 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private RouteType routeType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private RouteStatus status;
 
     private LocalDateTime scheduledStartAt;
@@ -87,7 +83,6 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     public Route() {
         super();
         this.status = RouteStatus.ASSIGNED;
-        this.routeType = RouteType.REGULAR;
         this.waypoints = new HashSet<>();
     }
 
@@ -96,7 +91,6 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         this.districtId = DistrictId.of(command.districtId());
         this.driverId = DriverId.of(command.driverId());
         this.vehicleId = VehicleId.of(command.vehicleId());
-        this.routeType = RouteType.fromString(command.routeType());
         this.scheduledStartAt = command.scheduledDate();
     }
 
@@ -228,7 +222,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         return (double) getCompletedWaypointsCount() / getTotalWaypointsCount() * 100.0;
     }
 
-    public void cancel(String reason) {
+    public void cancel() {
         if (status == RouteStatus.COMPLETED) {
             throw new IllegalStateException("Cannot cancel completed routes");
         }

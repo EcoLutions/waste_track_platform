@@ -8,7 +8,6 @@ public record RouteResource(
     String districtId,
     String vehicleId,
     String driverId,
-    String routeType,
     String status,
     String scheduledStartAt,
     String scheduledEndAt,

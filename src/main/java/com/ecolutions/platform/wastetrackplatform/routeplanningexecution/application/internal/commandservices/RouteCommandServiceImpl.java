@@ -8,12 +8,7 @@ import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.applica
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.websocket.RouteWebSocketPublisherService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.websocket.transform.RouteCurrentLocationPayloadAssembler;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates.Route;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateRouteCommand;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.DeleteRouteCommand;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.GenerateOptimizedWaypointsCommand;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.MarkWayPointAsVisitedCommand;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateCurrentLocationRouteCommand;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateRouteCommand;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.*;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.RouteStatus;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.services.command.RouteCommandService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.infrastructure.persistence.jpa.repositories.RouteRepository;
@@ -31,6 +26,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class RouteCommandServiceImpl implements RouteCommandService {
+
     private final RouteRepository routeRepository;
     private final MunicipalOperationsContextFacade municipalOperationsContextFacade;
     private final RouteUpdateService routeUpdateService;
@@ -45,7 +41,8 @@ public class RouteCommandServiceImpl implements RouteCommandService {
 
         log.debug("2. Validating scheduled time {} is within operating hours", command.scheduledDate().toLocalTime());
         if (!municipalOperationsContextFacade.validateScheduledTime(command.districtId(), command.scheduledDate())) {
-            throw new IllegalArgumentException("Scheduled start time " + command.scheduledDate().toLocalTime() + " is outside district operating hours (" + districtConfig.operationStartTime() + " - " + districtConfig.operationEndTime() + ")");
+            throw new IllegalArgumentException("Scheduled start time " + command.scheduledDate().toLocalTime()
+                    + " is outside district operating hours (" + districtConfig.operationStartTime() + " - " + districtConfig.operationEndTime() + ")");
         }
 
         log.debug("3. Calculating scheduledEndAt = scheduledStartAt + maxRouteDuration - buffer");
@@ -97,7 +94,8 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     public Optional<Route> handle(GenerateOptimizedWaypointsCommand command) {
         log.info("Generating optimized waypoints for route {}", command.routeId());
 
-        Route route = getRouteById(command.routeId());
+        Route route = routeRepository.findById(command.routeId())
+                .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
 
         log.info("2. Validate route can be modified");
         if (!route.canBeModified()) {
@@ -120,11 +118,15 @@ public class RouteCommandServiceImpl implements RouteCommandService {
         log.info("6. Updating route estimates");
         route.updateDurations(result.collectionDuration(), result.returnDuration());
         route.setTotalDistance(result.totalDistance());
+        if (result.scheduledEndAt() != null) {
+            route.setScheduledEndAt(result.scheduledEndAt());
+        }
 
         log.info("7. Saving updated route");
         Route savedRoute = routeRepository.save(route);
 
-        log.info("Generated {} optimized waypoints for route {}, total duration: {} minutes", result.waypoints().size(), route.getId(), result.totalDuration().toMinutes());
+        log.info("Generated {} optimized waypoints for route {}, total duration: {} minutes",
+                result.waypoints().size(), route.getId(), result.totalDuration().toMinutes());
         return Optional.of(savedRoute);
     }
 
@@ -133,7 +135,8 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     public Optional<Route> handle(UpdateCurrentLocationRouteCommand command) {
         log.info("Updating current location for route {}", command.routeId());
 
-        Route route = getRouteById(command.routeId());
+        Route route = routeRepository.findById(command.routeId())
+                .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
 
         log.info("2. Validate route is IN_PROGRESS");
         if (route.getStatus() != RouteStatus.IN_PROGRESS) {
@@ -161,9 +164,154 @@ public class RouteCommandServiceImpl implements RouteCommandService {
         return Optional.of(updatedRoute);
     }
 
-    private Route getRouteById(String routeId) {
-        log.debug("1. Fetching route with id {}", routeId);
-        return routeRepository.findById(routeId)
-                .orElseThrow(() -> new IllegalArgumentException("Route with ID " + routeId + " not found."));
+    /**
+     * StartRouteCommand:
+     * - Si la ruta no tiene waypoints, los genera antes de iniciar.
+     * - Cambia estado a IN_PROGRESS y setea startedAt.
+     */
+    @Override
+    @Transactional
+    public Optional<Route> handle(StartRouteCommand command) {
+        log.info("Starting route {}", command.routeId());
+
+        Route route = routeRepository.findById(command.routeId())
+                .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
+
+        if (route.getStatus() != RouteStatus.ASSIGNED) {
+            throw new IllegalStateException("Can only start routes in ASSIGNED status. Current status: " + route.getStatus());
+        }
+
+        // Si no tiene waypoints, generamos antes de iniciar
+        if (route.getWaypoints() == null || route.getWaypoints().isEmpty()) {
+            log.info("Route {} has no waypoints, generating optimized waypoints before starting", route.getId());
+
+            OptimizedRouteResult result = routeOptimizationService.optimizeRoute(
+                    route.getId(),
+                    route.getDistrictId().value(),
+                    route.getScheduledStartAt()
+            );
+
+            result.waypoints().forEach(route::addWayPoint);
+            route.updateDurations(result.collectionDuration(), result.returnDuration());
+            route.setTotalDistance(result.totalDistance());
+            if (result.scheduledEndAt() != null) {
+                route.setScheduledEndAt(result.scheduledEndAt());
+            }
+        }
+
+        // Cambiar estado a IN_PROGRESS y setear startedAt
+        route.startExecution();
+
+        Route savedRoute = routeRepository.save(route);
+        log.info("Route {} started at {}", savedRoute.getId(), savedRoute.getStartedAt());
+
+        return Optional.of(savedRoute);
+    }
+
+    /**
+     * CompleteRouteCommand:
+     * - Marca la ruta como COMPLETED.
+     * - Calcula actualDuration dentro del agregado.
+     */
+    @Override
+    @Transactional
+    public Optional<Route> handle(CompleteRouteCommand command) {
+        log.info("Completing route {}", command.routeId());
+
+        Route route = routeRepository.findById(command.routeId())
+                .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
+
+        route.completeExecution();
+
+        Route savedRoute = routeRepository.save(route);
+        log.info("Route {} completed at {}, actual duration: {} minutes",
+                savedRoute.getId(),
+                savedRoute.getCompletedAt(),
+                savedRoute.getActualDuration() != null ? savedRoute.getActualDuration().toMinutes() : null
+        );
+
+        return Optional.of(savedRoute);
+    }
+
+    /**
+     * CancelRouteCommand:
+     * - Cancela la ruta (si no está COMPLETED).
+     */
+    @Override
+    @Transactional
+    public Optional<Route> handle(CancelRouteCommand command) {
+        log.info("Cancelling route {}", command.routeId());
+
+        Route route = routeRepository.findById(command.routeId())
+                .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
+
+        route.cancel();
+
+        Route savedRoute = routeRepository.save(route);
+        log.info("Route {} cancelled", savedRoute.getId());
+
+        return Optional.of(savedRoute);
+    }
+
+    /**
+     * ReOptimizeRouteCommand:
+     * - Reoptimiza los waypoints de una ruta ASSIGNED.
+     * - Limpia waypoints actuales y recalcula todo.
+     */
+    @Override
+    @Transactional
+    public Optional<Route> handle(ReOptimizeRouteCommand command) {
+        log.info("Re-optimizing route {}", command.routeId());
+
+        Route route = routeRepository.findById(command.routeId())
+                .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
+
+        if (!route.canBeModified()) {
+            throw new IllegalStateException("Cannot re-optimize waypoints for route in status: " + route.getStatus());
+        }
+
+        log.info("Clearing existing waypoints for route {}", route.getId());
+        route.getWaypoints().clear();
+
+        OptimizedRouteResult result = routeOptimizationService.optimizeRoute(
+                route.getId(),
+                route.getDistrictId().value(),
+                route.getScheduledStartAt()
+        );
+
+        log.info("Adding {} re-optimized waypoints to route {}", result.waypoints().size(), route.getId());
+        result.waypoints().forEach(route::addWayPoint);
+
+        route.updateDurations(result.collectionDuration(), result.returnDuration());
+        route.setTotalDistance(result.totalDistance());
+        if (result.scheduledEndAt() != null) {
+            route.setScheduledEndAt(result.scheduledEndAt());
+        }
+
+        Route savedRoute = routeRepository.save(route);
+        log.info("Route {} re-optimized. New total duration: {} minutes",
+                savedRoute.getId(), result.totalDuration().toMinutes());
+
+        return Optional.of(savedRoute);
+    }
+
+    /**
+     * UpdateRouteEstimatesCommand:
+     * - Permite forzar la actualización de estimaciones (como el scheduler, pero manual).
+     */
+    @Override
+    @Transactional
+    public Optional<Route> handle(UpdateRouteEstimatesCommand command) {
+        log.info("Updating estimates for route {} (manual trigger)", command.routeId());
+
+        Route route = routeRepository.findById(command.routeId())
+                .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
+
+        routeUpdateService.updateRouteEstimates(route);
+
+        Route updatedRoute = routeRepository.findById(command.routeId())
+                .orElse(route);
+
+        return Optional.of(updatedRoute);
     }
 }
