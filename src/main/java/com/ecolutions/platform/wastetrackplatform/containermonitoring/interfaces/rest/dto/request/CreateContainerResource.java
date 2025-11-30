@@ -7,7 +7,7 @@ public record CreateContainerResource(
     String latitude,
     String longitude,
     Integer volumeLiters,
-    Integer maxWeightKg,
+    Integer maxFillLevel,
     String deviceId,
     String containerType,
     String districtId,
@@ -23,7 +23,7 @@ public record CreateContainerResource(
         if (volumeLiters == null || volumeLiters <= 0) {
             throw new IllegalArgumentException("Volume liters cannot be null or less than or equal to zero");
         }
-        if (maxWeightKg == null || maxWeightKg <= 0) {
+        if (maxFillLevel == null || maxFillLevel <= 0) {
             throw new IllegalArgumentException("Max weight kg cannot be null or less than or equal to zero");
         }
         if (containerType == null || containerType.isBlank()) {

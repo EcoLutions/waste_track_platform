@@ -413,7 +413,7 @@ class RouteOptimizationServiceTest {
                 new BigDecimal("-77.042793")
         ));
         container.setDistrictId(DistrictId.of("district-001"));
-        container.setCapacity(new ContainerCapacity(1000, 500));
+        container.setCapacity(new ContainerCapacity(1000, 90));
         container.setContainerType(ContainerType.ORGANIC);
         container.setCollectionFrequency(new CollectionFrequency(7));
         container.setDeviceId(DeviceId.of("sensor-" + id));

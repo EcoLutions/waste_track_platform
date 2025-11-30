@@ -8,7 +8,7 @@ public record ContainerResource(
     String latitude,
     String longitude,
     Integer volumeLiters,
-    Integer maxWeightKg,
+    Integer maxFillLevel,
     String containerType,
     String status,
     Integer currentFillLevel,

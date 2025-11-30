@@ -10,7 +10,7 @@ public class UpdateContainerCommandFromResourceAssembler {
             resource.latitude(),
             resource.longitude(),
             resource.volumeLiters(),
-            resource.maxWeightKg(),
+            resource.maxFillLevel(),
             resource.deviceId(),
             resource.containerType(),
             resource.collectionFrequencyDays()

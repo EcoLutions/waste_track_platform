@@ -5,7 +5,7 @@ public record UpdateContainerCommand(
     String latitude,
     String longitude,
     Integer volumeLiters,
-    Integer maxWeightKg,
+    Integer maxFillLevel,
     String deviceId,
     String containerType,
     Integer collectionFrequencyDays
