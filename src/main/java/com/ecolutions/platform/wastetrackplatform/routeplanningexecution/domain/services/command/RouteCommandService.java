@@ -15,6 +15,7 @@ public interface RouteCommandService {
     Optional<Route> handle(StartRouteCommand command);
     Optional<Route> handle(CompleteRouteCommand command);
     Optional<Route> handle(CancelRouteCommand command);
-    Optional<Route> handle(ReOptimizeRouteCommand query);
-    Optional<Route> handle(UpdateRouteEstimatesCommand query);
+    Optional<Route> handle(ReOptimizeRouteCommand command);
+    Optional<Route> handle(UpdateRouteEstimatesCommand command);
+    Optional<Route> handle(ActiveRouteCommand command);
 }

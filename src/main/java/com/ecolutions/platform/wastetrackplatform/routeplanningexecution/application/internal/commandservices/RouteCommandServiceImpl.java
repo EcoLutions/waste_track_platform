@@ -15,6 +15,7 @@ import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.infrast
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,7 +63,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     }
 
     @Override
-    public Optional<Route> handle(UpdateRouteCommand command) {
+    public Optional<Route> handle(@NotNull UpdateRouteCommand command) {
         Route existingRoute = routeRepository.findById(command.routeId())
                 .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
 
@@ -172,29 +173,6 @@ public class RouteCommandServiceImpl implements RouteCommandService {
         Route route = routeRepository.findById(command.routeId())
                 .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
 
-        if (route.getStatus() != RouteStatus.ASSIGNED) {
-            throw new IllegalStateException("Can only start routes in ASSIGNED status. Current status: " + route.getStatus());
-        }
-
-        // Si no tiene waypoints, generamos antes de iniciar
-        if (route.getWaypoints() == null || route.getWaypoints().isEmpty()) {
-            log.info("Route {} has no waypoints, generating optimized waypoints before starting", route.getId());
-
-            OptimizedRouteResult result = routeOptimizationService.optimizeRoute(
-                    route.getId(),
-                    route.getDistrictId().value(),
-                    route.getScheduledStartAt()
-            );
-
-            result.waypoints().forEach(route::addWayPoint);
-            route.updateDurations(result.collectionDuration(), result.returnDuration());
-            route.setTotalDistance(result.totalDistance());
-            if (result.scheduledEndAt() != null) {
-                route.setScheduledEndAt(result.scheduledEndAt());
-            }
-        }
-
-        // Cambiar estado a IN_PROGRESS y setear startedAt
         route.startExecution();
 
         Route savedRoute = routeRepository.save(route);
@@ -288,6 +266,42 @@ public class RouteCommandServiceImpl implements RouteCommandService {
 
         Route updatedRoute = routeRepository.findById(command.routeId())
                 .orElse(route);
+
+        return Optional.of(updatedRoute);
+    }
+
+    @Override
+    public Optional<Route> handle(ActiveRouteCommand command) {
+        log.info("Activating route {}", command.routeId());
+
+        Route route = routeRepository.findById(command.routeId())
+                .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
+
+        if (route.getStatus() != RouteStatus.PLANNED) {
+            throw new IllegalStateException("Can only start routes in PLANNED status. Current status: " + route.getStatus());
+        }
+
+        if (route.getWaypoints() == null || route.getWaypoints().isEmpty()) {
+            log.info("Route {} has no waypoints, generating optimized waypoints before starting", route.getId());
+
+            OptimizedRouteResult result = routeOptimizationService.optimizeRoute(
+                    route.getId(),
+                    route.getDistrictId().value(),
+                    route.getScheduledStartAt()
+            );
+
+            result.waypoints().forEach(route::addWayPoint);
+            route.updateDurations(result.collectionDuration(), result.returnDuration());
+            route.setTotalDistance(result.totalDistance());
+            if (result.scheduledEndAt() != null) {
+                route.setScheduledEndAt(result.scheduledEndAt());
+            }
+        }
+
+        route.activeRoute();
+
+        Route updatedRoute = routeRepository.save(route);
+        log.info("Route {} activated", updatedRoute.getId());
 
         return Optional.of(updatedRoute);
     }
