@@ -1,9 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.queryservices;
 
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates.Route;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.queries.GetAllRoutesQuery;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.queries.GetRouteByIdQuery;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.queries.GetActiveRoutesByDistrictIdQuery;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.queries.*;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.RouteStatus;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.services.queries.RouteQueryService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.infrastructure.persistence.jpa.repositories.RouteRepository;
@@ -55,5 +53,15 @@ public class RouteQueryServiceImpl implements RouteQueryService {
         var districtId = new DistrictId(query.districtId());
         var activeStatuses = List.of(RouteStatus.ACTIVE, RouteStatus.IN_PROGRESS);
         return routeRepository.findActiveRoutesByDistrictId(districtId, activeStatuses);
+    }
+
+    @Override
+    public List<Route> handle(GetAllPlannedRoutesQuery query) {
+        return routeRepository.findByStatus(RouteStatus.PLANNED);
+    }
+
+    @Override
+    public List<Route> handle(GetAllInProgressRoutesQuery query) {
+        return routeRepository.findByStatus(RouteStatus.IN_PROGRESS);
     }
 }
