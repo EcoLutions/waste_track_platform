@@ -82,7 +82,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
 
     public Route() {
         super();
-        this.status = RouteStatus.ASSIGNED;
+        this.status = RouteStatus.PLANNED;
         this.waypoints = new HashSet<>();
     }
 
@@ -126,8 +126,15 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         }
     }
 
+    public void activeRoute() {
+        if (status != RouteStatus.PLANNED) {
+            throw new IllegalStateException("Can only activate planned routes");
+        }
+        this.status = RouteStatus.ACTIVE;
+    }
+
     public void startExecution() {
-        if (status != RouteStatus.ASSIGNED) {
+        if (status != RouteStatus.ACTIVE) {
             throw new IllegalStateException("Can only start assigned routes");
         }
 
@@ -155,7 +162,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     }
 
     public boolean canBeModified() {
-        return status == RouteStatus.ASSIGNED;
+        return status == RouteStatus.ACTIVE;
     }
 
     public boolean isOverdue() {

@@ -37,7 +37,7 @@ class RouteTest {
     @Test
     @DisplayName("Should start execution when route is ASSIGNED")
     void shouldStartExecutionSuccessfully() {
-        route.setStatus(RouteStatus.ASSIGNED);
+        route.setStatus(RouteStatus.ACTIVE);
         route.startExecution();
 
         assertEquals(RouteStatus.IN_PROGRESS, route.getStatus());
@@ -47,7 +47,7 @@ class RouteTest {
     @Test
     @DisplayName("Should throw when starting if not ASSIGNED")
     void shouldThrowWhenStartingInvalidStatus() {
-        route.setStatus(RouteStatus.ASSIGNED);
+        route.setStatus(RouteStatus.ACTIVE);
         assertThrows(IllegalStateException.class, route::startExecution);
     }
 
@@ -68,7 +68,7 @@ class RouteTest {
     @Test
     @DisplayName("Should throw when completing if not IN_PROGRESS")
     void shouldThrowWhenCompletingInvalidStatus() {
-        route.setStatus(RouteStatus.ASSIGNED);
+        route.setStatus(RouteStatus.ACTIVE);
         assertThrows(IllegalStateException.class, route::completeExecution);
     }
 
