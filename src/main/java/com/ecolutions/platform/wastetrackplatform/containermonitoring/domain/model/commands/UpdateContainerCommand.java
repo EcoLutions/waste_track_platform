@@ -6,7 +6,7 @@ public record UpdateContainerCommand(
     String longitude,
     Integer volumeLiters,
     Integer maxWeightKg,
-    String sensorId,
+    String deviceId,
     String containerType,
     Integer collectionFrequencyDays
 ) {

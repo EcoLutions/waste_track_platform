@@ -5,6 +5,7 @@ import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.mod
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.infrastructure.persistence.jpa.repositories.ContainerRepository;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.acl.contexts.MunicipalOperationsContextFacade;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.acl.dtos.DistrictConfigDTO;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DeviceId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import org.junit.jupiter.api.BeforeEach;
@@ -415,7 +416,7 @@ class RouteOptimizationServiceTest {
         container.setCapacity(new ContainerCapacity(1000, 500));
         container.setContainerType(ContainerType.ORGANIC);
         container.setCollectionFrequency(new CollectionFrequency(7));
-        container.setSensorId(SensorId.of("sensor-" + id));
+        container.setDeviceId(DeviceId.of("sensor-" + id));
 
         return container;
     }

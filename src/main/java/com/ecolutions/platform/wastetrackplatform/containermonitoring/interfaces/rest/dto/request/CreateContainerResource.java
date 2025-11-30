@@ -8,7 +8,7 @@ public record CreateContainerResource(
     String longitude,
     Integer volumeLiters,
     Integer maxWeightKg,
-    String sensorId,
+    String deviceId,
     String containerType,
     String districtId,
     Integer collectionFrequencyDays

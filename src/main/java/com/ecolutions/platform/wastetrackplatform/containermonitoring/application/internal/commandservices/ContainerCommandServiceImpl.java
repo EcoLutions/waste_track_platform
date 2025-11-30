@@ -7,6 +7,7 @@ import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.mod
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.SensorId;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.services.command.ContainerCommandService;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.infrastructure.persistence.jpa.repositories.ContainerRepository;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DeviceId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,8 +22,8 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
 
     @Override
     public Optional<Container> handle(CreateContainerCommand command) {
-        Optional.ofNullable(command.sensorId()).ifPresent(sensorId -> {
-            if (containerRepository.existsBySensorId(new SensorId(sensorId))) throw new IllegalArgumentException("Container with sensor Id " + sensorId + " already exists.");});
+        Optional.ofNullable(command.deviceId()).ifPresent(deviceId -> {
+            if (containerRepository.existsByDeviceId(new DeviceId(deviceId))) throw new IllegalArgumentException("Container with device Id " + deviceId + " already exists.");});
         if (containerRepository.existsByLocation(new Location(new BigDecimal(command.latitude()), new BigDecimal(command.longitude()))))
             throw new IllegalArgumentException("A container with location" + command.latitude() + "," + command.longitude() + " already exists.");
         var container = new Container(command);
@@ -34,9 +35,9 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
     public Optional<Container> handle(UpdateContainerCommand command) {
         var existingContainer = containerRepository.findById(command.containerId())
                 .orElseThrow(() -> new IllegalArgumentException("Container with ID " + command.containerId() + " not found."));
-        if (command.sensorId() != null && !command.sensorId().equals(SensorId.toStringOrNull(existingContainer.getSensorId()))) {
-            if (containerRepository.existsBySensorId(new SensorId(command.sensorId())))
-                throw new IllegalArgumentException("A container with sensor Id" + command.sensorId() + " already exists.");
+        if (command.deviceId() != null && !command.deviceId().equals(DeviceId.toStringOrNull(existingContainer.getDeviceId()))) {
+            if (containerRepository.existsByDeviceId(new DeviceId(command.deviceId())))
+                throw new IllegalArgumentException("A container with device Id" + command.deviceId() + " already exists.");
         }
         if (command.latitude() != null && command.longitude() != null) {
             if (containerRepository.existsByLocation(new Location(new BigDecimal(command.latitude()), new BigDecimal(command.longitude()))))

@@ -9,7 +9,7 @@ public record UpdateContainerResource(
     String longitude,
     Integer volumeLiters,
     Integer maxWeightKg,
-    String sensorId,
+    String deviceId,
     String containerType,
     Integer collectionFrequencyDays
 ) {

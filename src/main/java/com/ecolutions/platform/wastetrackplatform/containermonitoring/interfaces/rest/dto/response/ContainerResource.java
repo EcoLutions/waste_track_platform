@@ -12,7 +12,7 @@ public record ContainerResource(
     String containerType,
     String status,
     Integer currentFillLevel,
-    String sensorId,
+    String deviceId,
     String lastReadingTimestamp,
     String districtId,
     String lastCollectionDate,

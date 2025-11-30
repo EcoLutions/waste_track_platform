@@ -3,6 +3,7 @@ package com.ecolutions.platform.wastetrackplatform.containermonitoring.interface
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates.Container;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.*;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.response.ContainerResource;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DeviceId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DateTimeUtils;
@@ -18,7 +19,7 @@ public class ContainerResourceFromEntityAssembler {
             .containerType(ContainerType.toStringOrNull(entity.getContainerType()))
             .status(ContainerStatus.toStringOrNull(entity.getStatus()))
             .currentFillLevel(CurrentFillLevel.toIntegerOrNull(entity.getCurrentFillLevel()))
-            .sensorId(SensorId.toStringOrNull(entity.getSensorId()))
+            .deviceId(DeviceId.toStringOrNull(entity.getDeviceId()))
             .lastReadingTimestamp(DateTimeUtils.localDateTimeToStringOrNull(entity.getLastReadingTimestamp()))
             .districtId(DistrictId.toStringOrNull(entity.getDistrictId()))
             .lastCollectionDate(DateTimeUtils.localDateTimeToStringOrNull(entity.getLastCollectionDate()))

@@ -8,7 +8,7 @@ public record CreateContainerCommand(
     Integer volumeLiters,
     Integer maxWeightKg,
     // Sensor identification which is optional
-    String sensorId,
+    String deviceId,
     // Operational Details
     String containerType,
     String districtId,

@@ -5,6 +5,7 @@ import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.mod
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.events.ContainerBecameCriticalEvent;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.*;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DeviceId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import jakarta.persistence.*;
@@ -36,8 +37,8 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
     private ContainerStatus status;
 
     @Embedded
-    @AttributeOverride(name = "sensorId", column = @Column(name = "sensor_id"))
-    private SensorId sensorId;
+    @AttributeOverride(name = "deviceId", column = @Column(name = "device_id"))
+    private DeviceId deviceId;
 
     @Column(name = "last_reading_timestamp")
     private LocalDateTime lastReadingTimestamp;
@@ -66,7 +67,7 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
         this.containerType = ContainerType.fromString(command.containerType());
         this.districtId = DistrictId.of(command.districtId());
         this.collectionFrequency = new CollectionFrequency(command.collectionFrequencyDays());
-        this.sensorId = SensorId.of(command.sensorId());
+        this.deviceId = DeviceId.of(command.deviceId());
     }
 
     public void update(UpdateContainerCommand command) {
@@ -83,8 +84,7 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
             this.collectionFrequency = new CollectionFrequency(command.collectionFrequencyDays());
             this.lastCollectionDate = null;
         }
-        this.sensorId = SensorId.of(command.sensorId());
-
+        this.deviceId = DeviceId.of(command.deviceId());
     }
 
     public void updateFillLevel(CurrentFillLevel newLevel, LocalDateTime timestamp) {
@@ -108,10 +108,6 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
 
     public boolean isOverflowing() {
         return currentFillLevel.isOverflowing();
-    }
-
-    public void assignSensor(SensorId sensorId) {
-        this.sensorId = sensorId;
     }
 
     public void scheduleMaintenanceDueToSensorFailure() {
