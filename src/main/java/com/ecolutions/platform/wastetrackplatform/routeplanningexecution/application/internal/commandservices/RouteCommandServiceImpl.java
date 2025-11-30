@@ -7,6 +7,10 @@ import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.applica
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.update.RouteUpdateService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.websocket.RouteWebSocketPublisherService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.websocket.transform.RouteCurrentLocationPayloadAssembler;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.exceptions.BusinessValidationException;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.exceptions.DistrictConfigurationException;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.exceptions.DriverScheduleConflictException;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.exceptions.VehicleScheduleConflictException;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates.Route;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.*;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.RouteStatus;
@@ -21,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -39,27 +45,73 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     public Optional<Route> handle(CreateRouteCommand command) {
         log.debug("1. Fetching district configuration for districtId={}", command.districtId());
         DistrictConfigDTO districtConfig = municipalOperationsContextFacade.getDistrictConfiguration(command.districtId())
-                .orElseThrow(() -> new IllegalArgumentException("District not found or not configured: " + command.districtId()));
+                .orElseThrow(() -> new DistrictConfigurationException("Distrito no encontrado"));
 
         log.debug("2. Validating scheduled time {} is within operating hours", command.scheduledDate().toLocalTime());
         if (!municipalOperationsContextFacade.validateScheduledTime(command.districtId(), command.scheduledDate())) {
-            throw new IllegalArgumentException("Scheduled start time " + command.scheduledDate().toLocalTime()
-                    + " is outside district operating hours (" + districtConfig.operationStartTime() + " - " + districtConfig.operationEndTime() + ")");
+            throw new BusinessValidationException("La hora programada " + command.scheduledDate().toLocalTime() + " está fuera del horario de operación del distrito (" + districtConfig.operationStartTime() + " - " + districtConfig.operationEndTime() + ")");
         }
 
         log.debug("3. Calculating scheduledEndAt = scheduledStartAt + maxRouteDuration - buffer");
         if (districtConfig.maxRouteDuration() == null) {
-            throw new IllegalArgumentException("District " + command.districtId() + " does not have maxRouteDuration configured");
+            throw new DistrictConfigurationException("El distrito " + command.districtId() + " no tiene configurada la duración máxima de ruta");
         }
-        Duration bufferTime = Duration.ofMinutes(30); // Safety buffer
+        Duration bufferTime = Duration.ofMinutes(30);
         Duration effectiveMaxDuration = districtConfig.maxRouteDuration().minus(bufferTime);
         LocalDateTime scheduledEndAt = command.scheduledDate().plus(effectiveMaxDuration);
 
-        log.debug("4. Creating new route");
+        log.debug("4. Validating driver and vehicle availability (no overlapping routes)");
+        List<RouteStatus> activeStatuses = List.of(RouteStatus.PLANNED, RouteStatus.ACTIVE, RouteStatus.IN_PROGRESS);
+
+        // Validate driver availability
+        List<Route> driverOverlappingRoutes = routeRepository.findOverlappingRoutesForDriver(
+                command.driverId(),
+                command.scheduledDate(),
+                scheduledEndAt,
+                activeStatuses
+        );
+
+        if (!driverOverlappingRoutes.isEmpty()) {
+            Route conflictingRoute = driverOverlappingRoutes.getFirst();
+            throw new DriverScheduleConflictException(String.format(
+                    "El conductor ya está asignado a otra ruta programada de %s a %s (Estado: %s)",
+                    conflictingRoute.getScheduledStartAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                    conflictingRoute.getScheduledEndAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                    conflictingRoute.getStatus()
+            ));
+        }
+
+        // Validate vehicle availability
+        List<Route> vehicleOverlappingRoutes = routeRepository.findOverlappingRoutesForVehicle(
+                command.vehicleId(),
+                command.scheduledDate(),
+                scheduledEndAt,
+                activeStatuses
+        );
+
+        if (!vehicleOverlappingRoutes.isEmpty()) {
+            Route conflictingRoute = vehicleOverlappingRoutes.getFirst();
+            throw new VehicleScheduleConflictException(String.format(
+                    "El vehículo ya está asignado a otra ruta programada de %s a %s (Estado: %s)",
+                    conflictingRoute.getScheduledStartAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                    conflictingRoute.getScheduledEndAt().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                    conflictingRoute.getStatus()
+            ));
+        }
+
+        log.debug("5. Creating new route");
         var newRoute = new Route(command);
         newRoute.setScheduledEndAt(scheduledEndAt);
 
         var savedRoute = routeRepository.save(newRoute);
+        log.info("Route {} created successfully for driver {} and vehicle {} from {} to {}",
+                savedRoute.getId(),
+                command.driverId(),
+                command.vehicleId(),
+                command.scheduledDate(),
+                scheduledEndAt
+        );
+
         return Optional.of(savedRoute);
     }
 

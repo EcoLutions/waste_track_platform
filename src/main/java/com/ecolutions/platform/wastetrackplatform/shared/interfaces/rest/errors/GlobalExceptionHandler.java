@@ -1,9 +1,6 @@
 package com.ecolutions.platform.wastetrackplatform.shared.interfaces.rest.errors;
 
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.exceptions.BusinessValidationException;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.exceptions.RouteModificationException;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.exceptions.RouteNotFoundException;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.exceptions.WaypointInsertionException;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +39,24 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBusinessValidation(BusinessValidationException ex) {
         log.warn("Business validation error: {}", ex.getMessage());
         return build(HttpStatus.BAD_REQUEST, "BUSINESS_VALIDATION_ERROR", ex.getMessage());
+    }
+
+    @ExceptionHandler(DriverScheduleConflictException.class)
+    public ResponseEntity<ErrorResponse> handleDriverConflict(DriverScheduleConflictException ex) {
+        log.warn("Driver schedule conflict: {}", ex.getMessage());
+        return build(HttpStatus.CONFLICT, "DRIVER_SCHEDULE_CONFLICT", ex.getMessage());
+    }
+
+    @ExceptionHandler(VehicleScheduleConflictException.class)
+    public ResponseEntity<ErrorResponse> handleVehicleConflict(VehicleScheduleConflictException ex) {
+        log.warn("Vehicle schedule conflict: {}", ex.getMessage());
+        return build(HttpStatus.CONFLICT, "VEHICLE_SCHEDULE_CONFLICT", ex.getMessage());
+    }
+
+    @ExceptionHandler(DistrictConfigurationException.class)
+    public ResponseEntity<ErrorResponse> handleDistrictConfig(DistrictConfigurationException ex) {
+        log.warn("District configuration error: {}", ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST, "DISTRICT_CONFIGURATION_ERROR", ex.getMessage());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
