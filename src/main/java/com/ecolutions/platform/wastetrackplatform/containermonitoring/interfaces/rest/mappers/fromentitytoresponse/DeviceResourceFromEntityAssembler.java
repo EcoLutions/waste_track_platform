@@ -10,6 +10,7 @@ public class DeviceResourceFromEntityAssembler {
         return DeviceResource.builder()
                 .id(entity.getId())
                 .deviceIdentifier(DeviceIdentifier.toStringOrNull(entity.getDeviceIdentifier()))
+                .isOnline(entity.getIsOnline())
                 .createdAt(DateTimeUtils.dateToStringOrNull(entity.getCreatedAt()))
                 .updatedAt(DateTimeUtils.dateToStringOrNull(entity.getUpdatedAt()))
                 .build();

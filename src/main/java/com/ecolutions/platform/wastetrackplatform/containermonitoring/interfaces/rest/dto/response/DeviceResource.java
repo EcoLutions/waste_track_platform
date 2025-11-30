@@ -6,6 +6,7 @@ import lombok.Builder;
 public record DeviceResource(
         String id,
         String deviceIdentifier,
+        Boolean isOnline,
         String createdAt,
         String updatedAt
 ) {
