@@ -164,11 +164,6 @@ public class RouteCommandServiceImpl implements RouteCommandService {
         return Optional.of(updatedRoute);
     }
 
-    /**
-     * StartRouteCommand:
-     * - Si la ruta no tiene waypoints, los genera antes de iniciar.
-     * - Cambia estado a IN_PROGRESS y setea startedAt.
-     */
     @Override
     @Transactional
     public Optional<Route> handle(StartRouteCommand command) {
@@ -208,11 +203,6 @@ public class RouteCommandServiceImpl implements RouteCommandService {
         return Optional.of(savedRoute);
     }
 
-    /**
-     * CompleteRouteCommand:
-     * - Marca la ruta como COMPLETED.
-     * - Calcula actualDuration dentro del agregado.
-     */
     @Override
     @Transactional
     public Optional<Route> handle(CompleteRouteCommand command) {
@@ -233,10 +223,6 @@ public class RouteCommandServiceImpl implements RouteCommandService {
         return Optional.of(savedRoute);
     }
 
-    /**
-     * CancelRouteCommand:
-     * - Cancela la ruta (si no está COMPLETED).
-     */
     @Override
     @Transactional
     public Optional<Route> handle(CancelRouteCommand command) {
@@ -253,11 +239,6 @@ public class RouteCommandServiceImpl implements RouteCommandService {
         return Optional.of(savedRoute);
     }
 
-    /**
-     * ReOptimizeRouteCommand:
-     * - Reoptimiza los waypoints de una ruta ASSIGNED.
-     * - Limpia waypoints actuales y recalcula todo.
-     */
     @Override
     @Transactional
     public Optional<Route> handle(ReOptimizeRouteCommand command) {
@@ -295,10 +276,6 @@ public class RouteCommandServiceImpl implements RouteCommandService {
         return Optional.of(savedRoute);
     }
 
-    /**
-     * UpdateRouteEstimatesCommand:
-     * - Permite forzar la actualización de estimaciones (como el scheduler, pero manual).
-     */
     @Override
     @Transactional
     public Optional<Route> handle(UpdateRouteEstimatesCommand command) {

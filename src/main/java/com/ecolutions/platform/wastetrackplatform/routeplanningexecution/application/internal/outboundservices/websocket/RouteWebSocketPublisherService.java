@@ -1,9 +1,6 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.websocket;
 
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.payloads.RouteCurrentLocationUpdatedPayload;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.payloads.WaypointAddedPayload;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.payloads.WaypointReplacedPayload;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.payloads.WaypointRemovedPayload;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.payloads.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -52,6 +49,16 @@ public class RouteWebSocketPublisherService {
     public void publishWaypointRemoved(WaypointRemovedPayload payload) {
         String destination = "/topic/routes/" + payload.routeId() + "/waypoints";
         log.info("Publishing waypoint removed from route {} at destination {}", payload.routeId(), destination);
+        messagingTemplate.convertAndSend(destination, payload);
+    }
+
+    /**
+     * Publish critical container rejection notification
+     * Destination: /topic/routes/{routeId}/waypoints
+     */
+    public void publishCriticalContainerRejected(CriticalContainerRejectedPayload payload) {
+        String destination = "/topic/routes/" + payload.routeId() + "/waypoints";
+        log.info("Publishing critical container rejection to {}", destination);
         messagingTemplate.convertAndSend(destination, payload);
     }
 }
