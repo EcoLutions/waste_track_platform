@@ -6,7 +6,9 @@ import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.mod
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.services.command.DeviceCommandService;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.infrastructure.persistence.jpa.repositories.DeviceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -14,14 +16,20 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class DeviceCommandServiceImpl implements DeviceCommandService {
     private final DeviceRepository deviceRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
+    @Transactional
     public Optional<Device> handle(CreateDeviceCommand command) {
         if (deviceRepository.existsByDeviceIdentifier(new DeviceIdentifier(command.deviceIdentifier()))) {
             throw new IllegalArgumentException("Device with identifier " + command.deviceIdentifier() + " already exists.");
         }
         var device = new Device(command);
         var savedDevice = deviceRepository.save(device);
+
+        var event = savedDevice.publishDeviceCreatedEvent();
+        applicationEventPublisher.publishEvent(event);
+
         return Optional.of(savedDevice);
     }
 }
