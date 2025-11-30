@@ -55,6 +55,14 @@ public class RouteUpdateScheduler {
 
         log.info("Checking planned routes for auto-activation...");
         List<Route> plannedRoutes = routeQueryService.handle(new GetAllPlannedRoutesQuery());
+
+        if (plannedRoutes.isEmpty()) {
+            log.info("No planned routes to activate");
+            return;
+        }
+
+        log.info("{} planned routes found for auto-activation", plannedRoutes.size());
+
         LocalDateTime now = LocalDateTime.now();
 
         for (Route route : plannedRoutes) {

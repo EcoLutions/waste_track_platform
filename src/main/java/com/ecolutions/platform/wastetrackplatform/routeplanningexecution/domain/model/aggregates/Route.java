@@ -162,7 +162,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     }
 
     public boolean canBeModified() {
-        return status == RouteStatus.ACTIVE;
+        return status == RouteStatus.ACTIVE || status == RouteStatus.PLANNED || status == RouteStatus.IN_PROGRESS;
     }
 
     public boolean isOverdue() {

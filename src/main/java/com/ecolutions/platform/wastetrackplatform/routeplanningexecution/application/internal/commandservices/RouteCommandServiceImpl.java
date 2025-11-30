@@ -35,6 +35,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     private final RouteWebSocketPublisherService routeWebSocketPublisher;
 
     @Override
+    @Transactional
     public Optional<Route> handle(CreateRouteCommand command) {
         log.debug("1. Fetching district configuration for districtId={}", command.districtId());
         DistrictConfigDTO districtConfig = municipalOperationsContextFacade.getDistrictConfiguration(command.districtId())
@@ -63,6 +64,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     }
 
     @Override
+    @Transactional
     public Optional<Route> handle(@NotNull UpdateRouteCommand command) {
         Route existingRoute = routeRepository.findById(command.routeId())
                 .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
@@ -73,6 +75,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     }
 
     @Override
+    @Transactional
     public Boolean handle(DeleteRouteCommand command) {
         var existingRoute = routeRepository.findById(command.routeId())
                 .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
@@ -81,6 +84,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     }
 
     @Override
+    @Transactional
     public Optional<Route> handle(MarkWayPointAsVisitedCommand command) {
         Route route = routeRepository.findById(command.routeId())
                 .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
@@ -271,6 +275,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     }
 
     @Override
+    @Transactional
     public Optional<Route> handle(ActiveRouteCommand command) {
         log.info("Activating route {}", command.routeId());
 
