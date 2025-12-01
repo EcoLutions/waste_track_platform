@@ -81,6 +81,9 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
         if (command.containerType() != null) {
             this.containerType = ContainerType.fromString(command.containerType());
         }
+        if (command.status() != null) {
+            this.status = ContainerStatus.fromString(command.status());
+        }
         if (command.collectionFrequencyDays() != null) {
             this.collectionFrequency = new CollectionFrequency(command.collectionFrequencyDays());
             this.lastCollectionDate = null;
