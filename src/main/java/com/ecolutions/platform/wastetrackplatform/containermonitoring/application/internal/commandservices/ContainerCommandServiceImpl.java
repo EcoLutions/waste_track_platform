@@ -40,8 +40,20 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
                 throw new IllegalArgumentException("A container with device Id" + command.deviceId() + " already exists.");
         }
         if (command.latitude() != null && command.longitude() != null) {
-            if (containerRepository.existsByLocation(new Location(new BigDecimal(command.latitude()), new BigDecimal(command.longitude()))))
-                throw new IllegalArgumentException("A container with location" + command.latitude() + "," + command.longitude() + " already exists.");
+            BigDecimal newLat = new BigDecimal(command.latitude());
+            BigDecimal newLon = new BigDecimal(command.longitude());
+
+            Location currentLocation = existingContainer.getLocation();
+
+            boolean locationChanged = currentLocation == null ||
+                    newLat.compareTo(currentLocation.latitude()) != 0 ||
+                    newLon.compareTo(currentLocation.longitude()) != 0;
+
+            if (locationChanged) {
+                if (containerRepository.existsByLocation(new Location(newLat, newLon))) {
+                    throw new IllegalArgumentException("A container with location " + command.latitude() + "," + command.longitude() + " already exists.");
+                }
+            }
         }
         existingContainer.update(command);
         var updatedContainer = containerRepository.save(existingContainer);
