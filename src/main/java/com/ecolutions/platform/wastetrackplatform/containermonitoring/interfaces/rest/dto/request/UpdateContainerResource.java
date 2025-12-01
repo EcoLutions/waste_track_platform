@@ -11,6 +11,7 @@ public record UpdateContainerResource(
     Integer maxFillLevel,
     String deviceId,
     String containerType,
+    String status,
     Integer collectionFrequencyDays
 ) {
     public UpdateContainerResource {
