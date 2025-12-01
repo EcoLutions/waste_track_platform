@@ -3,6 +3,7 @@ package com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.mo
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.CreateContainerCommand;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.UpdateContainerCommand;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.events.ContainerBecameCriticalEvent;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.events.ContainerFillLevelUpdatedEvent;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.*;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DeviceId;
@@ -138,6 +139,16 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
                 .districtId(this.districtId.value())
                 .location(this.location)
                 .fillLevel(this.currentFillLevel.percentage())
+                .build();
+    }
+
+    public ContainerFillLevelUpdatedEvent buildContainerFillLevelUpdatedEvent() {
+        return ContainerFillLevelUpdatedEvent.builder()
+                .source(this)
+                .containerId(this.getId())
+                .maxFillLevelThreshold(Float.valueOf(this.capacity.maxFillLevel()))
+                .sensorId(this.deviceId.value())
+                .occurredAt(LocalDateTime.now())
                 .build();
     }
 }
