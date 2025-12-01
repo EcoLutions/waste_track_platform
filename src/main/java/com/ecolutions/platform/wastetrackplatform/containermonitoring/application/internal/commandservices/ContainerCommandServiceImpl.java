@@ -10,15 +10,20 @@ import com.ecolutions.platform.wastetrackplatform.containermonitoring.infrastruc
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DeviceId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ContainerCommandServiceImpl implements ContainerCommandService {
     private final ContainerRepository containerRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public Optional<Container> handle(CreateContainerCommand command) {
@@ -32,6 +37,7 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
     }
 
     @Override
+    @Transactional
     public Optional<Container> handle(UpdateContainerCommand command) {
         var existingContainer = containerRepository.findById(command.containerId())
                 .orElseThrow(() -> new IllegalArgumentException("Container with ID " + command.containerId() + " not found."));
@@ -39,12 +45,25 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
             if (containerRepository.existsByDeviceId(new DeviceId(command.deviceId())))
                 throw new IllegalArgumentException("A container with device Id" + command.deviceId() + " already exists.");
         }
+
         if (command.latitude() != null && command.longitude() != null) {
-            if (containerRepository.existsByLocation(new Location(new BigDecimal(command.latitude()), new BigDecimal(command.longitude()))))
-                throw new IllegalArgumentException("A container with location" + command.latitude() + "," + command.longitude() + " already exists.");
+            var newLocation = new Location(new BigDecimal(command.latitude()), new BigDecimal(command.longitude()));
+            var containerAtLocation = containerRepository.findByLocation(newLocation);
+            if (containerAtLocation.isPresent() && !containerAtLocation.get().getId().equals(existingContainer.getId())) {
+                throw new IllegalArgumentException("A container with location " + command.latitude() + "," + command.longitude() + " already exists.");
+            }
         }
+
+        var previousMaxFillLevel = existingContainer.getCapacity().maxFillLevel();
         existingContainer.update(command);
         var updatedContainer = containerRepository.save(existingContainer);
+
+        if (!previousMaxFillLevel.equals(updatedContainer.getCapacity().maxFillLevel())) {
+            log.info("Container {} max fill level updated to {}", updatedContainer.getId(), updatedContainer.getCapacity().maxFillLevel());
+            var event = updatedContainer.buildContainerFillLevelUpdatedEvent();
+            eventPublisher.publishEvent(event);
+        }
+
         return Optional.of(updatedContainer);
     }
 

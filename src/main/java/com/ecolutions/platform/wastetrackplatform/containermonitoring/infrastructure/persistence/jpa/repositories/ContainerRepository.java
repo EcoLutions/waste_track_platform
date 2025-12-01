@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ContainerRepository extends JpaRepository<Container, String> {
@@ -29,4 +30,5 @@ public interface ContainerRepository extends JpaRepository<Container, String> {
     List<Container> findContainersInAlert(DistrictId districtId, ContainerStatus maintenanceStatus, LocalDateTime cutoffDate, LocalDateTime sensorCutoffDate);
     boolean existsByDeviceId(DeviceId deviceId);
     boolean existsByLocation(Location location);
+    Optional<Container> findByLocation(Location location);
 }
