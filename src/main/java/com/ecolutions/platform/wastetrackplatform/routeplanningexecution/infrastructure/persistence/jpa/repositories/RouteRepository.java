@@ -3,8 +3,6 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.infras
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates.Route;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.RouteStatus;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DriverId;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.VehicleId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;

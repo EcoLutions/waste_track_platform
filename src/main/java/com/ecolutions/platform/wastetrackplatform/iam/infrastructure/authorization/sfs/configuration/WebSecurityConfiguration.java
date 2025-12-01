@@ -75,13 +75,14 @@ public class WebSecurityConfiguration {
                 "/swagger-ui.html",
                 "/swagger-ui/**",
                 "/swagger-resources/**",
-                "/webjars/**"
+                "/webjars/**",
+                "/ws/**"
         };
         // Cross-Origin Resource Sharing configuration
         http.cors(configurer -> configurer.configurationSource(_ -> {
             var cors = new CorsConfiguration();
             cors.setAllowedOrigins(List.of("*"));
-            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
             cors.setAllowedHeaders(List.of("*"));
             return cors;
         }));
