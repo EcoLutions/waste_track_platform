@@ -13,6 +13,17 @@ public class RouteWebSocketPublisherService {
     private final SimpMessagingTemplate messagingTemplate;
 
     /**
+     * Publish route activation
+     * Destination: /topic/routes/driver/{driverId}/activate
+     */
+    public void publishRouteActivated(RouteActivePayload payload) {
+        String destination = "/topic/routes/driver/" + payload.driverId() + "/activate";
+        log.info("Publishing route activation to {}", destination);
+        messagingTemplate.convertAndSend(destination, payload);
+    }
+
+
+    /**
      * Publish route current location update
      * Destination: /topic/routes/{routeId}/location
      */

@@ -6,6 +6,7 @@ import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.applica
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.optimization.RouteOptimizationService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.update.RouteUpdateService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.websocket.RouteWebSocketPublisherService;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.websocket.transform.RouteActivePayloadAssembler;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.websocket.transform.RouteCurrentLocationPayloadAssembler;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.exceptions.BusinessValidationException;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.exceptions.DistrictConfigurationException;
@@ -359,6 +360,9 @@ public class RouteCommandServiceImpl implements RouteCommandService {
 
         Route updatedRoute = routeRepository.save(route);
         log.info("Route {} activated", updatedRoute.getId());
+
+        var routeActivePayload = RouteActivePayloadAssembler.toPayload(updatedRoute);
+        routeWebSocketPublisher.publishRouteActivated(routeActivePayload);
 
         return Optional.of(updatedRoute);
     }
