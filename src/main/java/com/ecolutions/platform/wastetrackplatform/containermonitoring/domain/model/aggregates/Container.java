@@ -63,7 +63,7 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
     public Container(CreateContainerCommand command) {
         this();
         this.location = new Location(new BigDecimal(command.latitude()), new BigDecimal(command.longitude()));
-        this.capacity = new ContainerCapacity(command.volumeLiters(), command.maxWeightKg());
+        this.capacity = new ContainerCapacity(command.volumeLiters(), command.maxFillLevel());
         this.containerType = ContainerType.fromString(command.containerType());
         this.districtId = DistrictId.of(command.districtId());
         this.collectionFrequency = new CollectionFrequency(command.collectionFrequencyDays());
@@ -74,8 +74,8 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
         if (command.latitude() != null && command.longitude() != null) {
             this.location = new Location(new BigDecimal(command.latitude()), new BigDecimal(command.longitude()));
         }
-        if (command.volumeLiters() != null && command.maxWeightKg() != null) {
-            this.capacity = new ContainerCapacity(command.volumeLiters(), command.maxWeightKg());
+        if (command.volumeLiters() != null && command.maxFillLevel() != null) {
+            this.capacity = new ContainerCapacity(command.volumeLiters(), command.maxFillLevel());
         }
         if (command.containerType() != null) {
             this.containerType = ContainerType.fromString(command.containerType());

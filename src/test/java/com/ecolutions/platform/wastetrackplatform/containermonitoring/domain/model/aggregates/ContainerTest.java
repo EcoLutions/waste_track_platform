@@ -26,7 +26,7 @@ class ContainerTest {
                 new BigDecimal("12.0464"),
                 new BigDecimal("-77.0428")
         );
-        capacity = new ContainerCapacity(1000, 500);
+        capacity = new ContainerCapacity(1000, 90);
         districtId = new DistrictId("SURCO");
         frequency = new CollectionFrequency(3);
         sensorId = new SensorId("SENSOR-001");
