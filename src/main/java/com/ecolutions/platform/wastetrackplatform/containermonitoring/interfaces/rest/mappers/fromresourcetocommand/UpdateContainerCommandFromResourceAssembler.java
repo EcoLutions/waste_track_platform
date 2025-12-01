@@ -13,6 +13,7 @@ public class UpdateContainerCommandFromResourceAssembler {
             resource.maxFillLevel(),
             resource.deviceId(),
             resource.containerType(),
+            resource.status(),
             resource.collectionFrequencyDays()
         );
     }

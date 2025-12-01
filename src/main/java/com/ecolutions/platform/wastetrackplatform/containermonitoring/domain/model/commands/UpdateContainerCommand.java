@@ -8,6 +8,7 @@ public record UpdateContainerCommand(
     Integer maxFillLevel,
     String deviceId,
     String containerType,
+    String status,
     Integer collectionFrequencyDays
 ) {
     public UpdateContainerCommand {
