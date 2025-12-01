@@ -14,6 +14,8 @@ public record RouteResource(
     String startedAt,
     String completedAt,
     String totalDistance,
+    Integer totalWaypoints,
+    Integer totalCompletedWaypoints,
     String estimatedDuration,
     String collectionDuration,
     String returnDuration,

@@ -56,6 +56,10 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     @OrderBy("sequenceOrder ASC")
     private Set<WayPoint> waypoints;
 
+    private Integer totalWaypoints;
+
+    private Integer totalCompletedWaypoints;
+
     @Embedded
     private Distance totalDistance;
 
@@ -84,6 +88,8 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         super();
         this.status = RouteStatus.PLANNED;
         this.waypoints = new HashSet<>();
+        this.totalWaypoints = 0;
+        this.totalCompletedWaypoints = 0;
     }
 
     public Route(CreateRouteCommand command) {
@@ -114,6 +120,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
                 .findFirst()
                 .ifPresent(wp -> wp.setSequenceOrder(finalI1 + 1));
         }
+        this.totalWaypoints--;
     }
 
     private void reorderWaypoints() {
@@ -159,6 +166,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
             .orElseThrow(() -> new IllegalArgumentException("Waypoint not found: " + waypointId));
 
         waypoint.markAsVisited(timestamp);
+        this.totalCompletedWaypoints++;
     }
 
     public boolean canBeModified() {
@@ -174,6 +182,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         if (!canBeModified()) {
             throw new IllegalStateException("Cannot modify route that is in progress or completed");
         }
+        totalWaypoints++;
         this.waypoints.add(wayPoint);
     }
 

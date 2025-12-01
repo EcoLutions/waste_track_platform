@@ -23,6 +23,8 @@ public class RouteResourceFromEntityAssembler {
             .scheduledEndAt(DateTimeUtils.localDateTimeToStringOrNull(route.getScheduledEndAt()))
             .startedAt(DateTimeUtils.localDateTimeToStringOrNull(route.getStartedAt()))
             .completedAt(DateTimeUtils.localDateTimeToStringOrNull(route.getCompletedAt()))
+            .totalWaypoints(route.getTotalWaypoints())
+            .totalCompletedWaypoints(route.getTotalCompletedWaypoints())
             .totalDistance(Distance.toStringOrNull(route.getTotalDistance()))
             .estimatedDuration(DurationUtils.durationToStringOrNull(route.getEstimatedDuration()))
             .collectionDuration(DurationUtils.durationToStringOrNull(route.getCollectionDuration()))
