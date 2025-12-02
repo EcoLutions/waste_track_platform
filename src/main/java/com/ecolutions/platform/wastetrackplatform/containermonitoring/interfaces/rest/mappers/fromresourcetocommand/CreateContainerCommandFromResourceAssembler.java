@@ -10,7 +10,7 @@ public class CreateContainerCommandFromResourceAssembler {
             resource.longitude(),
             resource.volumeLiters(),
             resource.maxFillLevel(),
-            resource.deviceId(),
+            resource.deviceIdentifier(),
             resource.containerType(),
             resource.districtId(),
             resource.collectionFrequencyDays()
