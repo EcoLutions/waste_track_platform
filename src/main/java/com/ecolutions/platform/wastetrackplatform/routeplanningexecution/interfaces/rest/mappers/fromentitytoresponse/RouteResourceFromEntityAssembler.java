@@ -3,7 +3,6 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interf
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates.Route;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.Distance;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.RouteStatus;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.RouteType;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.response.RouteResource;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DriverId;
@@ -19,12 +18,13 @@ public class RouteResourceFromEntityAssembler {
             .districtId(DistrictId.toStringOrNull(route.getDistrictId()))
             .vehicleId(VehicleId.toStringOrNull(route.getVehicleId()))
             .driverId(DriverId.toStringOrNull(route.getDriverId()))
-            .routeType(RouteType.toStringOrNull(route.getRouteType()))
             .status(RouteStatus.toStringOrNull(route.getStatus()))
             .scheduledStartAt(DateTimeUtils.localDateTimeToStringOrNull(route.getScheduledStartAt()))
             .scheduledEndAt(DateTimeUtils.localDateTimeToStringOrNull(route.getScheduledEndAt()))
             .startedAt(DateTimeUtils.localDateTimeToStringOrNull(route.getStartedAt()))
             .completedAt(DateTimeUtils.localDateTimeToStringOrNull(route.getCompletedAt()))
+            .totalWaypoints(route.getTotalWaypoints())
+            .totalCompletedWaypoints(route.getTotalCompletedWaypoints())
             .totalDistance(Distance.toStringOrNull(route.getTotalDistance()))
             .estimatedDuration(DurationUtils.durationToStringOrNull(route.getEstimatedDuration()))
             .collectionDuration(DurationUtils.durationToStringOrNull(route.getCollectionDuration()))

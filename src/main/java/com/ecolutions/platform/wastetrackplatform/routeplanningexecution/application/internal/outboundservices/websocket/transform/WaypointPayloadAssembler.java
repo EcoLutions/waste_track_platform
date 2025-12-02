@@ -2,6 +2,7 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.applic
 
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.acl.dtos.ContainerInfoDTO;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.entities.WayPoint;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.payloads.CriticalContainerRejectedPayload;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.payloads.WaypointAddedPayload;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.payloads.WaypointReplacedPayload;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.payloads.WaypointRemovedPayload;
@@ -51,6 +52,20 @@ public class WaypointPayloadAssembler {
                 .containerId(containerId)
                 .action("REMOVED")
                 .reason(reason)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    public static CriticalContainerRejectedPayload toCriticalRejectedPayload(String routeId, String containerId, Location location, Integer fillLevel, String reason
+    ) {
+        return CriticalContainerRejectedPayload.builder()
+                .routeId(routeId)
+                .containerId(containerId)
+                .latitude(Location.latitudeAsStringOrNull(location))
+                .longitude(Location.longitudeAsStringOrNull(location))
+                .fillLevel(fillLevel)
+                .reason(reason)
+                .action("REJECTED")
                 .timestamp(LocalDateTime.now())
                 .build();
     }

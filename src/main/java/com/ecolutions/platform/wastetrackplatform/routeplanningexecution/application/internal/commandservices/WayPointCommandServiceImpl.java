@@ -56,7 +56,7 @@ public class WayPointCommandServiceImpl implements WayPointCommandService {
     public Optional<WayPoint> handle(MarkWayPointAsVisitedCommand command) {
         WayPoint existingWayPoint = wayPointRepository.findById(command.waypointId())
                 .orElseThrow(() -> new IllegalArgumentException("WayPoint with ID " + command.waypointId() + " not found."));
-        existingWayPoint.markAsVisited(command.arrivalTime());
+        existingWayPoint.markAsVisited();
         WayPoint updatedWayPoint = wayPointRepository.save(existingWayPoint);
         return Optional.of(updatedWayPoint);
     }

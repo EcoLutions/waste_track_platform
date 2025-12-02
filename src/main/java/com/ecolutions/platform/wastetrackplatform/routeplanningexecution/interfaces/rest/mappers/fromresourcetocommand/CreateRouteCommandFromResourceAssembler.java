@@ -10,7 +10,6 @@ public class CreateRouteCommandFromResourceAssembler {
             resource.districtId(),
             resource.driverId(),
             resource.vehicleId(),
-            resource.routeType(),
             DateTimeUtils.stringToLocalDateTimeOrNull(resource.scheduledDate())
         );
     }

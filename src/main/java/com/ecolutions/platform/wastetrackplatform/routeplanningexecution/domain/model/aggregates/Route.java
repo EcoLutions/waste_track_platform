@@ -39,10 +39,6 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private RouteType routeType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private RouteStatus status;
 
     private LocalDateTime scheduledStartAt;
@@ -59,6 +55,10 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     @JoinColumn(name = "route_id")
     @OrderBy("sequenceOrder ASC")
     private Set<WayPoint> waypoints;
+
+    private Integer totalWaypoints;
+
+    private Integer totalCompletedWaypoints;
 
     @Embedded
     private Distance totalDistance;
@@ -86,9 +86,10 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
 
     public Route() {
         super();
-        this.status = RouteStatus.ASSIGNED;
-        this.routeType = RouteType.REGULAR;
+        this.status = RouteStatus.PLANNED;
         this.waypoints = new HashSet<>();
+        this.totalWaypoints = 0;
+        this.totalCompletedWaypoints = 0;
     }
 
     public Route(CreateRouteCommand command) {
@@ -96,7 +97,6 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         this.districtId = DistrictId.of(command.districtId());
         this.driverId = DriverId.of(command.driverId());
         this.vehicleId = VehicleId.of(command.vehicleId());
-        this.routeType = RouteType.fromString(command.routeType());
         this.scheduledStartAt = command.scheduledDate();
     }
 
@@ -120,6 +120,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
                 .findFirst()
                 .ifPresent(wp -> wp.setSequenceOrder(finalI1 + 1));
         }
+        this.totalWaypoints--;
     }
 
     private void reorderWaypoints() {
@@ -132,8 +133,15 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         }
     }
 
+    public void activeRoute() {
+        if (status != RouteStatus.PLANNED) {
+            throw new IllegalStateException("Can only activate planned routes");
+        }
+        this.status = RouteStatus.ACTIVE;
+    }
+
     public void startExecution() {
-        if (status != RouteStatus.ASSIGNED) {
+        if (status != RouteStatus.ACTIVE) {
             throw new IllegalStateException("Can only start assigned routes");
         }
 
@@ -151,17 +159,18 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         this.status = RouteStatus.COMPLETED;
     }
 
-    public void markWaypointAsVisited(String waypointId, LocalDateTime timestamp) {
+    public void markWaypointAsVisited(String waypointId) {
         WayPoint waypoint = waypoints.stream()
             .filter(wp -> wp.getId().equals(waypointId))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Waypoint not found: " + waypointId));
 
-        waypoint.markAsVisited(timestamp);
+        waypoint.markAsVisited();
+        this.totalCompletedWaypoints++;
     }
 
     public boolean canBeModified() {
-        return status == RouteStatus.ASSIGNED;
+        return status == RouteStatus.ACTIVE || status == RouteStatus.PLANNED || status == RouteStatus.IN_PROGRESS;
     }
 
     public boolean isOverdue() {
@@ -173,6 +182,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         if (!canBeModified()) {
             throw new IllegalStateException("Cannot modify route that is in progress or completed");
         }
+        totalWaypoints++;
         this.waypoints.add(wayPoint);
     }
 
@@ -228,7 +238,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         return (double) getCompletedWaypointsCount() / getTotalWaypointsCount() * 100.0;
     }
 
-    public void cancel(String reason) {
+    public void cancel() {
         if (status == RouteStatus.COMPLETED) {
             throw new IllegalStateException("Cannot cancel completed routes");
         }
