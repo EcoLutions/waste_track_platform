@@ -103,11 +103,11 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
 
     public boolean requiresCollection() {
         if (lastCollectionDate == null) {
-            return currentFillLevel.requiresCollection(capacity.maxFillLevel());
+            return currentFillLevel.requiresCollection();
         }
 
         LocalDateTime nextCollectionDate = lastCollectionDate.plusDays(collectionFrequency.days());
-        return LocalDateTime.now().isAfter(nextCollectionDate) || currentFillLevel.requiresCollection(capacity.maxFillLevel());
+        return LocalDateTime.now().isAfter(nextCollectionDate) || currentFillLevel.requiresCollection();
     }
 
     public boolean isOverflowing() {
