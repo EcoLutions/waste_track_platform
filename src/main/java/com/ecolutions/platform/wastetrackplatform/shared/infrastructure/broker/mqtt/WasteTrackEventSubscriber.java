@@ -33,7 +33,7 @@ public class WasteTrackEventSubscriber {
                         break;
 
                     case "SENSOR_ALERT":
-                        //TODO: Implementar manejo de alertas de sensor
+                        sensorEventHandler.handleAlertEvent(payload);
                         break;
 
                     default:

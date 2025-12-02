@@ -33,7 +33,7 @@ public class SensorReadingCommandServiceImpl implements SensorReadingCommandServ
         var newSensorReading = new SensorReading(command);
         var savedSensorReading = sensorReadingRepository.save(newSensorReading);
 
-        // 2. Update the container fill level and check if it became critical
+        // 2. Check if container exists
         Container container = containerRepository.findById(command.containerId())
                 .orElseThrow(() -> new IllegalArgumentException("Container not found: " + command.containerId()));
 
