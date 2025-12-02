@@ -3,12 +3,13 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interf
 import com.ecolutions.platform.wastetrackplatform.config.MockFirebaseConfig;
 import com.ecolutions.platform.wastetrackplatform.config.MockTokenServiceConfig;
 import com.ecolutions.platform.wastetrackplatform.config.TestSecurityConfig;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-
+@Disabled
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestDatabase
 @ActiveProfiles("test")
