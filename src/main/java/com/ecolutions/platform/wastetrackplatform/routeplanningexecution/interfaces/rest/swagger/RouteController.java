@@ -88,7 +88,7 @@ public interface RouteController {
     })
     ResponseEntity<RouteResource> generateOptimizedWaypoints(@PathVariable String id);
 
-    @PatchMapping("/{id}/current-location")
+    @PostMapping("/{id}/current-location")
     @Operation(summary = "Update route current location", description = "Updates the current GPS location of an in-progress route. " + "This endpoint should be called periodically by the driver's mobile app to track route progress. " + "The updated location is broadcasted via WebSocket to /topic/routes/{routeId}/location for real-time tracking. " + "Route must be in IN_PROGRESS status.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Current location updated successfully."),

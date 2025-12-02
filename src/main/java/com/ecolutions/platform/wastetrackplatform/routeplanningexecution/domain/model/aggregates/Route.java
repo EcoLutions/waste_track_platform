@@ -51,7 +51,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "route_id")
     @OrderBy("sequenceOrder ASC")
     private Set<WayPoint> waypoints;
