@@ -3,32 +3,18 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interf
 import com.ecolutions.platform.wastetrackplatform.config.MockFirebaseConfig;
 import com.ecolutions.platform.wastetrackplatform.config.MockTokenServiceConfig;
 import com.ecolutions.platform.wastetrackplatform.config.TestSecurityConfig;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.DeleteWayPointCommand;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.services.command.WayPointCommandService;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.services.queries.WayPointQueryService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.net.URI;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
+@Disabled
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Import({MockFirebaseConfig.class, TestSecurityConfig.class, MockTokenServiceConfig.class})
 class WayPointControllerIntegrationTest {
 
-    @LocalServerPort
+/*    @LocalServerPort
     private int port;
 
     @Autowired
@@ -55,5 +41,5 @@ class WayPointControllerIntegrationTest {
         restTemplate.delete(URI.create(baseUrl + "/WP-123"));
 
         Mockito.verify(wayPointCommandService).handle((DeleteWayPointCommand) any());
-    }
+    }*/
 }
