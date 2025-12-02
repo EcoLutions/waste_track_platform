@@ -51,6 +51,12 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
 
         var container = new Container(command, deviceIdObj);
         var savedContainer = containerRepository.save(container);
+
+        if (deviceIdObj != null) {
+            var event = savedContainer.buildContainerFillLevelUpdatedEvent();
+            eventPublisher.publishEvent(event);
+        }
+
         return Optional.of(savedContainer);
     }
 
