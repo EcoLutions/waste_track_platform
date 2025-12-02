@@ -7,9 +7,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.MessagingGateway;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.core.MessageProducer;
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory;
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory;
+import org.springframework.integration.mqtt.inbound.MqttPahoMessageDrivenChannelAdapter;
 import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler;
+import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter;
 import org.springframework.integration.mqtt.support.MqttHeaders;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
@@ -29,6 +32,9 @@ public class MqttConfig {
 
     @Value("${mqtt.password:}")
     private String password;
+
+    @Value("${mqtt.subscribe.topics}")
+    private String subscribeTopics;
 
     @Bean
     public MqttConnectOptions mqttConnectOptions() {
@@ -66,4 +72,20 @@ public class MqttConfig {
     public interface MqttOutboundGateway {
         void sendToMqtt(@Header(MqttHeaders.TOPIC) String topic, String payload);
     }
+
+    @Bean
+    public MessageChannel mqttInboundChannel() {return new DirectChannel();}
+
+    @Bean
+    public MessageProducer inbound() {
+        MqttPahoMessageDrivenChannelAdapter adapter =
+                new MqttPahoMessageDrivenChannelAdapter(clientId + "_in", mqttClientFactory(),
+                        subscribeTopics.split(","));
+        adapter.setCompletionTimeout(5000);
+        adapter.setConverter(new DefaultPahoMessageConverter());
+        adapter.setQos(1);
+        adapter.setOutputChannel(mqttInboundChannel());
+        return adapter;
+    }
+
 }
