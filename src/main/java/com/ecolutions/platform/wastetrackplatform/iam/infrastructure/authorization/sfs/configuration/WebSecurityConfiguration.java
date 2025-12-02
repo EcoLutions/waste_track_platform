@@ -4,6 +4,7 @@ import com.ecolutions.platform.wastetrackplatform.iam.infrastructure.authorizati
 import com.ecolutions.platform.wastetrackplatform.iam.infrastructure.hashing.bcrypt.BCryptHashingService;
 import com.ecolutions.platform.wastetrackplatform.iam.infrastructure.tokens.jwt.BearerTokenService;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -25,23 +26,26 @@ import java.util.List;
 
 @Configuration
 @EnableMethodSecurity
+@EnableConfigurationProperties(CorsProperties.class)
 @Profile("!test")
 public class WebSecurityConfiguration {
     private final UserDetailsService userDetailsService;
     private final BearerTokenService tokenService;
     private final BCryptHashingService hashingService;
     private final AuthenticationEntryPoint unauthorizedRequestHandlerEntryPoint;
+    private final CorsProperties corsProperties;
 
     public WebSecurityConfiguration(
             @Qualifier("defaultUserDetailsService")
             UserDetailsService userDetailsService,
             BearerTokenService tokenService,
             BCryptHashingService hashingService,
-            AuthenticationEntryPoint unauthorizedRequestHandlerEntryPoint) {
+            AuthenticationEntryPoint unauthorizedRequestHandlerEntryPoint, CorsProperties corsProperties) {
         this.userDetailsService = userDetailsService;
         this.tokenService = tokenService;
         this.hashingService = hashingService;
         this.unauthorizedRequestHandlerEntryPoint = unauthorizedRequestHandlerEntryPoint;
+        this.corsProperties = corsProperties;
     }
 
     @Bean
@@ -81,9 +85,10 @@ public class WebSecurityConfiguration {
         // Cross-Origin Resource Sharing configuration
         http.cors(configurer -> configurer.configurationSource(_ -> {
             var cors = new CorsConfiguration();
-            cors.setAllowedOrigins(List.of("*"));
-            cors.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-            cors.setAllowedHeaders(List.of("*"));
+            cors.setAllowedOrigins(corsProperties.getAllowedOrigins());
+            cors.setAllowedMethods(corsProperties.getAllowedMethods());
+            cors.setAllowedHeaders(corsProperties.getAllowedHeaders());
+            cors.setAllowCredentials(true);
             return cors;
         }));
         // Cross-Site Request Forgery configuration
