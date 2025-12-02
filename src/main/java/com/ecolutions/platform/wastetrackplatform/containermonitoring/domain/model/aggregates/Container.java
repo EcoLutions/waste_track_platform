@@ -103,15 +103,15 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
 
     public boolean requiresCollection() {
         if (lastCollectionDate == null) {
-            return currentFillLevel.requiresCollection();
+            return currentFillLevel.requiresCollection(capacity.maxFillLevel());
         }
 
         LocalDateTime nextCollectionDate = lastCollectionDate.plusDays(collectionFrequency.days());
-        return LocalDateTime.now().isAfter(nextCollectionDate) || currentFillLevel.requiresCollection();
+        return LocalDateTime.now().isAfter(nextCollectionDate) || currentFillLevel.requiresCollection(capacity.maxFillLevel());
     }
 
     public boolean isOverflowing() {
-        return currentFillLevel.isOverflowing();
+        return currentFillLevel.isOverflowing(capacity.maxFillLevel());
     }
 
     public void scheduleMaintenanceDueToSensorFailure() {
@@ -127,8 +127,8 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
     }
 
     public boolean hasBecomeCritical(CurrentFillLevel previousLevel) {
-        boolean wasCritical = previousLevel != null && previousLevel.percentage() >= 90;
-        boolean isCritical = this.currentFillLevel.percentage() >= 90;
+        boolean wasCritical = previousLevel != null && previousLevel.percentage() >= this.capacity.maxFillLevel();
+        boolean isCritical = this.currentFillLevel.percentage() >= this.capacity.maxFillLevel();
         return !wasCritical && isCritical;
     }
 

@@ -10,12 +10,12 @@ public record CurrentFillLevel(Integer percentage) {
         }
     }
 
-    public boolean isOverflowing() {
-        return percentage > 90;
+    public boolean isOverflowing(Integer maxFillLevel) {
+        return percentage > maxFillLevel;
     }
 
-    public boolean requiresCollection() {
-        return percentage > 80;
+    public boolean requiresCollection(Integer maxFillLevel) {
+        return percentage > maxFillLevel*0.9;
     }
 
     public static Integer toIntegerOrNull(CurrentFillLevel currentFillLevel) {
