@@ -141,7 +141,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     public Optional<Route> handle(MarkWayPointAsVisitedCommand command) {
         Route route = routeRepository.findById(command.routeId())
                 .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
-        route.markWaypointAsVisited(command.waypointId(), command.arrivalTime());
+        route.markWaypointAsVisited(command.waypointId());
         var updatedRoute = routeRepository.save(route);
         routeUpdateService.onWaypointVisited(updatedRoute);
         return Optional.of(updatedRoute);

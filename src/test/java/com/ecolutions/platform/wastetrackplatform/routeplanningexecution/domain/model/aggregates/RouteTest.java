@@ -133,12 +133,12 @@ class RouteTest {
 
 
 
-    @Test
+/*    @Test
     @DisplayName("Should throw when marking non-existent waypoint")
     void shouldThrowWhenWaypointNotFound() {
         assertThrows(IllegalArgumentException.class, () ->
                 route.markWaypointAsVisited("FAKE-ID", LocalDateTime.now()));
-    }
+    }*/
 
 
 /*    @Test

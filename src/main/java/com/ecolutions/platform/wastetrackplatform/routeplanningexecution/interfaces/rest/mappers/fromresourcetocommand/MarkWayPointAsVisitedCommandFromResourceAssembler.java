@@ -7,8 +7,7 @@ public class MarkWayPointAsVisitedCommandFromResourceAssembler {
     public static MarkWayPointAsVisitedCommand toCommandFromResource(String waypointId, MarkWayPointAsVisitedResource resource) {
         return new MarkWayPointAsVisitedCommand(
             resource.routeId(),
-            waypointId,
-            resource.arrivalTime()
+            waypointId
         );
     }
 }

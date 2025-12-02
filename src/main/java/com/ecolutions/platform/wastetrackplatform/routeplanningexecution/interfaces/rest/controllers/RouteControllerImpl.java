@@ -164,4 +164,13 @@ public class RouteControllerImpl implements RouteController {
         var routeResource = RouteResourceFromEntityAssembler.toResourceFromEntity(updatedRoute.get());
         return ResponseEntity.status(HttpStatus.OK).body(routeResource);
     }
+
+    @Override
+    public ResponseEntity<RouteResource> markWaypointAsVisited(String id, String waypointId) {
+        var command = new MarkWayPointAsVisitedCommand(id, waypointId);
+        var updatedRoute = routeCommandService.handle(command);
+        if (updatedRoute.isEmpty()) return ResponseEntity.notFound().build();
+        var routeResource = RouteResourceFromEntityAssembler.toResourceFromEntity(updatedRoute.get());
+        return ResponseEntity.status(HttpStatus.OK).body(routeResource);
+    }
 }

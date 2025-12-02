@@ -147,4 +147,14 @@ public interface RouteController {
             @ApiResponse(responseCode = "500", description = "Internal server error.")
     })
     ResponseEntity<RouteResource> updateRouteEstimates(@PathVariable String id);
+
+    @PostMapping("/{id}/waypoints/{waypointId}/mark-visited")
+    @Operation(summary = "Mark waypoint as visited", description = "Marks a waypoint within the route as visited with the actual arrival time.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Waypoint marked as visited successfully."),
+            @ApiResponse(responseCode = "404", description = "Waypoint not found."),
+            @ApiResponse(responseCode = "400", description = "Waypoint cannot be marked as visited."),
+            @ApiResponse(responseCode = "500", description = "Internal server error.")
+    })
+    ResponseEntity<RouteResource> markWaypointAsVisited(@PathVariable String id, @PathVariable String waypointId);
 }

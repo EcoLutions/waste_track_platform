@@ -159,13 +159,13 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         this.status = RouteStatus.COMPLETED;
     }
 
-    public void markWaypointAsVisited(String waypointId, LocalDateTime timestamp) {
+    public void markWaypointAsVisited(String waypointId) {
         WayPoint waypoint = waypoints.stream()
             .filter(wp -> wp.getId().equals(waypointId))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Waypoint not found: " + waypointId));
 
-        waypoint.markAsVisited(timestamp);
+        waypoint.markAsVisited();
         this.totalCompletedWaypoints++;
     }
 

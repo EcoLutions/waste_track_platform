@@ -66,11 +66,11 @@ public class WayPoint extends AuditableModel {
         }
     }
 
-    public void markAsVisited(LocalDateTime arrivalTime) {
+    public void markAsVisited() {
         if (!canBeVisited()) {
             throw new IllegalStateException("Waypoint cannot be visited in current state: " + status);
         }
-        this.actualArrivalTime = arrivalTime;
+        this.actualArrivalTime = LocalDateTime.now();
         this.status = WaypointStatus.VISITED;
     }
 
