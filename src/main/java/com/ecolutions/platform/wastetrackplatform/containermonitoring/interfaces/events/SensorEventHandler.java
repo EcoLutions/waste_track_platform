@@ -2,6 +2,7 @@ package com.ecolutions.platform.wastetrackplatform.containermonitoring.interface
 
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.services.command.SensorReadingCommandService;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.events.dto.SensorBatchPayload;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.events.dto.SensorFullPayload;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.events.dto.SensorReadingEvent;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.events.dto.SensorReadingPayload;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.events.mappers.CreateSensorReadingCommandFromEvent;
@@ -21,15 +22,15 @@ public class SensorEventHandler {
     public void handleBatchEvent(String payload) {
 
         try {
-            SensorBatchPayload batchEvent = objectMapper.readValue(payload, SensorBatchPayload.class);
+            SensorBatchPayload batchPayload = objectMapper.readValue(payload, SensorBatchPayload.class);
 
-            log.info("Cantidad detectada: {}", batchEvent.getCount());
+            log.info("Cantidad detectada: {}", batchPayload.getCount());
 
-            for (SensorReadingPayload readingDto : batchEvent.getReadings()) {
+            for (SensorReadingPayload readingDto : batchPayload.getReadings()) {
 
                 log.info("Procesando dispositivo: {}", readingDto.getDeviceId());
 
-                SensorReadingEvent evento = new SensorReadingEvent(
+                SensorReadingEvent readingEvent = new SensorReadingEvent(
                         this,
                         readingDto.getDeviceId(),
                         readingDto.getContainerId(),
@@ -40,20 +41,49 @@ public class SensorEventHandler {
                         readingDto.getAlertType()
                 );
 
-                log.info( "Evento creado para sensor: {} en contenedor: {} con nivel de llenado: {}%",
-                        evento.getDeviceId(),
-                        evento.getContainerId(),
-                        evento.getFillLevelPercentage()
+                log.info( "Lectura recibida de sensor: {} en contenedor: {} con nivel de llenado: {}%",
+                        readingEvent.getDeviceId(),
+                        readingEvent.getContainerId(),
+                        readingEvent.getFillLevelPercentage()
                 );
 
-                var updateSensorReadingCommand = CreateSensorReadingCommandFromEvent.toCommandFromEvent(evento);
-                sensorReadingCommandService.handle(updateSensorReadingCommand);
+                var createSensorReadingCommand = CreateSensorReadingCommandFromEvent.toCommandFromEvent(readingEvent);
+                sensorReadingCommandService.handle(createSensorReadingCommand);
             }
 
         } catch (Exception e) {
-            System.err.println("Error procesando batch de sensores: " + e.getMessage());
+            System.err.println("Error procesando lote de lecturas de sensores: " + e.getMessage());
         }
 
+    }
+
+    public void handleAlertEvent(String payload) {
+        try {
+            SensorFullPayload fullPayload = objectMapper.readValue(payload, SensorFullPayload.class);
+
+            log.info("Alerta detectada: {}", fullPayload.getAlertType());
+
+            SensorReadingPayload alertPayload = fullPayload.getReading();
+
+            log.info("Procesando alerta para dispositivo: {}", alertPayload.getDeviceId());
+
+            SensorReadingEvent alertEvent = new SensorReadingEvent(
+                    this,
+                    alertPayload.getDeviceId(),
+                    alertPayload.getContainerId(),
+                    alertPayload.getFillLevelPercentage(),
+                    new DateTime(alertPayload.getRecordedAt()),
+                    new DateTime(alertPayload.getReceivedAt()),
+                    alertPayload.getIsAlert(),
+                    alertPayload.getAlertType()
+            );
+
+            var createSensorReadingCommand = CreateSensorReadingCommandFromEvent.toCommandFromEvent(alertEvent);
+            sensorReadingCommandService.handle(createSensorReadingCommand);
+
+        } catch (Exception e) {
+            System.err.println("Error procesando alerta de sensor: " + e.getMessage());
+        }
     }
 
 
