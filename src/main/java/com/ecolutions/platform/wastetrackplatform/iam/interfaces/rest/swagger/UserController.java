@@ -1,5 +1,6 @@
 package com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.swagger;
 
+import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.request.CreateUserResource;
 import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.dto.response.UserResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -7,9 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -30,4 +29,12 @@ public interface UserController {
             @ApiResponse(responseCode = "404", description = "User not found."),
             @ApiResponse(responseCode = "401", description = "Unauthorized.")})
     ResponseEntity<UserResource> getUserById(@PathVariable String userId);
+
+    @PostMapping()
+    @Operation(summary = "Create a new user", description = "Create a new user in the system.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "User created successfully."),
+            @ApiResponse(responseCode = "400", description = "Invalid input data."),
+            @ApiResponse(responseCode = "401", description = "Unauthorized.")})
+    ResponseEntity<UserResource> createUser(@RequestBody CreateUserResource resource);
 }

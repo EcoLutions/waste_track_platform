@@ -2,8 +2,8 @@ package com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.interface
 
 public record CreatePlanCatalogResource(
     String name,
-    String monthlyPriceAmount,
-    String monthlyPriceCurrency,
+    String priceAmount,
+    String billingPeriod,
     Integer maxVehicles,
     Integer maxDrivers,
     Integer maxContainers

@@ -9,13 +9,11 @@ public class UpdateContainerCommandFromResourceAssembler {
             resource.containerId(),
             resource.latitude(),
             resource.longitude(),
-            resource.address(),
-            resource.districtCode(),
             resource.volumeLiters(),
-            resource.maxWeightKg(),
-            resource.sensorId(),
+            resource.maxFillLevel(),
+            resource.deviceId(),
             resource.containerType(),
-            resource.districtId(),
+            resource.status(),
             resource.collectionFrequencyDays()
         );
     }

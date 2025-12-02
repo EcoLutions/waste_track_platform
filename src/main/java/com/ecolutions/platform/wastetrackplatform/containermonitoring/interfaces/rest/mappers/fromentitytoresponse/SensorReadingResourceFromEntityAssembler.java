@@ -1,6 +1,10 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.mappers.fromentitytoresponse;
 
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates.SensorReading;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.BatteryLevel;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.CurrentFillLevel;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.Temperature;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.ValidationStatus;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.interfaces.rest.dto.response.SensorReadingResource;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.ContainerId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DateTimeUtils;
@@ -10,10 +14,10 @@ public class SensorReadingResourceFromEntityAssembler {
         return SensorReadingResource.builder()
             .id(entity.getId())
             .containerId(ContainerId.toStringOrNull(entity.getContainerId()))
-            .fillLevelPercentage(entity.getFillLevel() != null ? entity.getFillLevel().percentage() : null)
-            .temperatureCelsius(entity.getTemperature() != null ? entity.getTemperature().celsius().doubleValue() : null)
-            .batteryLevelPercentage(entity.getBatteryLevel() != null ? entity.getBatteryLevel().percentage() : null)
-            .validationStatus(entity.getValidationStatus() != null ? entity.getValidationStatus().name() : null)
+            .fillLevelPercentage(CurrentFillLevel.toIntegerOrNull(entity.getFillLevel()))
+            .temperatureCelsius(Temperature.toStringOrNull(entity.getTemperature()))
+            .batteryLevelPercentage(BatteryLevel.toIntegerOrNull(entity.getBatteryLevel()))
+            .validationStatus(ValidationStatus.toStringOrNull(entity.getValidationStatus()))
             .recordedAt(DateTimeUtils.localDateTimeToStringOrNull(entity.getRecordedAt()))
             .receivedAt(DateTimeUtils.localDateTimeToStringOrNull(entity.getReceivedAt()))
             .createdAt(DateTimeUtils.dateToStringOrNull(entity.getCreatedAt()))

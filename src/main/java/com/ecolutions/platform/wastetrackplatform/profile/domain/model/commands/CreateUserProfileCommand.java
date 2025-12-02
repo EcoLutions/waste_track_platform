@@ -1,7 +1,6 @@
 package com.ecolutions.platform.wastetrackplatform.profile.domain.model.commands;
 
 import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.Language;
-import com.ecolutions.platform.wastetrackplatform.profile.domain.model.valueobjects.UserType;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.EmailAddress;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.PhoneNumber;
@@ -10,7 +9,6 @@ import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjec
 public record CreateUserProfileCommand(
     UserId userId,
     String photoUrl,
-    UserType userType,
     DistrictId districtId,
     EmailAddress email,
     PhoneNumber phoneNumber,
@@ -20,9 +18,6 @@ public record CreateUserProfileCommand(
     public CreateUserProfileCommand {
         if (userId == null) {
             throw new IllegalArgumentException("User ID cannot be null");
-        }
-        if (userType == null) {
-            throw new IllegalArgumentException("User Type cannot be null");
         }
         if (email == null) {
             throw new IllegalArgumentException("Email cannot be null");

@@ -5,22 +5,32 @@ import jakarta.persistence.Embeddable;
 @Embeddable
 public record EmailAddress(String value) {
     public EmailAddress {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("EmailAddress cannot be null or empty");
+        String trimmedValue = value.trim().toLowerCase();
+
+        if (!isValidEmail(trimmedValue)) {
+            throw new IllegalArgumentException("Invalid email address: " + value);
         }
-        if (!value.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-            throw new IllegalArgumentException("EmailAddress is not valid");
-        }
+
+        value = trimmedValue;
     }
 
     public static EmailAddress of(String value) {
-        if (value == null || value.isBlank()) {
+        String trimmedValue = value.trim().toLowerCase();
+
+        if (!isValidEmail(trimmedValue)) {
             return null;
         }
-        return new EmailAddress(value);
+
+        return new EmailAddress(trimmedValue);
     }
 
     public static String toStringOrNull(EmailAddress emailAddress) {
         return emailAddress != null ? emailAddress.value() : null;
+    }
+
+    private static boolean isValidEmail(String email) {
+        return email != null &&
+                email.matches("^[A-Za-z0-9+_.-]+@(.+)$") &&
+                email.length() <= 254;
     }
 }

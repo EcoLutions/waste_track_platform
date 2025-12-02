@@ -9,4 +9,8 @@ public record CollectionFrequency(Integer days) {
             throw new IllegalArgumentException("Days cannot be null or less than or equal to zero");
         }
     }
+
+    public static Integer toIntegerOrNull(CollectionFrequency collectionFrequency) {
+        return collectionFrequency != null ? collectionFrequency.days : null;
+    }
 }

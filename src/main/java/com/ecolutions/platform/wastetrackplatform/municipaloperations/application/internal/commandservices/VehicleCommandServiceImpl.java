@@ -11,7 +11,6 @@ import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.mod
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.services.command.VehicleCommandService;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.infrastructure.persistence.jpa.repositories.VehicleRepository;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DriverId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -59,14 +58,6 @@ public class VehicleCommandServiceImpl implements VehicleCommandService {
             }
             if (command.weightCapacity() != null) {
                 existingVehicle.setWeightCapacity(new WeightCapacity(command.weightCapacity().intValue()));
-            }
-            if (command.districtId() != null) {
-                existingVehicle.setDistrictId(DistrictId.of(command.districtId()));
-            }
-            if (command.assignedDriverId() != null) {
-                existingVehicle.assignDriver(DriverId.of(command.assignedDriverId()));
-            } else if (existingVehicle.getAssignedDriverId() != null) {
-                existingVehicle.unassignDriver();
             }
             if (command.lastMaintenanceDate() != null) {
                 var lastMaintenanceDate = DateTimeUtils.stringToLocalDateTimeOrNull(command.lastMaintenanceDate());

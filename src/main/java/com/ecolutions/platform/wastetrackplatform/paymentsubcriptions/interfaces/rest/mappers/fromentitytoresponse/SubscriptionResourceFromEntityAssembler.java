@@ -4,8 +4,6 @@ import com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.domain.mod
 import com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.domain.model.valueobjects.SubscriptionStatus;
 import com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.interfaces.rest.dto.response.SubscriptionResource;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Money;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.PaymentMethodId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.PlanId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.utils.DateTimeUtils;
 
@@ -15,9 +13,6 @@ public class SubscriptionResourceFromEntityAssembler {
             .id(entity.getId())
             .districtId(DistrictId.toStringOrNull(entity.getDistrictId()))
             .planId(PlanId.toStringOrNull(entity.getPlanId()))
-            .planName(entity.getPlanName())
-            .monthlyPriceAmount(Money.amountAsStringOrNull(entity.getMonthlyPrice()))
-            .monthlyPriceCurrency(Money.currencyOrNull(entity.getMonthlyPrice()))
             .status(SubscriptionStatus.toStringOrNull(entity.getStatus()))
             .startDate(DateTimeUtils.localDateToStringOrNull(entity.getStartDate()))
             .trialEndDate(DateTimeUtils.localDateToStringOrNull(entity.getTrialEndDate()))
@@ -26,7 +21,6 @@ public class SubscriptionResourceFromEntityAssembler {
             .nextBillingDate(DateTimeUtils.localDateToStringOrNull(entity.getNextBillingDate()))
             .gracePeriodEndDate(DateTimeUtils.localDateToStringOrNull(entity.getGracePeriodEndDate()))
             .cancelledAt(DateTimeUtils.localDateToStringOrNull(entity.getCancelledAt()))
-            .defaultPaymentMethodId(PaymentMethodId.toStringOrNull(entity.getDefaultPaymentMethodId()))
             .build();
     }
 }

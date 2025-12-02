@@ -33,3 +33,10 @@ build/
 .vscode/
 /docs/
 /.kilocode/
+/.frontend/
+/.github/copilot-instructions.md
+/.github/prompts/
+/.github/instructions/
+/GEMINI.md
+.claude/settings.local.json
+nul

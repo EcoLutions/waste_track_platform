@@ -11,8 +11,6 @@ public class UpdateVehicleCommandFromResourceAssembler {
             resource.vehicleType(),
             resource.volumeCapacity(),
             resource.weightCapacity(),
-            resource.districtId(),
-            resource.assignedDriverId(),
             resource.lastMaintenanceDate(),
             resource.nextMaintenanceDate(),
             resource.isActive()

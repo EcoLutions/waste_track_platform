@@ -1,6 +1,6 @@
 package com.ecolutions.platform.wastetrackplatform.iam.domain.model.entities;
 
-import com.ecolutions.platform.wastetrackplatform.iam.domain.model.valueobjects.Roles;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Roles;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.entities.AuditableModel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

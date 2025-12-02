@@ -3,14 +3,12 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.applic
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates.Route;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateWayPointCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.DeleteWayPointCommand;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.MarkWayPointAsVisitedCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateWayPointCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.entities.WayPoint;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.Priority;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.PriorityLevel;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.services.command.WayPointCommandService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.infrastructure.persistence.jpa.repositories.RouteRepository;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.infrastructure.persistence.jpa.repositories.WayPointRepository;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.ContainerId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,68 +23,41 @@ public class WayPointCommandServiceImpl implements WayPointCommandService {
 
     @Override
     public Optional<WayPoint> handle(CreateWayPointCommand command) {
-        try {
-            Route existingRoute = routeRepository.findById(command.routeId())
+        Route existingRoute = routeRepository.findById(command.routeId())
                 .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
-
-            Priority priority = new Priority(PriorityLevel.fromString(command.priority()));
-            ContainerId containerId = ContainerId.of(command.containerId());
-
-            WayPoint wayPoint = new WayPoint(containerId, command.sequenceOrder(), priority);
-            wayPoint.setEstimatedArrivalTime(command.estimatedArrivalTime());
-            wayPoint.setDriverNote(command.driverNote());
-
-            existingRoute.addWayPoint(wayPoint);
-
-            Route savedRoute = routeRepository.save(existingRoute);
-
-            WayPoint savedWayPoint = savedRoute.getWaypoints().stream()
-                .filter(wp -> wp.getContainerId().equals(containerId) && Objects.equals(wp.getSequenceOrder(), command.sequenceOrder()))
+        WayPoint wayPoint = new WayPoint(command);
+        existingRoute.addWayPoint(wayPoint);
+        Route savedRoute = routeRepository.save(existingRoute);
+        WayPoint savedWayPoint = savedRoute.getWaypoints().stream()
+                .filter(wp -> wp.getContainerId().equals(wayPoint.getContainerId()) && Objects.equals(wp.getSequenceOrder(), command.sequenceOrder()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Failed to retrieve the newly created waypoint."));
-
-            return Optional.of(savedWayPoint);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to create waypoint: " + e.getMessage(), e);
-        }
+        return Optional.of(savedWayPoint);
     }
 
     @Override
     public Optional<WayPoint> handle(UpdateWayPointCommand command) {
-        try {
-            WayPoint existingWayPoint = wayPointRepository.findById(command.wayPointId())
+        WayPoint existingWayPoint = wayPointRepository.findById(command.wayPointId())
                 .orElseThrow(() -> new IllegalArgumentException("WayPoint with ID " + command.wayPointId() + " not found."));
-
-            if (command.sequenceOrder() != null) {
-                existingWayPoint.setSequenceOrder(command.sequenceOrder());
-            }
-            if (command.priority() != null) {
-                Priority priority = new Priority(PriorityLevel.fromString(command.priority()));
-                existingWayPoint.setPriority(priority);
-            }
-            if (command.estimatedArrivalTime() != null) {
-                existingWayPoint.setEstimatedArrivalTime(command.estimatedArrivalTime());
-            }
-            if (command.driverNote() != null) {
-                existingWayPoint.setDriverNote(command.driverNote());
-            }
-
-            WayPoint updatedWayPoint = wayPointRepository.save(existingWayPoint);
-            return Optional.of(updatedWayPoint);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to update waypoint: " + e.getMessage(), e);
-        }
+        existingWayPoint.update(command);
+        WayPoint updatedWayPoint = wayPointRepository.save(existingWayPoint);
+        return Optional.of(updatedWayPoint);
     }
 
     @Override
     public Boolean handle(DeleteWayPointCommand command) {
-        try {
-            WayPoint existingWayPoint = wayPointRepository.findById(command.wayPointId())
+        WayPoint existingWayPoint = wayPointRepository.findById(command.wayPointId())
                 .orElseThrow(() -> new IllegalArgumentException("WayPoint with ID " + command.wayPointId() + " not found."));
-            wayPointRepository.delete(existingWayPoint);
-            return true;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Failed to delete waypoint: " + e.getMessage(), e);
-        }
+        wayPointRepository.delete(existingWayPoint);
+        return true;
+    }
+
+    @Override
+    public Optional<WayPoint> handle(MarkWayPointAsVisitedCommand command) {
+        WayPoint existingWayPoint = wayPointRepository.findById(command.waypointId())
+                .orElseThrow(() -> new IllegalArgumentException("WayPoint with ID " + command.waypointId() + " not found."));
+        existingWayPoint.markAsVisited();
+        WayPoint updatedWayPoint = wayPointRepository.save(existingWayPoint);
+        return Optional.of(updatedWayPoint);
     }
 }

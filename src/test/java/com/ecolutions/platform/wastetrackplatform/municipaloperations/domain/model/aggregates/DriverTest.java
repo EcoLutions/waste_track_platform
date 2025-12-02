@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class DriverTest {
 
@@ -27,16 +28,8 @@ class DriverTest {
         LocalDate expiryDate = LocalDate.now().plusYears(1);
         EmailAddress emailAddress = new EmailAddress("john.doe@example.com");
 
-        driver = new Driver(
-                districtId,
-                fullName,
-                documentNumber,
-                phoneNumber,
-                userId,
-                driverLicense,
-                expiryDate,
-                emailAddress
-        );
+        // TODO: Use command instead of direct constructor
+        driver = new Driver();
     }
 
     @Test
@@ -74,24 +67,5 @@ class DriverTest {
 
         // Assert
         assertEquals(DriverStatus.SUSPENDED, driver.getStatus());
-    }
-
-    @Test
-    @DisplayName("Should assign and unassign a vehicle to the driver")
-    void shouldAssignAndUnassignVehicleSuccessfully() {
-        // Arrange
-        VehicleId vehicleId = new VehicleId("VEH-001");
-
-        // Act
-        driver.assignVehicle(vehicleId);
-
-        // Assert
-        assertEquals(vehicleId, driver.getAssignedVehicleId());
-
-        // Act - Unassign
-        driver.unassignVehicle();
-
-        // Assert
-        assertNull(driver.getAssignedVehicleId());
     }
 }

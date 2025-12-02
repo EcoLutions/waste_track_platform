@@ -8,8 +8,9 @@ public class CreateRouteCommandFromResourceAssembler {
     public static CreateRouteCommand toCommandFromResource(CreateRouteResource resource) {
         return new CreateRouteCommand(
             resource.districtId(),
-            resource.routeType(),
-            DateTimeUtils.stringToLocalDateOrNull(resource.scheduledDate())
+            resource.driverId(),
+            resource.vehicleId(),
+            DateTimeUtils.stringToLocalDateTimeOrNull(resource.scheduledDate())
         );
     }
 }

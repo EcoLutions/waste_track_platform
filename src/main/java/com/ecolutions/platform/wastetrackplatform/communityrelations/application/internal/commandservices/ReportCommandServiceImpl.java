@@ -6,9 +6,11 @@ import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.mode
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.UpdateReportCommand;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.valueobjects.ReportType;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.command.ReportCommandService;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.infrastructure.persistence.jpa.repositories.EvidenceRepository;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.infrastructure.persistence.jpa.repositories.ReportRepository;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.CitizenId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.ContainerId;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,27 +21,34 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ReportCommandServiceImpl implements ReportCommandService {
     private final ReportRepository reportRepository;
+    private final EvidenceRepository evidenceRepository;
 
     @Override
     public Optional<Report> handle(CreateReportCommand command) {
         try {
             var citizenId = new CitizenId(command.citizenId());
-            var location = Location.fromStrings(
-                command.latitude(),
-                command.longitude(),
-                command.address(),
-                command.districtCode()
-            );
+            var location = Location.fromStrings(command.latitude(), command.longitude());
             var containerId = ContainerId.of(command.containerId());
+            var districtId = DistrictId.of(command.districtId());
             var reportType = ReportType.fromString(command.reportType());
 
             var newReport = new Report(
                 citizenId,
+                districtId,
                 location,
                 reportType,
                 containerId,
                 command.description()
             );
+
+            if (command.evidenceIds() != null && !command.evidenceIds().isEmpty()) {
+                var evidences = evidenceRepository.findAllById(command.evidenceIds());
+                if (evidences.size() != command.evidenceIds().size()) {
+                    throw new IllegalArgumentException("Algunas evidencias no se encontraron por sus ids");
+                }
+                evidences.forEach(newReport::addEvidence);
+            }
+
             var savedReport = reportRepository.save(newReport);
             return Optional.of(savedReport);
         } catch (Exception e) {
@@ -53,13 +62,8 @@ public class ReportCommandServiceImpl implements ReportCommandService {
             Report existingReport = reportRepository.findById(command.reportId())
                     .orElseThrow(() -> new IllegalArgumentException("Report with ID " + command.reportId() + " not found."));
 
-            if (command.latitude() != null && command.longitude() != null && command.address() != null && command.districtCode() != null) {
-                var newLocation = Location.fromStrings(
-                        command.latitude(),
-                        command.longitude(),
-                        command.address(),
-                        command.districtCode()
-                );
+            if (command.latitude() != null && command.longitude() != null) {
+                var newLocation = Location.fromStrings(command.latitude(), command.longitude());
                 existingReport.setLocation(newLocation);
             }
 

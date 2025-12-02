@@ -7,7 +7,7 @@ public record SensorReadingResource(
     String id,
     String containerId,
     Integer fillLevelPercentage,
-    Double temperatureCelsius,
+    String temperatureCelsius,
     Integer batteryLevelPercentage,
     String validationStatus,
     String recordedAt,

@@ -17,4 +17,8 @@ public record BatteryLevel(Integer percentage) {
     public boolean requiresReplacement() {
         return percentage < 10;
     }
+
+    public static Integer toIntegerOrNull(BatteryLevel batteryLevel) {
+        return batteryLevel != null ? batteryLevel.percentage : null;
+    }
 }

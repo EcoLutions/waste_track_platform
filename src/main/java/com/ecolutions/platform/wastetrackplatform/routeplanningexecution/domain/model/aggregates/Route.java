@@ -1,20 +1,24 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateRouteCommand;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.entities.WayPoint;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.*;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.ContainerId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DriverId;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.VehicleId;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -35,14 +39,11 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private RouteType routeType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private RouteStatus status;
 
-    @Column(name = "scheduled_date", nullable = false)
-    private LocalDate scheduledDate;
+    private LocalDateTime scheduledStartAt;
+
+    private LocalDateTime scheduledEndAt;
 
     @Column(name = "started_at")
     private LocalDateTime startedAt;
@@ -50,10 +51,14 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JoinColumn(name = "route_id")
     @OrderBy("sequenceOrder ASC")
     private Set<WayPoint> waypoints;
+
+    private Integer totalWaypoints;
+
+    private Integer totalCompletedWaypoints;
 
     @Embedded
     private Distance totalDistance;
@@ -61,31 +66,44 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
     @Column(name = "estimated_duration")
     private Duration estimatedDuration;
 
+    @Column(name = "collection_duration")
+    private Duration collectionDuration;
+
+    @Column(name = "return_duration")
+    private Duration returnDuration;
+
     @Column(name = "actual_duration")
     private Duration actualDuration;
 
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "current_latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "current_longitude"))
+    })
+    private Location currentLocation;
+
+    private LocalDateTime lastLocationUpdate;
+
     public Route() {
         super();
-        this.status = RouteStatus.DRAFT;
-        this.routeType = RouteType.REGULAR;
+        this.status = RouteStatus.PLANNED;
         this.waypoints = new HashSet<>();
+        this.totalWaypoints = 0;
+        this.totalCompletedWaypoints = 0;
     }
 
-    public Route(DistrictId districtId, RouteType routeType, LocalDate scheduledDate) {
+    public Route(CreateRouteCommand command) {
         this();
-        this.districtId = districtId;
-        this.routeType = routeType;
-        this.scheduledDate = scheduledDate;
+        this.districtId = DistrictId.of(command.districtId());
+        this.driverId = DriverId.of(command.driverId());
+        this.vehicleId = VehicleId.of(command.vehicleId());
+        this.scheduledStartAt = command.scheduledDate();
     }
 
-    public void addWaypoint(ContainerId containerId, Priority priority) {
-        if (canBeModified()) {
-            throw new IllegalStateException("Cannot modify route that is in progress or completed");
+    public void update(UpdateRouteCommand command) {
+        if (command.scheduledStartAt() != null) {
+            this.scheduledStartAt = command.scheduledStartAt();
         }
-
-        int sequenceOrder = waypoints.size() + 1;
-        WayPoint waypoint = new WayPoint(containerId, sequenceOrder, priority);
-        waypoints.add(waypoint);
     }
 
     public void removeWaypoint(String waypointId) {
@@ -102,20 +120,28 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
                 .findFirst()
                 .ifPresent(wp -> wp.setSequenceOrder(finalI1 + 1));
         }
+        this.totalWaypoints--;
     }
 
-    public void assignToDriver(DriverId driverId, VehicleId vehicleId) {
-        if (status != RouteStatus.DRAFT) {
-            throw new IllegalStateException("Can only assign driver to draft routes");
-        }
+    private void reorderWaypoints() {
+        List<WayPoint> sortedWaypoints = waypoints.stream()
+                .sorted(Comparator.comparing(WayPoint::getSequenceOrder))
+                .toList();
 
-        this.driverId = driverId;
-        this.vehicleId = vehicleId;
-        this.status = RouteStatus.ASSIGNED;
+        for (int i = 0; i < sortedWaypoints.size(); i++) {
+            sortedWaypoints.get(i).setSequenceOrder(i + 1);
+        }
+    }
+
+    public void activeRoute() {
+        if (status != RouteStatus.PLANNED) {
+            throw new IllegalStateException("Can only activate planned routes");
+        }
+        this.status = RouteStatus.ACTIVE;
     }
 
     public void startExecution() {
-        if (status != RouteStatus.ASSIGNED) {
+        if (status != RouteStatus.ACTIVE) {
             throw new IllegalStateException("Can only start assigned routes");
         }
 
@@ -133,31 +159,110 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         this.status = RouteStatus.COMPLETED;
     }
 
-    public void markWaypointAsVisited(String waypointId, LocalDateTime timestamp) {
+    public void markWaypointAsVisited(String waypointId) {
         WayPoint waypoint = waypoints.stream()
             .filter(wp -> wp.getId().equals(waypointId))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Waypoint not found: " + waypointId));
 
-        waypoint.markAsVisited(timestamp, Duration.ofMinutes(5)); // Default service time
+        waypoint.markAsVisited();
+        this.totalCompletedWaypoints++;
     }
 
     public boolean canBeModified() {
-        return status != RouteStatus.DRAFT && status != RouteStatus.ASSIGNED;
+        return status == RouteStatus.ACTIVE || status == RouteStatus.PLANNED || status == RouteStatus.IN_PROGRESS;
     }
 
     public boolean isOverdue() {
-        if (status == RouteStatus.COMPLETED || status == RouteStatus.CANCELLED) {
-            return false;
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime scheduledDateTime = scheduledDate.atStartOfDay();
-
-        return now.isAfter(scheduledDateTime.plusHours(2));
+        if (status == RouteStatus.COMPLETED || status == RouteStatus.CANCELLED) return false;
+        return LocalDateTime.now().isAfter(scheduledStartAt);
     }
 
     public void addWayPoint(WayPoint wayPoint) {
+        if (!canBeModified()) {
+            throw new IllegalStateException("Cannot modify route that is in progress or completed");
+        }
+        totalWaypoints++;
         this.waypoints.add(wayPoint);
+    }
+
+    public void updateCurrentLocation(Location location) {
+        if (status != RouteStatus.IN_PROGRESS) {
+            throw new IllegalStateException("Can only update location for routes in progress");
+        }
+        if (location == null) {
+            throw new IllegalArgumentException("Location cannot be null");
+        }
+        this.currentLocation = location;
+        this.lastLocationUpdate = LocalDateTime.now();
+    }
+
+    public void calculateEstimatedArrivalTimes(LocalTime startTime) {
+        if (estimatedDuration == null || waypoints.isEmpty()) {
+            return;
+        }
+
+        long totalMinutes = estimatedDuration.toMinutes();
+        long minutesPerWaypoint = totalMinutes / waypoints.size();
+
+        List<WayPoint> sortedWaypoints = waypoints.stream()
+                .sorted(Comparator.comparing(WayPoint::getSequenceOrder))
+                .toList();
+
+        for (WayPoint waypoint : sortedWaypoints) {
+            waypoint.setEstimatedArrivalTime(scheduledStartAt);
+            scheduledStartAt = scheduledStartAt.plusMinutes(minutesPerWaypoint);
+        }
+    }
+
+    public void updateEstimates(Distance distance, Duration duration) {
+        if (!canBeModified()) {
+            throw new IllegalStateException("Can only update estimates for assigned routes");
+        }
+        this.totalDistance = distance;
+        this.estimatedDuration = duration;
+    }
+
+    public int getCompletedWaypointsCount() {
+        return (int) waypoints.stream()
+                .filter(WayPoint::isCompleted)
+                .count();
+    }
+
+    public int getTotalWaypointsCount() {
+        return waypoints.size();
+    }
+
+    public double getProgressPercentage() {
+        if (waypoints.isEmpty()) return 0.0;
+        return (double) getCompletedWaypointsCount() / getTotalWaypointsCount() * 100.0;
+    }
+
+    public void cancel() {
+        if (status == RouteStatus.COMPLETED) {
+            throw new IllegalStateException("Cannot cancel completed routes");
+        }
+        this.status = RouteStatus.CANCELLED;
+    }
+
+    public LocalDateTime getEstimatedDisposalArrival() {
+        if (collectionDuration == null) return null;
+        return scheduledStartAt.plus(collectionDuration);
+    }
+
+    public LocalDateTime getEstimatedDepotReturn() {
+        if (estimatedDuration == null) return null;
+        return scheduledStartAt.plus(estimatedDuration);
+    }
+
+    public boolean isWithinTimeConstraint(Duration maxDuration) {
+        if (estimatedDuration == null) return true;
+        return estimatedDuration.compareTo(maxDuration) <= 0;
+    }
+
+    public void updateDurations(Duration collection, Duration returnTrip) {
+        this.collectionDuration = collection;
+        this.returnDuration = returnTrip;
+        this.estimatedDuration = collection.plus(returnTrip);
     }
 }

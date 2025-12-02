@@ -23,7 +23,6 @@ public class DriverResourceFromEntityAssembler {
             .totalHoursWorked(entity.getTotalHoursWorked())
             .lastRouteCompletedAt(DateTimeUtils.localDateTimeToStringOrNull(entity.getLastRouteCompletedAt()))
             .status(DriverStatus.toStringOrNull(entity.getStatus()))
-            .assignedVehicleId(VehicleId.toStringOrNull(entity.getAssignedVehicleId()))
             .createdAt(DateTimeUtils.dateToStringOrNull(entity.getCreatedAt()))
             .updatedAt(DateTimeUtils.dateToStringOrNull(entity.getUpdatedAt()))
             .build();

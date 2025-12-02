@@ -1,11 +1,9 @@
 package com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.domain.model.commands.CreateSubscriptionCommand;
 import com.ecolutions.platform.wastetrackplatform.paymentsubcriptions.domain.model.valueobjects.SubscriptionStatus;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Money;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.PaymentMethodId;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.PlanId;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -25,15 +23,15 @@ public class Subscription extends AuditableAbstractAggregateRoot<Subscription> {
     @AttributeOverride(name = "value", column = @Column(name = "plan_id", nullable = false))
     private PlanId planId;
 
-    @NotNull
-    private String planName;
-
     @Embedded
     @AttributeOverrides({
         @AttributeOverride(name = "amount", column = @Column(name = "monthly_price_amount", nullable = false)),
         @AttributeOverride(name = "currency", column = @Column(name = "monthly_price_currency", nullable = false))
     })
-    private Money monthlyPrice;
+    private Money subscribedPrice;
+
+    @Enumerated(EnumType.STRING)
+    private BillingPeriod subscribedBillingPeriod;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -41,6 +39,8 @@ public class Subscription extends AuditableAbstractAggregateRoot<Subscription> {
 
     @NotNull
     private LocalDate startDate;
+
+    private LocalDate endDate;
 
     @NotNull
     private LocalDate trialEndDate;
@@ -58,28 +58,23 @@ public class Subscription extends AuditableAbstractAggregateRoot<Subscription> {
 
     private LocalDate cancelledAt;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "default_payment_method_id"))
-    private PaymentMethodId defaultPaymentMethodId;
-
     public Subscription() {
         super();
         this.status = SubscriptionStatus.TRIAL;
     }
 
-    public Subscription(DistrictId districtId, PlanId planId, String planName, Money monthlyPrice,
-                       LocalDate startDate, LocalDate trialEndDate, PaymentMethodId defaultPaymentMethodId) {
+    public Subscription(CreateSubscriptionCommand command, Money subscribedPrice, BillingPeriod subscribedBillingPeriod) {
         this();
-        this.districtId = districtId;
-        this.planId = planId;
-        this.planName = planName;
-        this.monthlyPrice = monthlyPrice;
-        this.startDate = startDate;
-        this.trialEndDate = trialEndDate;
-        this.currentPeriodStart = startDate;
-        this.currentPeriodEnd = trialEndDate != null ? trialEndDate.plusMonths(1) : startDate.plusMonths(1);
-        this.nextBillingDate = this.currentPeriodEnd;
-        this.defaultPaymentMethodId = defaultPaymentMethodId;
+        this.districtId = command.districtId();
+        this.planId = command.planId();
+        this.startDate = LocalDate.now();
+        this.trialEndDate = this.startDate.plusDays(30);
+        this.currentPeriodStart = this.startDate;
+        this.currentPeriodEnd = this.trialEndDate;
+        this.nextBillingDate = this.trialEndDate;
+        this.status = SubscriptionStatus.TRIAL;
+        this.subscribedPrice = subscribedPrice;
+        this.subscribedBillingPeriod = subscribedBillingPeriod;
     }
 
     public void activate() {
@@ -87,6 +82,9 @@ public class Subscription extends AuditableAbstractAggregateRoot<Subscription> {
             throw new IllegalStateException("Can only activate trial subscriptions");
         }
         this.status = SubscriptionStatus.ACTIVE;
+        this.currentPeriodStart = LocalDate.now();
+        this.currentPeriodEnd = calculateNextPeriodEnd(this.currentPeriodStart);
+        this.nextBillingDate = this.currentPeriodEnd;
     }
 
     public void suspend(String reason) {
@@ -110,6 +108,7 @@ public class Subscription extends AuditableAbstractAggregateRoot<Subscription> {
         }
         this.status = SubscriptionStatus.CANCELLED;
         this.cancelledAt = LocalDate.now();
+        this.endDate = LocalDate.now();
     }
 
     public void renew() {
@@ -117,19 +116,87 @@ public class Subscription extends AuditableAbstractAggregateRoot<Subscription> {
             throw new IllegalStateException("Can only renew active subscriptions");
         }
         this.currentPeriodStart = this.currentPeriodEnd;
-        this.currentPeriodEnd = this.currentPeriodEnd.plusMonths(1);
+        this.currentPeriodEnd = calculateNextPeriodEnd(this.currentPeriodEnd);
         this.nextBillingDate = this.currentPeriodEnd;
     }
 
+    public void reactivate() {
+        if (this.status != SubscriptionStatus.SUSPENDED) {
+            throw new IllegalStateException("Can only reactivate SUSPENDED subscriptions. Current status: " + this.status);
+        }
+
+        this.status = SubscriptionStatus.ACTIVE;
+        this.gracePeriodEndDate = null;
+
+        if (LocalDate.now().isAfter(this.currentPeriodEnd)) {
+            this.currentPeriodStart = LocalDate.now();
+            this.currentPeriodEnd = calculateNextPeriodEnd(this.currentPeriodStart);
+            this.nextBillingDate = this.currentPeriodEnd;
+        }
+    }
+
+    public boolean isActive() {
+        return this.status == SubscriptionStatus.ACTIVE;
+    }
+
+    public boolean isTrial() {
+        return this.status == SubscriptionStatus.TRIAL;
+    }
+
+    public boolean isSuspended() {
+        return this.status == SubscriptionStatus.SUSPENDED;
+    }
+
+    public boolean isCancelled() {
+        return this.status == SubscriptionStatus.CANCELLED;
+    }
+
     public boolean isInGracePeriod() {
-        return this.gracePeriodEndDate != null && LocalDate.now().isBefore(this.gracePeriodEndDate);
+        return this.status == SubscriptionStatus.SUSPENDED
+                && this.gracePeriodEndDate != null
+                && LocalDate.now().isBefore(this.gracePeriodEndDate);
     }
 
-    public boolean shouldBeBilledToday() {
-        return LocalDate.now().equals(this.nextBillingDate) && this.status == SubscriptionStatus.ACTIVE;
+    public boolean isGracePeriodExpired() {
+        return this.gracePeriodEndDate != null
+                && LocalDate.now().isAfter(this.gracePeriodEndDate);
     }
 
-    public LocalDate calculateNextBillingDate() {
-        return this.currentPeriodEnd;
+    public boolean isTrialExpired() {
+        return this.status == SubscriptionStatus.TRIAL
+                && LocalDate.now().isAfter(this.trialEndDate);
+    }
+
+    public boolean isPeriodExpired() {
+        return LocalDate.now().isAfter(this.currentPeriodEnd);
+    }
+
+    public int getDaysUntilNextBilling() {
+        if (this.status != SubscriptionStatus.ACTIVE) {
+            return 0;
+        }
+        return (int) java.time.temporal.ChronoUnit.DAYS.between(
+                LocalDate.now(),
+                this.nextBillingDate
+        );
+    }
+
+    public int getDaysInGracePeriod() {
+        if (!isInGracePeriod()) {
+            return 0;
+        }
+        return (int) java.time.temporal.ChronoUnit.DAYS.between(
+                LocalDate.now(),
+                this.gracePeriodEndDate
+        );
+    }
+
+    private LocalDate calculateNextPeriodEnd(LocalDate periodStart) {
+        return switch (this.subscribedBillingPeriod) {
+            case MONTHLY -> periodStart.plusMonths(1);
+            case QUARTERLY -> periodStart.plusMonths(3);
+            case SEMI_ANNUAL -> periodStart.plusMonths(6);
+            case ANNUAL -> periodStart.plusYears(1);
+        };
     }
 }

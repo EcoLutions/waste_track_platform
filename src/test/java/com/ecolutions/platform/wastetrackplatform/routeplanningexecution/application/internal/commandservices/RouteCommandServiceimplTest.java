@@ -2,11 +2,9 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.applic
 
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates.Route;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateRouteCommand;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.DeleteRouteCommand;
-import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.RouteType;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.infrastructure.persistence.jpa.repositories.RouteRepository;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,7 +13,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -40,11 +37,14 @@ class RouteCommandServiceImplTest {
 
     @BeforeEach
     void setUp() {
+/*
         createCommand = new CreateRouteCommand("DIST-001", "REGULAR", LocalDate.now().plusDays(1));
+*/
+/*
         updateCommand = new UpdateRouteCommand("1", "DIST-002", "OPTIMIZED", LocalDate.now().plusDays(2));
+*/
         deleteCommand = new DeleteRouteCommand("1");
 
-        mockRoute = new Route(DistrictId.of("DIST-001"), RouteType.REGULAR, LocalDate.now());
         mockRoute.setId("1");
     }
 

@@ -2,13 +2,17 @@ package com.ecolutions.platform.wastetrackplatform.containermonitoring.infrastru
 
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates.Container;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.ContainerStatus;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.SensorId;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DeviceId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ContainerRepository extends JpaRepository<Container, String> {
@@ -24,4 +28,7 @@ public interface ContainerRepository extends JpaRepository<Container, String> {
         c.lastReadingTimestamp < :sensorCutoffDate)
     """)
     List<Container> findContainersInAlert(DistrictId districtId, ContainerStatus maintenanceStatus, LocalDateTime cutoffDate, LocalDateTime sensorCutoffDate);
+    boolean existsByDeviceId(DeviceId deviceId);
+    boolean existsByLocation(Location location);
+    Optional<Container> findByLocation(Location location);
 }

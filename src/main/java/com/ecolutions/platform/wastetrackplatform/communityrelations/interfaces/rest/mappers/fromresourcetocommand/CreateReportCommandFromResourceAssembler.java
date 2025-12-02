@@ -7,10 +7,9 @@ public class CreateReportCommandFromResourceAssembler {
     public static CreateReportCommand toCommandFromResource(CreateReportResource resource) {
         return new CreateReportCommand(
             resource.citizenId(),
+            resource.districtId(),
             resource.latitude(),
             resource.longitude(),
-            resource.address(),
-            resource.districtCode(),
             resource.containerId(),
             resource.reportType(),
             resource.description(),

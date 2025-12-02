@@ -13,4 +13,8 @@ public record Temperature(BigDecimal celsius) {
             throw new IllegalArgumentException("Temperature must be between -50°C and 100°C");
         }
     }
+
+    public static String toStringOrNull(Temperature temperature) {
+        return temperature != null ? temperature.celsius().toString() : null;
+    }
 }

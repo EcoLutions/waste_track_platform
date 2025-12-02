@@ -15,6 +15,7 @@ import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -61,8 +62,8 @@ public class DistrictControllerImpl implements DistrictController {
     }
 
     @Override
-    public ResponseEntity<DistrictResource> updateDistrict(UpdateDistrictResource resource) {
-        var command = UpdateDistrictCommandFromResourceAssembler.toCommandFromResource(resource);
+    public ResponseEntity<DistrictResource> updateDistrict(String id, UpdateDistrictResource resource) {
+        var command = UpdateDistrictCommandFromResourceAssembler.toCommandFromResource(id, resource);
         var updatedDistrict = districtCommandService.handle(command);
         if (updatedDistrict.isEmpty()) return ResponseEntity.notFound().build();
         var districtResource = DistrictResourceFromEntityAssembler.toResourceFromEntity(updatedDistrict.get());

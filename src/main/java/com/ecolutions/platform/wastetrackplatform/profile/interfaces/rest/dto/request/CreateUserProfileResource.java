@@ -3,7 +3,6 @@ package com.ecolutions.platform.wastetrackplatform.profile.interfaces.rest.dto.r
 public record CreateUserProfileResource(
     String userId,
     String photoPath,
-    String userType,
     String districtId,
     String email,
     String phoneNumber,
@@ -13,9 +12,6 @@ public record CreateUserProfileResource(
     public CreateUserProfileResource {
         if (userId == null || userId.isBlank()) {
             throw new IllegalArgumentException("User ID cannot be null or blank");
-        }
-        if (userType == null || userType.isBlank()) {
-            throw new IllegalArgumentException("User type cannot be null or blank");
         }
         if (districtId == null || districtId.isBlank()) {
             throw new IllegalArgumentException("District ID cannot be null or blank");

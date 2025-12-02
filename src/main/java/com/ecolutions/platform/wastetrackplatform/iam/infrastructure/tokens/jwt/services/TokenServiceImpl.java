@@ -32,6 +32,12 @@ public class TokenServiceImpl implements BearerTokenService {
     @Value("${authorization.jwt.expiration.days}")
     private int expirationDays;
 
+    @Value("${authorization.jwt.activation.expiration.days}")
+    private int activationExpirationDays;
+
+    @Value("${authorization.jwt.password-reset.expiration.minutes}")
+    private int passwordResetExpirationMinutes;
+
     private SecretKey getSigningKey() {
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
@@ -66,6 +72,18 @@ public class TokenServiceImpl implements BearerTokenService {
                 .subject(username)
                 .issuedAt(issuedAt)
                 .expiration(expiration)
+                .claim("purpose", "auth")
+                .signWith(key)
+                .compact();
+    }
+
+    private String buildTokenWithPurpose(String username, String purpose, Date issuedAt, Date expiration) {
+        var key = getSigningKey();
+        return Jwts.builder()
+                .subject(username)
+                .issuedAt(issuedAt)
+                .expiration(expiration)
+                .claim("purpose", purpose)
                 .signWith(key)
                 .compact();
     }
@@ -93,8 +111,33 @@ public class TokenServiceImpl implements BearerTokenService {
     }
 
     @Override
-    public String getUsernameFromToken(String token) {
+    public String getEmailFromToken(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    @Override
+    public String generateActivationToken(String email) {
+        var issuedAt = new Date();
+        var expiration = DateUtils.addDays(issuedAt, activationExpirationDays);
+        return buildTokenWithPurpose(email, "activation", issuedAt, expiration);
+    }
+
+    @Override
+    public String generatePasswordResetToken(String email) {
+        var issuedAt = new Date();
+        var expiration = DateUtils.addMinutes(issuedAt, passwordResetExpirationMinutes);
+        return buildTokenWithPurpose(email, "password_reset", issuedAt, expiration);
+    }
+
+    @Override
+    public String getTokenPurpose(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            return claims.get("purpose", String.class);
+        } catch (Exception e) {
+            LOGGER.error("Error extracting token purpose: {}", e.getMessage());
+            return null;
+        }
     }
 
     @Override

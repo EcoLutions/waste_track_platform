@@ -1,8 +1,8 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects;
 
 public enum RouteStatus {
-    DRAFT,
-    ASSIGNED,
+    PLANNED,
+    ACTIVE,
     IN_PROGRESS,
     COMPLETED,
     CANCELLED;
@@ -16,5 +16,9 @@ public enum RouteStatus {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid RouteStatus: " + value);
         }
+    }
+
+    public static String toStringOrNull(RouteStatus routeStatus){
+        return routeStatus != null ? routeStatus.name() : null;
     }
 }

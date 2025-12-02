@@ -8,7 +8,7 @@ public enum PriorityLevel {
 
     public static PriorityLevel fromString(String value) {
         if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException("PriorityLevel cannot be null or blank");
+            return null;
         }
         try {
             return PriorityLevel.valueOf(value.toUpperCase());

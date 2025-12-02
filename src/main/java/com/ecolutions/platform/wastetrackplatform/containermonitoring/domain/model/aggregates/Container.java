@@ -1,13 +1,19 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.CreateContainerCommand;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.UpdateContainerCommand;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.events.ContainerBecameCriticalEvent;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.events.ContainerFillLevelUpdatedEvent;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.*;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DeviceId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,8 +38,8 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
     private ContainerStatus status;
 
     @Embedded
-    @AttributeOverride(name = "sensorId", column = @Column(name = "sensor_id"))
-    private SensorId sensorId;
+    @AttributeOverride(name = "deviceId", column = @Column(name = "device_id"))
+    private DeviceId deviceId;
 
     @Column(name = "last_reading_timestamp")
     private LocalDateTime lastReadingTimestamp;
@@ -55,16 +61,34 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
         this.currentFillLevel = new CurrentFillLevel(0);
     }
 
-    public Container(Location location, ContainerCapacity capacity,
-                     ContainerType containerType, DistrictId districtId,
-                     CollectionFrequency collectionFrequency, SensorId sensorId) {
+    public Container(CreateContainerCommand command, DeviceId deviceId) {
         this();
-        this.location = location;
-        this.capacity = capacity;
-        this.containerType = containerType;
-        this.districtId = districtId;
-        this.collectionFrequency = collectionFrequency;
-        this.sensorId = sensorId;
+        this.location = new Location(new BigDecimal(command.latitude()), new BigDecimal(command.longitude()));
+        this.capacity = new ContainerCapacity(command.volumeLiters(), command.maxFillLevel());
+        this.containerType = ContainerType.fromString(command.containerType());
+        this.districtId = DistrictId.of(command.districtId());
+        this.collectionFrequency = new CollectionFrequency(command.collectionFrequencyDays());
+        this.deviceId = deviceId;
+    }
+
+    public void update(UpdateContainerCommand command) {
+        if (command.latitude() != null && command.longitude() != null) {
+            this.location = new Location(new BigDecimal(command.latitude()), new BigDecimal(command.longitude()));
+        }
+        if (command.volumeLiters() != null && command.maxFillLevel() != null) {
+            this.capacity = new ContainerCapacity(command.volumeLiters(), command.maxFillLevel());
+        }
+        if (command.containerType() != null) {
+            this.containerType = ContainerType.fromString(command.containerType());
+        }
+        if (command.status() != null) {
+            this.status = ContainerStatus.fromString(command.status());
+        }
+        if (command.collectionFrequencyDays() != null) {
+            this.collectionFrequency = new CollectionFrequency(command.collectionFrequencyDays());
+            this.lastCollectionDate = null;
+        }
+        this.deviceId = DeviceId.of(command.deviceId());
     }
 
     public void updateFillLevel(CurrentFillLevel newLevel, LocalDateTime timestamp) {
@@ -87,11 +111,7 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
     }
 
     public boolean isOverflowing() {
-        return currentFillLevel.isOverflowing();
-    }
-
-    public void assignSensor(SensorId sensorId) {
-        this.sensorId = sensorId;
+        return currentFillLevel.isOverflowing(capacity.maxFillLevel());
     }
 
     public void scheduleMaintenanceDueToSensorFailure() {
@@ -104,5 +124,31 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
 
     public void decommission() {
         this.status = ContainerStatus.DECOMMISSIONED;
+    }
+
+    public boolean hasBecomeCritical(CurrentFillLevel previousLevel) {
+        boolean wasCritical = previousLevel != null && previousLevel.percentage() >= this.capacity.maxFillLevel();
+        boolean isCritical = this.currentFillLevel.percentage() >= this.capacity.maxFillLevel();
+        return !wasCritical && isCritical;
+    }
+
+    public ContainerBecameCriticalEvent buildContainerBecameCriticalEvent() {
+        return ContainerBecameCriticalEvent.builder()
+                .source(this)
+                .containerId(this.getId())
+                .districtId(this.districtId.value())
+                .location(this.location)
+                .fillLevel(this.currentFillLevel.percentage())
+                .build();
+    }
+
+    public ContainerFillLevelUpdatedEvent buildContainerFillLevelUpdatedEvent() {
+        return ContainerFillLevelUpdatedEvent.builder()
+                .source(this)
+                .containerId(this.getId())
+                .maxFillLevelThreshold(Float.valueOf(this.capacity.maxFillLevel()))
+                .sensorId(this.deviceId.value())
+                .occurredAt(LocalDateTime.now())
+                .build();
     }
 }

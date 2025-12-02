@@ -1,30 +1,43 @@
 package com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.controllers;
 
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.commands.DeleteReportCommand;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllEvidencesByReportId;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllReportsByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetAllReportsQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.model.queries.GetReportByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.command.ReportCommandService;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.queries.EvidenceQueryService;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.domain.services.queries.ReportQueryService;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.request.CreateReportResource;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.request.UpdateReportResource;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.response.EvidenceResource;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.dto.response.ReportResource;
+import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.mappers.fromentitytoresponse.EvidenceResourceFromEntityAssembler;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.mappers.fromentitytoresponse.ReportResourceFromEntityAssembler;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.mappers.fromresourcetocommand.CreateReportCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.mappers.fromresourcetocommand.UpdateReportCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.communityrelations.interfaces.rest.swagger.ReportController;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.services.storage.StorageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class ReportControllerImpl implements ReportController {
     private final ReportCommandService reportCommandService;
     private final ReportQueryService reportQueryService;
+    private final EvidenceQueryService evidenceQueryService;
+    private final StorageService storageService;
 
     @Override
     public ResponseEntity<ReportResource> createReport(CreateReportResource resource) {
@@ -60,6 +73,16 @@ public class ReportControllerImpl implements ReportController {
     }
 
     @Override
+    public ResponseEntity<List<ReportResource>> getAllReportsByDistrictId(String districtId) {
+        var query = new GetAllReportsByDistrictIdQuery(districtId);
+        var reports = reportQueryService.handle(query);
+        var reportResources = reports.stream()
+                .map(ReportResourceFromEntityAssembler::toResourceFromEntity)
+                .toList();
+        return ResponseEntity.status(HttpStatus.OK).body(reportResources);
+    }
+
+    @Override
     public ResponseEntity<ReportResource> updateReport(String id, UpdateReportResource resource) {
         var command = UpdateReportCommandFromResourceAssembler.toCommandFromResource(resource);
         var updatedReport = reportCommandService.handle(command);
@@ -74,5 +97,23 @@ public class ReportControllerImpl implements ReportController {
         var deleted = reportCommandService.handle(command);
         if (!deleted) return ResponseEntity.notFound().build();
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<List<EvidenceResource>> getEvidencesByReportId(String reportId) {
+        var query = new GetAllEvidencesByReportId(reportId);
+        var evidences = evidenceQueryService.handle(query);
+        var evidenceResources = evidences.stream()
+                .map(evidence -> {
+                    try {
+                        String freshUrl = storageService.getFileUrl(evidence.getFilePath());
+                        return EvidenceResourceFromEntityAssembler.toResourceWithUrl(evidence, freshUrl);
+                    } catch (IOException e) {
+                        log.warn("Could not generate URL for evidence {}: {}", evidence.getId(), e.getMessage());
+                        return EvidenceResourceFromEntityAssembler.toResourceFromEntity(evidence);
+                    }
+                })
+                .collect(Collectors.toList());
+        return ResponseEntity.status(HttpStatus.OK).body(evidenceResources);
     }
 }

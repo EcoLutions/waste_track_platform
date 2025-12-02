@@ -15,7 +15,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SensorReadingSteps {
-
+/*
     private String endpoint;
     private boolean tokenValido;
     private final Map<String, String> headers = new HashMap<>();
@@ -357,5 +357,5 @@ public class SensorReadingSteps {
         void updateFill(int newFillPercentage) {
             this.currentFillLevelPercentage = newFillPercentage;
         }
-    }
+    }*/
 }

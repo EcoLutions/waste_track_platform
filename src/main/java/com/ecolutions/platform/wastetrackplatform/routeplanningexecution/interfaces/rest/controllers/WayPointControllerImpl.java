@@ -7,10 +7,12 @@ import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.services.command.WayPointCommandService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.services.queries.WayPointQueryService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request.CreateWayPointResource;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request.MarkWayPointAsVisitedResource;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.request.UpdateWayPointResource;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.dto.response.WayPointResource;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.mappers.fromentitytoresponse.WayPointResourceFromEntityAssembler;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.mappers.fromresourcetocommand.CreateWayPointCommandFromResourceAssembler;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.mappers.fromresourcetocommand.MarkWayPointAsVisitedCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.mappers.fromresourcetocommand.UpdateWayPointCommandFromResourceAssembler;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.interfaces.rest.swagger.WayPointController;
 import lombok.RequiredArgsConstructor;
@@ -82,5 +84,14 @@ public class WayPointControllerImpl implements WayPointController {
         var result = wayPointCommandService.handle(command);
         if (!result) return ResponseEntity.notFound().build();
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<WayPointResource> markWayPointAsVisited(String id, MarkWayPointAsVisitedResource resource) {
+        var command = MarkWayPointAsVisitedCommandFromResourceAssembler.toCommandFromResource(id, resource);
+        var updatedWayPoint = wayPointCommandService.handle(command);
+        if (updatedWayPoint.isEmpty()) return ResponseEntity.notFound().build();
+        var wayPointResource = WayPointResourceFromEntityAssembler.toResourceFromEntity(updatedWayPoint.get());
+        return ResponseEntity.status(HttpStatus.OK).body(wayPointResource);
     }
 }

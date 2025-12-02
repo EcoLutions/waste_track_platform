@@ -1,6 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.communicationhub.domain.model.valueobjects;
 
 public enum SourceContext {
+    IAM,
     CONTAINER_MONITORING,
     ROUTE_PLANNING,
     COMMUNITY_RELATIONS,

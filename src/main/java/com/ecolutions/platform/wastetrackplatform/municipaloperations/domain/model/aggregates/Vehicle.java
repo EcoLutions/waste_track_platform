@@ -1,12 +1,12 @@
 package com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.*;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DriverId;
-import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.*;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -38,10 +38,6 @@ public class Vehicle extends AuditableAbstractAggregateRoot<Vehicle> {
     @AttributeOverride(name = "value", column = @Column(name = "district_id"))
     private DistrictId districtId;
 
-    @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "assigned_driver_id"))
-    private DriverId assignedDriverId;
-
     private LocalDateTime lastMaintenanceDate;
 
     private LocalDateTime nextMaintenanceDate;
@@ -66,14 +62,6 @@ public class Vehicle extends AuditableAbstractAggregateRoot<Vehicle> {
         this.mileage = new Mileage(0);
     }
 
-    public void assignDriver(DriverId driverId) {
-        this.assignedDriverId = driverId;
-    }
-
-    public void unassignDriver() {
-        this.assignedDriverId = null;
-    }
-
     public void updateMileage(Mileage newMileage) {
         this.mileage = newMileage;
     }
@@ -95,7 +83,7 @@ public class Vehicle extends AuditableAbstractAggregateRoot<Vehicle> {
     }
 
     public boolean isAvailable() {
-        return isActive && assignedDriverId != null;
+        return isActive;
     }
 
     public void deactivate() {

@@ -7,6 +7,7 @@ import java.util.List;
 @Builder
 public record UserResource(
         String id,
+        String email,
         String username,
         String status,
         Integer failedLoginAttempts,

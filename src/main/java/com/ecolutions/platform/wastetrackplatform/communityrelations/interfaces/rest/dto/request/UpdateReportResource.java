@@ -6,8 +6,6 @@ public record UpdateReportResource(
     String reportId,
     String latitude,
     String longitude,
-    String address,
-    String districtCode,
     String containerId,
     String reportType,
     String description,
@@ -22,12 +20,6 @@ public record UpdateReportResource(
         }
         if (longitude == null || longitude.isBlank()) {
             throw new IllegalArgumentException("Longitude cannot be null or blank");
-        }
-        if (address == null || address.isBlank()) {
-            throw new IllegalArgumentException("Address cannot be null or blank");
-        }
-        if (districtCode == null || districtCode.isBlank()) {
-            throw new IllegalArgumentException("District code cannot be null or blank");
         }
         if (reportType == null || reportType.isBlank()) {
             throw new IllegalArgumentException("Report type cannot be null or blank");

@@ -5,10 +5,9 @@ import lombok.Builder;
 public record ReportResource(
     String id,
     String citizenId,
+    String districtId,
     String latitude,
     String longitude,
-    String address,
-    String districtCode,
     String containerId,
     String reportType,
     String description,

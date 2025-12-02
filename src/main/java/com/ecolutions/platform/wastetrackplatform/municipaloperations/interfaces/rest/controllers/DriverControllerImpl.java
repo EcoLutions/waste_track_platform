@@ -1,8 +1,10 @@
 package com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.rest.controllers;
 
+import com.ecolutions.platform.wastetrackplatform.iam.interfaces.rest.mappers.fromentitytoresponse.UserResourceFromEntityAssembler;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.DeleteDriverCommand;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetAllDriversByDistrictIdQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetAllDriversQuery;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetCurrentDriverQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.queries.GetDriverByIdQuery;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.services.command.DriverCommandService;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.services.queries.DriverQueryService;
@@ -86,5 +88,14 @@ public class DriverControllerImpl implements DriverController {
         var deleted = driverCommandService.handle(command);
         if (!deleted) return ResponseEntity.notFound().build();
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<DriverResource> getCurrentDriver() {
+        var query = new GetCurrentDriverQuery();
+        var driver = driverQueryService.handle(query);
+        if (driver.isEmpty()) return ResponseEntity.notFound().build();
+        var driverResource = DriverResourceFromEntityAssembler.toResourceFromEntity(driver.get());
+        return ResponseEntity.ok(driverResource);
     }
 }

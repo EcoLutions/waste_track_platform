@@ -15,4 +15,8 @@ public enum ContainerStatus {
             throw new IllegalArgumentException("Invalid ContainerStatus: " + value);
         }
     }
+
+    public static String toStringOrNull(ContainerStatus containerStatus) {
+        return containerStatus != null ? containerStatus.name() : null;
+    }
 }

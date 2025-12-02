@@ -2,7 +2,6 @@ package com.ecolutions.platform.wastetrackplatform.profile.interfaces.rest.dto.r
 
 public record UpdateUserProfileResource(
     String photoPath,
-    String userType,
     String districtId,
     String email,
     String phoneNumber,
@@ -10,7 +9,6 @@ public record UpdateUserProfileResource(
     Boolean smsNotificationsEnabled,
     Boolean pushNotificationsEnabled,
     String language,
-    String timezone,
-    Boolean isActive
+    String timezone
 ) {
 }
