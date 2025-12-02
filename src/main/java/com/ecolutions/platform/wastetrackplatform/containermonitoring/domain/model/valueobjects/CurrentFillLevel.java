@@ -14,8 +14,8 @@ public record CurrentFillLevel(Integer percentage) {
         return percentage > maxFillLevel;
     }
 
-    public boolean requiresCollection(Integer maxFillLevel) {
-        return percentage > maxFillLevel*0.9;
+    public boolean requiresCollection() {
+        return percentage > 0;
     }
 
     public static Integer toIntegerOrNull(CurrentFillLevel currentFillLevel) {
