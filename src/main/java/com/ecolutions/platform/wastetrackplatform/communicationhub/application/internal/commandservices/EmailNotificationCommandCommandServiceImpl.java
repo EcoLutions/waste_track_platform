@@ -5,6 +5,8 @@ import com.ecolutions.platform.wastetrackplatform.communicationhub.application.i
 import com.ecolutions.platform.wastetrackplatform.communicationhub.domain.model.commands.SendPasswordResetEmailCommand;
 import com.ecolutions.platform.wastetrackplatform.communicationhub.domain.model.commands.SendUserActivationEmailCommand;
 import com.ecolutions.platform.wastetrackplatform.communicationhub.domain.services.command.EmailNotificationCommandService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,8 @@ public class EmailNotificationCommandCommandServiceImpl implements EmailNotifica
     private int activationTokenExpirationDays;
     @Value("${authorization.jwt.password-reset.expiration.minutes}")
     private int passwordResetTokenExpirationMinutes;
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(EmailNotificationCommandCommandServiceImpl.class);
 
     public EmailNotificationCommandCommandServiceImpl(EmailService emailService, TemplateService templateService) {
         this.emailService = emailService;
@@ -46,7 +50,10 @@ public class EmailNotificationCommandCommandServiceImpl implements EmailNotifica
 
             emailService.sendHtmlEmail(command.recipientEmail(), subject, htmlContent);
 
+            LOGGER.info("User activation email sent to {}", command.recipientEmail());
+
         } catch (Exception _) {
+            LOGGER.error("Failed to send user activation email to {}", command.recipientEmail());
         }
     }
 
@@ -67,7 +74,10 @@ public class EmailNotificationCommandCommandServiceImpl implements EmailNotifica
 
             emailService.sendHtmlEmail(command.recipientEmail(), subject, htmlContent);
 
+            LOGGER.info("Password reset email sent to {}", command.recipientEmail());
+
         } catch (Exception _) {
+            LOGGER.error("Failed to send password reset email to {}", command.recipientEmail());
         }
     }
 
