@@ -14,10 +14,10 @@ public class ContainerWebSocketPublisherService {
 
     /**
      * Publishes a message to the container fill level topic.
-     * Destination: /topic/container/{containerId}/fill-level
+     * Destination: /topic/containers/{containerId}/fill-level
      */
     public void publishContainerUpdatedFillLevel(ContainerUpdatedFillLevelPayload payload) {
-        String destination = "/topic/container" + payload.containerId() + "/fill-level";
+        String destination = "/topic/containers/" + payload.containerId() + "/fill-level";
         log.info("Publishing container fill level update to {}", destination);
         messagingTemplate.convertAndSend(destination, payload);
     }
