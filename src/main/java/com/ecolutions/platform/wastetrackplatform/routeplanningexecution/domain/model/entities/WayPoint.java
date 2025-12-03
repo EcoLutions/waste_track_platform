@@ -2,6 +2,7 @@ package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain
 
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateWayPointCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateWayPointCommand;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.events.WayPointAsVisitedEvent;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.Priority;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.PriorityLevel;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.WaypointStatus;
@@ -87,5 +88,13 @@ public class WayPoint extends AuditableModel {
             throw new IllegalStateException("Cannot update priority of non-pending waypoint");
         }
         this.priority = newPriority;
+    }
+
+    public WayPointAsVisitedEvent publishWaypointAsVisitedEvent() {
+        return WayPointAsVisitedEvent.builder()
+                .source(this)
+                .wayPointId(id)
+                .containerId(ContainerId.toStringOrNull(this.containerId))
+                .build();
     }
 }
