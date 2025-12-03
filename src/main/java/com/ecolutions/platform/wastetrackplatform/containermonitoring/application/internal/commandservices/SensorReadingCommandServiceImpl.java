@@ -1,5 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.application.internal.commandservices;
 
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.application.internal.outboundservices.websocket.ContainerWebSocketPublisherService;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.application.internal.outboundservices.websocket.transform.ContainerUpdatedFillLevelPayloadAssembler;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates.Container;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates.SensorReading;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.CreateSensorReadingCommand;
@@ -25,33 +27,39 @@ public class SensorReadingCommandServiceImpl implements SensorReadingCommandServ
     private final SensorReadingRepository sensorReadingRepository;
     private final ContainerRepository containerRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final ContainerWebSocketPublisherService containerWebSocketPublisher;
 
     @Override
     @Transactional
     public Optional<SensorReading> handle(CreateSensorReadingCommand command) {
-        // 1. Create sensor reading
+        log.debug("1. Creating sensor reading for container {}", command.containerId());
         var newSensorReading = new SensorReading(command);
         var savedSensorReading = sensorReadingRepository.save(newSensorReading);
 
-        // 2. Check if container exists
+        log.debug("2. Updating container fill level for container {}", command.containerId());
         Container container = containerRepository.findById(command.containerId())
                 .orElseThrow(() -> new IllegalArgumentException("Container not found: " + command.containerId()));
 
-        // Save previous fill level before updating
+        log.debug("3. Checking previous fill level for container {}", command.containerId());
         CurrentFillLevel previousFillLevel = container.getCurrentFillLevel();
         CurrentFillLevel newFillLevel = new CurrentFillLevel(command.fillLevelPercentage());
 
-        // Update container
+        log.debug("4. Updating container fill level for container {}", command.containerId());
         container.updateFillLevel(newFillLevel, LocalDateTime.now());
-        containerRepository.save(container);
+        Container updatedContainer = containerRepository.save(container);
 
-        // 3. Check if the container became critical and publish the event
+        log.debug("5. Publishing events for container {}", command.containerId());
         if (container.hasBecomeCritical(previousFillLevel)) {
             log.info("Container {} became CRITICAL (fill level: {}%)", container.getId(), newFillLevel.percentage());
             var event = container.buildContainerBecameCriticalEvent();
             eventPublisher.publishEvent(event);
         }
 
+        log.debug("6. Publishing websocket events for container {}", command.containerId());
+        var containerUpdatedFillLevel = ContainerUpdatedFillLevelPayloadAssembler.toPayload(updatedContainer);
+        containerWebSocketPublisher.publishContainerUpdatedFillLevel(containerUpdatedFillLevel);
+
+        log.debug("7. Sensor reading created successfully for container {}", command.containerId());
         return Optional.of(savedSensorReading);
     }
 
