@@ -3,6 +3,7 @@ package com.ecolutions.platform.wastetrackplatform.containermonitoring.applicati
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates.Container;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.CreateContainerCommand;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.DeleteContainerCommand;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.EmptyContainerCommand;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.UpdateContainerCommand;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.DeviceIdentifier;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.SensorId;
@@ -97,5 +98,14 @@ public class ContainerCommandServiceImpl implements ContainerCommandService {
                 .orElseThrow(() -> new IllegalArgumentException("Container with ID " + command.containerId() + " not found."));
         containerRepository.delete(existingContainer);
         return true;
+    }
+
+    @Override
+    public Optional<Container> handle(EmptyContainerCommand command) {
+        var existingContainer = containerRepository.findById(command.containerId())
+                .orElseThrow(() -> new IllegalArgumentException("Container with ID " + command.containerId() + " not found."));
+        existingContainer.emptyContainer();
+        var updatedContainer = containerRepository.save(existingContainer);
+        return Optional.of(updatedContainer);
     }
 }

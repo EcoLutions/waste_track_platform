@@ -5,7 +5,6 @@ import com.ecolutions.platform.wastetrackplatform.communicationhub.domain.servic
 import com.ecolutions.platform.wastetrackplatform.iam.domain.model.events.UserCreatedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;

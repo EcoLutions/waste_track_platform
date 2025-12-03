@@ -151,4 +151,8 @@ public class Container extends AuditableAbstractAggregateRoot<Container> {
                 .occurredAt(LocalDateTime.now())
                 .build();
     }
+
+    public void emptyContainer() {
+        this.currentFillLevel = new CurrentFillLevel(0);
+    }
 }
