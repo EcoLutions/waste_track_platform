@@ -21,6 +21,7 @@ import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjec
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +41,7 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     private final RouteUpdateService routeUpdateService;
     private final RouteOptimizationService routeOptimizationService;
     private final RouteWebSocketPublisherService routeWebSocketPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -141,9 +143,11 @@ public class RouteCommandServiceImpl implements RouteCommandService {
     public Optional<Route> handle(MarkWayPointAsVisitedCommand command) {
         Route route = routeRepository.findById(command.routeId())
                 .orElseThrow(() -> new IllegalArgumentException("Route with ID " + command.routeId() + " not found."));
-        route.markWaypointAsVisited(command.waypointId());
+        var waypointMarked = route.markWaypointAsVisited(command.waypointId());
         var updatedRoute = routeRepository.save(route);
         routeUpdateService.onWaypointVisited(updatedRoute);
+        var event = waypointMarked.publishWaypointAsVisitedEvent();
+        eventPublisher.publishEvent(event);
         return Optional.of(updatedRoute);
     }
 

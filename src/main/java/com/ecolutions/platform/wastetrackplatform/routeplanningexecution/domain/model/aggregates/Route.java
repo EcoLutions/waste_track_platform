@@ -159,7 +159,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
         this.status = RouteStatus.COMPLETED;
     }
 
-    public void markWaypointAsVisited(String waypointId) {
+    public WayPoint markWaypointAsVisited(String waypointId) {
         WayPoint waypoint = waypoints.stream()
             .filter(wp -> wp.getId().equals(waypointId))
             .findFirst()
@@ -167,6 +167,7 @@ public class Route extends AuditableAbstractAggregateRoot<Route> {
 
         waypoint.markAsVisited();
         this.totalCompletedWaypoints++;
+        return waypoint;
     }
 
     public boolean canBeModified() {
