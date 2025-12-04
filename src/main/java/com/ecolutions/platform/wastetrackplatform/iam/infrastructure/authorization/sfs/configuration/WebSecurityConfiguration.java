@@ -74,6 +74,8 @@ public class WebSecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         var permittedRequestPatterns = new String[]{
+                "/actuator/prometheus",
+                "/actuator/health",
                 "/api/v1/authentication/**",
                 "/v3/api-docs/**",
                 "/swagger-ui.html",
