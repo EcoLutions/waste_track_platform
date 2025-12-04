@@ -1,8 +1,8 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.RouteStatus;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -10,17 +10,19 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
-@Disabled
 class RouteTest {
 
     private Route route;
 
     @BeforeEach
     void setUp() {
-/*
-        route = new Route(DistrictId.of("DIST-001"), RouteType.REGULAR, LocalDate.now().plusDays(1));
-*/
+        CreateRouteCommand command = new CreateRouteCommand(
+                "DIST-001",
+                "DRIVER-001",
+                "VEHICLE-001",
+                LocalDateTime.now().plusDays(1)
+        );
+        route = new Route(command);
     }
 
 /*
@@ -47,9 +49,9 @@ class RouteTest {
     }
 
     @Test
-    @DisplayName("Should throw when starting if not ASSIGNED")
+    @DisplayName("Should throw when starting if not ACTIVE")
     void shouldThrowWhenStartingInvalidStatus() {
-        route.setStatus(RouteStatus.ACTIVE);
+        route.setStatus(RouteStatus.PLANNED);
         assertThrows(IllegalStateException.class, route::startExecution);
     }
 
