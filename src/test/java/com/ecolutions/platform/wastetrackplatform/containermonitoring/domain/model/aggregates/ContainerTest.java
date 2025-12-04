@@ -1,10 +1,9 @@
 package com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates;
 
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.CreateContainerCommand;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.*;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DistrictId;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.Location;
+import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.DeviceId;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -13,45 +12,45 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ContainerTest {
-    private Location location;
-    private ContainerCapacity capacity;
-    private DistrictId districtId;
-    private CollectionFrequency frequency;
-    private SensorId sensorId;
+    private CreateContainerCommand createCommand;
+    private DeviceId deviceId;
 
     @BeforeEach
     void setUp() {
-        //  Arrange
-        location = new Location(
-                new BigDecimal("12.0464"),
-                new BigDecimal("-77.0428")
+        createCommand = new CreateContainerCommand(
+                "12.0464",
+                "-77.0428",
+                1000,
+                90,
+                "SENSOR-001",
+                "ORGANIC",
+                "SURCO",
+                3
         );
-        capacity = new ContainerCapacity(1000, 90);
-        districtId = new DistrictId("SURCO");
-        frequency = new CollectionFrequency(3);
-        sensorId = new SensorId("SENSOR-001");
+        deviceId = DeviceId.of("SENSOR-001");
     }
 
     @Test
     void shouldCreateContainerWithDefaultStatusAndEmptyFillLevel() {
-        //  Arrange
-        // (ya inicializado en setUp)
-
-/*        //  Act
-        Container container = new Container(location, capacity, ContainerType.ORGANIC, districtId, frequency, sensorId);
+        //  Act
+        Container container = new Container(createCommand, deviceId);
 
         //  Assert
         assertNotNull(container);
         assertEquals(ContainerStatus.ACTIVE, container.getStatus());
         assertEquals(0, container.getCurrentFillLevel().percentage());
         assertEquals(ContainerType.ORGANIC, container.getContainerType());
-        assertEquals(sensorId, container.getSensorId());*/
+        assertEquals(deviceId, container.getDeviceId());
     }
 
     @Test
     void shouldUpdateFillLevelAndTimestampCorrectly() {
         //  Arrange
-/*        Container container = new Container(location, capacity, ContainerType.RECYCLABLE, districtId, frequency, sensorId);
+        CreateContainerCommand recyclableCommand = new CreateContainerCommand(
+                "12.0464", "-77.0428", 1000, 90, "SENSOR-002",
+                "RECYCLABLE", "SURCO", 3
+        );
+        Container container = new Container(recyclableCommand, DeviceId.of("SENSOR-002"));
         CurrentFillLevel newLevel = new CurrentFillLevel(85);
         LocalDateTime now = LocalDateTime.now();
 
@@ -60,13 +59,17 @@ class ContainerTest {
 
         // Assert
         assertEquals(85, container.getCurrentFillLevel().percentage());
-        assertEquals(now, container.getLastReadingTimestamp());*/
+        assertEquals(now, container.getLastReadingTimestamp());
     }
 
     @Test
     void shouldResetFillLevelWhenMarkedAsCollected() {
         //  Arrange
-/*        Container container = new Container(location, capacity, ContainerType.GENERAL, districtId, frequency, sensorId);
+        CreateContainerCommand generalCommand = new CreateContainerCommand(
+                "12.0464", "-77.0428", 1000, 90, "SENSOR-003",
+                "GENERAL", "SURCO", 3
+        );
+        Container container = new Container(generalCommand, DeviceId.of("SENSOR-003"));
         container.updateFillLevel(new CurrentFillLevel(95), LocalDateTime.now());
         LocalDateTime collectedAt = LocalDateTime.now();
 
@@ -75,13 +78,13 @@ class ContainerTest {
 
         // Assert
         assertEquals(0, container.getCurrentFillLevel().percentage());
-        assertEquals(collectedAt, container.getLastCollectionDate());*/
+        assertEquals(collectedAt, container.getLastCollectionDate());
     }
 
     @Test
     void shouldRequireCollectionWhenFillLevelIsHighOrFrequencyExceeded() {
         //  Arrange
-/*        Container container = new Container(location, capacity, ContainerType.ORGANIC, districtId, frequency, sensorId);
+        Container container = new Container(createCommand, deviceId);
 
         // Caso 1: porcentaje alto (>80)
         container.updateFillLevel(new CurrentFillLevel(85), LocalDateTime.now());
@@ -90,26 +93,34 @@ class ContainerTest {
         // Caso 2: tiempo excedido desde última recolección
         container.markAsCollected(LocalDateTime.now().minusDays(5));
         container.updateFillLevel(new CurrentFillLevel(50), LocalDateTime.now());
-        assertTrue(container.requiresCollection());*/
+        assertTrue(container.requiresCollection());
     }
 
     @Test
     void shouldDetectOverflowWhenFillLevelAboveThreshold() {
         //  Arrange
-/*        Container container = new Container(location, capacity, ContainerType.RECYCLABLE, districtId, frequency, sensorId);
+        CreateContainerCommand recyclableCommand = new CreateContainerCommand(
+                "12.0464", "-77.0428", 1000, 90, "SENSOR-004",
+                "RECYCLABLE", "SURCO", 3
+        );
+        Container container = new Container(recyclableCommand, DeviceId.of("SENSOR-004"));
         container.updateFillLevel(new CurrentFillLevel(95), LocalDateTime.now());
 
         //  Act
         boolean result = container.isOverflowing();
 
         //  Assert
-        assertTrue(result);*/
+        assertTrue(result);
     }
 
     @Test
     void shouldChangeStatusCorrectly() {
         //  Arrange
-/*        Container container = new Container(location, capacity, ContainerType.RECYCLABLE, districtId, frequency, sensorId);
+        CreateContainerCommand recyclableCommand = new CreateContainerCommand(
+                "12.0464", "-77.0428", 1000, 90, "SENSOR-005",
+                "RECYCLABLE", "SURCO", 3
+        );
+        Container container = new Container(recyclableCommand, DeviceId.of("SENSOR-005"));
 
         //  Act & Assert
         container.scheduleMaintenanceDueToSensorFailure();
@@ -119,19 +130,23 @@ class ContainerTest {
         assertEquals(ContainerStatus.ACTIVE, container.getStatus());
 
         container.decommission();
-        assertEquals(ContainerStatus.DECOMMISSIONED, container.getStatus());*/
+        assertEquals(ContainerStatus.DECOMMISSIONED, container.getStatus());
     }
 
     @Test
     void shouldAssignNewSensorCorrectly() {
         //  Arrange
-/*        Container container = new Container(location, capacity, ContainerType.RECYCLABLE, districtId, frequency, sensorId);
-        SensorId newSensor = new SensorId("SENSOR-NEW-123");
+        CreateContainerCommand recyclableCommand = new CreateContainerCommand(
+                "12.0464", "-77.0428", 1000, 90, "SENSOR-006",
+                "RECYCLABLE", "SURCO", 3
+        );
+        Container container = new Container(recyclableCommand, DeviceId.of("SENSOR-006"));
+        DeviceId newSensor = DeviceId.of("SENSOR-NEW-123");
 
         //  Act
-        container.assignSensor(newSensor);
+        container.setDeviceId(newSensor);
 
         //  Assert
-        assertEquals(newSensor, container.getSensorId());*/
+        assertEquals(newSensor, container.getDeviceId());
     }
 }

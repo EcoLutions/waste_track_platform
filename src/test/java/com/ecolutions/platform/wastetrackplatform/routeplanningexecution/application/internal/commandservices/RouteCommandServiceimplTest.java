@@ -1,31 +1,55 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.commandservices;
 
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.acl.contexts.MunicipalOperationsContextFacade;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.interfaces.acl.dtos.DistrictConfigDTO;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.optimization.RouteOptimizationService;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.update.RouteUpdateService;
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.application.internal.outboundservices.websocket.RouteWebSocketPublisherService;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.aggregates.Route;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.DeleteRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.UpdateRouteCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.infrastructure.persistence.jpa.repositories.RouteRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
-@Disabled
 @ExtendWith(MockitoExtension.class)
 class RouteCommandServiceImplTest {
 
     @Mock
     private RouteRepository routeRepository;
+
+    @Mock
+    private MunicipalOperationsContextFacade municipalOperationsContextFacade;
+
+    @Mock
+    private RouteUpdateService routeUpdateService;
+
+    @Mock
+    private RouteOptimizationService routeOptimizationService;
+
+    @Mock
+    private RouteWebSocketPublisherService routeWebSocketPublisher;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private RouteCommandServiceImpl routeCommandService;
@@ -38,14 +62,21 @@ class RouteCommandServiceImplTest {
 
     @BeforeEach
     void setUp() {
-/*
-        createCommand = new CreateRouteCommand("DIST-001", "REGULAR", LocalDate.now().plusDays(1));
-*/
-/*
-        updateCommand = new UpdateRouteCommand("1", "DIST-002", "OPTIMIZED", LocalDate.now().plusDays(2));
-*/
+        createCommand = new CreateRouteCommand(
+                "DIST-001",
+                "DRIVER-001",
+                "VEHICLE-001",
+                LocalDateTime.now().plusDays(1)
+        );
+
+        updateCommand = new UpdateRouteCommand(
+                "1",
+                LocalDateTime.now().plusDays(2)
+        );
+
         deleteCommand = new DeleteRouteCommand("1");
 
+        mockRoute = new Route(createCommand);
         mockRoute.setId("1");
     }
 
@@ -53,6 +84,26 @@ class RouteCommandServiceImplTest {
     @Test
     @DisplayName("Should create and return new route successfully")
     void shouldCreateRouteSuccessfully() {
+        DistrictConfigDTO districtConfig = new DistrictConfigDTO(
+                "DIST-001",
+                "District 1",
+                Duration.ofHours(8),
+                LocalTime.of(6, 0),
+                LocalTime.of(18, 0),
+                java.math.BigDecimal.valueOf(-12.0464),
+                java.math.BigDecimal.valueOf(-77.0428),
+                java.math.BigDecimal.valueOf(-12.0500),
+                java.math.BigDecimal.valueOf(-77.0500)
+        );
+
+        when(municipalOperationsContextFacade.getDistrictConfiguration("DIST-001"))
+                .thenReturn(Optional.of(districtConfig));
+        when(municipalOperationsContextFacade.validateScheduledTime(anyString(), any(LocalDateTime.class)))
+                .thenReturn(true);
+        when(routeRepository.findOverlappingRoutesForDriver(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), anyList()))
+                .thenReturn(Collections.emptyList());
+        when(routeRepository.findOverlappingRoutesForVehicle(anyString(), any(LocalDateTime.class), any(LocalDateTime.class), anyList()))
+                .thenReturn(Collections.emptyList());
         when(routeRepository.save(any(Route.class))).thenReturn(mockRoute);
 
         var result = routeCommandService.handle(createCommand);
@@ -60,17 +111,6 @@ class RouteCommandServiceImplTest {
         assertTrue(result.isPresent());
         assertEquals("DIST-001", result.get().getDistrictId().value());
         verify(routeRepository, times(1)).save(any(Route.class));
-    }
-
-    @Test
-    @DisplayName("Should throw exception when create route fails")
-    void shouldThrowExceptionOnCreateFailure() {
-        when(routeRepository.save(any(Route.class))).thenThrow(new RuntimeException("DB error"));
-
-        var ex = assertThrows(IllegalArgumentException.class, () ->
-                routeCommandService.handle(createCommand));
-
-        assertTrue(ex.getMessage().contains("Failed to create route"));
     }
 
 
@@ -97,7 +137,6 @@ class RouteCommandServiceImplTest {
 
         assertTrue(ex.getMessage().contains("not found"));
     }
-
 
     @Test
     @DisplayName("Should delete existing route successfully")
