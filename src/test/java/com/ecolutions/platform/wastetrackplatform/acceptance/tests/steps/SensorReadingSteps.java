@@ -1,21 +1,18 @@
 package com.ecolutions.platform.wastetrackplatform.acceptance.tests.steps;
 
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates.SensorReading;
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.BatteryLevel;
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.CurrentFillLevel;
-import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.Temperature;
+import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.commands.CreateSensorReadingCommand;
 import com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.valueobjects.ValidationStatus;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.ContainerId;
 import io.cucumber.java.en.*;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class SensorReadingSteps {
-/*
+
     private String endpoint;
     private boolean tokenValido;
     private final Map<String, String> headers = new HashMap<>();
@@ -60,18 +57,23 @@ public class SensorReadingSteps {
         this.requestPrepared = true;
 
         try {
-            ContainerId containerId = new ContainerId(row.get("containerId"));
-            CurrentFillLevel fill = new CurrentFillLevel(parseInt(row.get("fillLevel")));
-            Temperature temp = (row.get("temperature") != null && !row.get("temperature").isBlank())
-                    ? new Temperature(new java.math.BigDecimal(row.get("temperature")))
-                    : new Temperature(java.math.BigDecimal.ZERO);
-            BatteryLevel battery = (row.get("batteryLevel") != null && !row.get("batteryLevel").isBlank())
-                    ? new BatteryLevel(parseInt(row.get("batteryLevel")))
-                    : new BatteryLevel(100);
+            String containerId = row.get("containerId");
+            int fillLevel = parseInt(row.get("fillLevel"));
+            double temperature = (row.get("temperature") != null && !row.get("temperature").isBlank())
+                    ? Double.parseDouble(row.get("temperature"))
+                    : 0.0;
+            int batteryLevel = (row.get("batteryLevel") != null && !row.get("batteryLevel").isBlank())
+                    ? parseInt(row.get("batteryLevel"))
+                    : 100;
 
-            lastReading = new com.ecolutions.platform.wastetrackplatform.containermonitoring.domain.model.aggregates.SensorReading(
-                    containerId, fill, temp, battery
+            CreateSensorReadingCommand command = new CreateSensorReadingCommand(
+                    containerId,
+                    fillLevel,
+                    temperature,
+                    batteryLevel
             );
+
+            lastReading = new SensorReading(command);
 
             if (row.get("recordedAt") != null && !row.get("recordedAt").isBlank()) {
                 String ts = row.get("recordedAt").trim();
@@ -138,14 +140,14 @@ public class SensorReadingSteps {
 
     @Given("existe una lectura recibida para el contenedor {string} con fillLevel {int}, temperature {int} y batteryLevel {int}")
     public void existe_una_lectura_recibida(String containerCode, Integer fill, Integer temp, Integer battery) {
-        ContainerId cid = new ContainerId(containerCode);
-        lastReading = new SensorReading(
-                cid,
-                new CurrentFillLevel(fill),
-                new Temperature(BigDecimal.valueOf(temp)),
-                new BatteryLevel(battery)
+        CreateSensorReadingCommand command = new CreateSensorReadingCommand(
+                containerCode,
+                fill,
+                temp.doubleValue(),
+                battery
         );
-        container = new FakeContainer(cid);
+        lastReading = new SensorReading(command);
+        container = new FakeContainer(new ContainerId(containerCode));
     }
 
     @When("el sistema valida la lectura")
@@ -226,14 +228,14 @@ public class SensorReadingSteps {
 
     @Given("existe una lectura válida con fillLevel {int} para {string}")
     public void existe_una_lectura_valida_con_fillLevel_para(Integer fill, String containerCode) {
-        ContainerId cid = new ContainerId(containerCode);
-        container = new FakeContainer(cid);
-        lastReading = new SensorReading(
-                cid,
-                new CurrentFillLevel(fill),
-                new Temperature(BigDecimal.valueOf(25)),
-                new BatteryLevel(80)
+        container = new FakeContainer(new ContainerId(containerCode));
+        CreateSensorReadingCommand command = new CreateSensorReadingCommand(
+                containerCode,
+                fill,
+                25.0,
+                80
         );
+        lastReading = new SensorReading(command);
         lastReading.validate();
         assertEquals(ValidationStatus.VALID, lastReading.getValidationStatus());
     }
@@ -357,5 +359,5 @@ public class SensorReadingSteps {
         void updateFill(int newFillPercentage) {
             this.currentFillLevelPercentage = newFillPercentage;
         }
-    }*/
+    }
 }

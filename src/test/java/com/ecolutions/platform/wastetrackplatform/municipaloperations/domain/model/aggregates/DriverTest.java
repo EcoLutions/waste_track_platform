@@ -1,8 +1,7 @@
 package com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.aggregates;
 
-import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.DriverLicense;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.CreateDriverCommand;
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.DriverStatus;
-import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,17 +18,19 @@ class DriverTest {
     @BeforeEach
     void setUp() {
         // Arrange
-        DistrictId districtId = new DistrictId("150101");
-        FullName fullName = new FullName("John", "Doe");
-        DocumentNumber documentNumber = new DocumentNumber("12345678");
-        PhoneNumber phoneNumber = new PhoneNumber("+51987654321");
-        UserId userId = new UserId("USR-001");
-        DriverLicense driverLicense = new DriverLicense("A1234567");
-        LocalDate expiryDate = LocalDate.now().plusYears(1);
-        EmailAddress emailAddress = new EmailAddress("john.doe@example.com");
+        CreateDriverCommand createCommand = new CreateDriverCommand(
+                "150101",
+                "John",
+                "Doe",
+                "12345678",
+                "+51987654321",
+                "USR-001",
+                "A1234567",
+                LocalDate.now().plusYears(1),
+                "john.doe@example.com"
+        );
 
-        // TODO: Use command instead of direct constructor
-        driver = new Driver();
+        driver = new Driver(createCommand);
     }
 
     @Test
@@ -46,9 +47,9 @@ class DriverTest {
     @DisplayName("Should complete route and update total hours and last route timestamp")
     void shouldCompleteRouteAndUpdateHours() {
         // Arrange
+        driver.setTotalHoursWorked(10);
         driver.startRoute();
         int hoursWorked = 5;
-        driver.setTotalHoursWorked(10);
 
         // Act
         driver.completeRoute(hoursWorked);
