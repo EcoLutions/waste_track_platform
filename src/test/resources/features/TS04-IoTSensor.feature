@@ -42,7 +42,7 @@ Feature: API de datos de sensores IoT
       | containerId   | fillLevel | temperature | batteryLevel |
       | CONTAINER-001 | 120       | 25          | 80           |
     Then la respuesta debe tener código 400
-    And el cuerpo de respuesta debe contener el mensaje "Percentage must be between 0 and 100"
+    And el cuerpo de respuesta debe contener el mensaje "Fill level percentage must be between 0 and 100"
 
   Scenario Outline: Autenticación requerida para registrar lecturas
     When envía una lectura con autenticación "<auth>"

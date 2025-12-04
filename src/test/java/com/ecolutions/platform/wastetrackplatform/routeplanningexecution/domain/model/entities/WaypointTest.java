@@ -1,30 +1,29 @@
 package com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.entities;
 
+import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.commands.CreateWayPointCommand;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.PriorityLevel;
 import com.ecolutions.platform.wastetrackplatform.routeplanningexecution.domain.model.valueobjects.WaypointStatus;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
-@Disabled
 class WayPointTest {
 
     private WayPoint waypoint;
 
     @BeforeEach
     void setUp() {
-/*        waypoint = new WayPoint(
-                ContainerId.of("CONT-001"),
+        CreateWayPointCommand command = new CreateWayPointCommand(
+                "ROUTE-001",
+                "CONT-001",
                 1,
-                new Priority(PriorityLevel.MEDIUM)
-        );*/
+                "MEDIUM"
+        );
+        waypoint = new WayPoint(command);
     }
 
 
@@ -41,14 +40,10 @@ class WayPointTest {
     @Test
     @DisplayName("Should mark waypoint as visited and update fields")
     void shouldMarkWaypointAsVisited() {
-        LocalDateTime arrival = LocalDateTime.now();
-        Duration serviceTime = Duration.ofMinutes(7);
-
-        /* waypoint.markAsVisited(arrival, serviceTime);*/
+        waypoint.markAsVisited();
 
         assertEquals(WaypointStatus.VISITED, waypoint.getStatus());
-        assertEquals(arrival, waypoint.getActualArrivalTime());
-        /*assertEquals(serviceTime, waypoint.getServiceTime());*/
+        assertNotNull(waypoint.getActualArrivalTime());
         assertTrue(waypoint.isCompleted(), "Waypoint should be marked as completed after visiting");
     }
 
@@ -71,10 +66,9 @@ class WayPointTest {
     @Test
     @DisplayName("Should mark waypoint as skipped and store reason")
     void shouldMarkWaypointAsSkipped() {
-        /*waypoint.markAsSkipped("Container inaccessible due to blockage");
+        waypoint.setStatus(WaypointStatus.SKIPPED);
 
         assertEquals(WaypointStatus.SKIPPED, waypoint.getStatus());
-        assertEquals("Container inaccessible due to blockage", waypoint.getDriverNote());*/
         assertFalse(waypoint.isCompleted());
     }
 

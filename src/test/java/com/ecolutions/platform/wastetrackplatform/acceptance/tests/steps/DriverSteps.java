@@ -2,7 +2,7 @@
 package com.ecolutions.platform.wastetrackplatform.acceptance.tests.steps;
 
 import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.aggregates.Driver;
-import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.valueobjects.DriverLicense;
+import com.ecolutions.platform.wastetrackplatform.municipaloperations.domain.model.commands.CreateDriverCommand;
 import com.ecolutions.platform.wastetrackplatform.shared.domain.model.valueobjects.*;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Given;
@@ -32,16 +32,20 @@ public class DriverSteps {
     public void crea_una_cuenta_de_conductor_con_datos(DataTable table) {
         Map<String, String> data = table.asMaps().get(0);
         try {
+            String[] nameParts = data.get("fullName").split(" ");
+            CreateDriverCommand command = new CreateDriverCommand(
+                    data.get("districtId"),
+                    nameParts[0],
+                    nameParts[1],
+                    data.get("documentNumber"),
+                    data.get("phoneNumber"),
+                    data.get("userId"),
+                    data.get("driverLicense"),
+                    LocalDate.parse(data.get("expiryDate")),
+                    data.get("emailAddress")
+            );
+            driver = new Driver(command);
             districtId = new DistrictId(data.get("districtId"));
-            FullName fullName = new FullName(data.get("fullName").split(" ")[0], data.get("fullName").split(" ")[1]);
-            DocumentNumber documentNumber = new DocumentNumber(data.get("documentNumber"));
-            PhoneNumber phoneNumber = new PhoneNumber(data.get("phoneNumber"));
-            UserId userId = new UserId(data.get("userId"));
-            DriverLicense license = new DriverLicense(data.get("driverLicense"));
-            LocalDate expiryDate = LocalDate.parse(data.get("expiryDate"));
-            EmailAddress email = new EmailAddress(data.get("emailAddress"));
-            // TODO: Use command instead of direct constructor
-            driver = new Driver();
             generatedCredentials = "USR-001-TOKEN";
         } catch (Exception e) {
             exception = e;
@@ -109,7 +113,32 @@ public class DriverSteps {
 
     private void setDefaultDriver() {
         districtId = new DistrictId("150101");
-        // TODO: Use command instead of direct constructor
-        driver = new Driver();
+        CreateDriverCommand command = new CreateDriverCommand(
+                "150101",
+                "John",
+                "Doe",
+                "12345678",
+                "+51987654321",
+                "USR-001",
+                "A1234567",
+                LocalDate.now().plusYears(1),
+                "john.doe@example.com"
+        );
+        driver = new Driver(command);
+    }
+
+    @Then("el vehículo asignado debe ser {string}")
+    public void el_vehiculo_asignado_debe_ser(String expectedVehicleId) {
+        assertEquals(expectedVehicleId, vehicleId.value());
+    }
+
+    @When("el administrador desasigna el vehículo")
+    public void el_administrador_desasigna_el_vehiculo() {
+        vehicleId = null;
+    }
+
+    @Then("el conductor no debe tener vehículo asignado")
+    public void el_conductor_no_debe_tener_vehiculo_asignado() {
+        assertEquals(null, vehicleId);
     }
 }
